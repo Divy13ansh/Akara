@@ -1,20 +1,22 @@
 # Akara — Watch. Explain. Learn.
 
-Feynman voice loop for NCERT grades 9-12.
+Feynman voice loop + Manim explainer library for NCERT grades 9-12.
+Start with `docs/onboarding.md`, then `docs/architecture.md`.
 
 ## Layout
-- `agent/` — LiveKit voice agent worker (STT/LLM/TTS session)
-- `server/` — FastAPI token server (`/token`), pre-session FAISS lookup goes here
-- `rag/` — offline NCERT retrieval (chunk + embed + FAISS), no hot-path tool
-- `scoring/` — async end-of-session scorer (transcript + rubric -> mastery)
-- `shared/` — shared schemas (TopicData etc.)
-- `scripts/` — run helpers
-- `tests/` — pytest
-- `data/` — gitignored NCERT raws + indices
-- `docs/` — architecture notes
+- `services/voice/` — LiveKit voice worker (the only live service right now)
+- `services/api/` — `/token`, library, progress, webhooks
+- `services/video/` — Manim pipeline (disconnected, future)
+- `packages/akara_common/` — `TopicData` contract
+- `packages/akara_rag/` — offline NCERT retrieval
+- `apps/web/` — learner UI (future)
+- `data/` — gitignored NCERT raws + FAISS indices
+- `infra/` — deploy/observability notes
+- `docs/` — extensive build docs
 
-## Run (skeleton only, no logic yet)
+## Quickstart (skeleton)
 ```sh
 cp .env.example .env.local
 uv sync
+pytest
 ```

@@ -1,21 +1,21 @@
 [project]
 name = "akara"
 version = "0.1.0"
-description = "Akara: Watch. Explain. Learn. - NCERT Feynman voice loop"
+description = "Akara monorepo (voice + video + api)"
 requires-python = ">=3.11"
-dependencies = [
-  "livekit-agents>=1.2",
-  "livekit-plugins-ai-coustics",
-  "python-dotenv",
-  "fastapi",
-  "uvicorn",
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+  "services/voice",
+  "services/api",
+  "services/video",
+  "packages/akara_common",
+  "packages/akara_rag",
 ]
 
 [dependency-groups]
-dev = [
-  "pytest",
-  "ruff",
-]
+dev = ["pytest", "ruff", "httpx", "fastapi"]
 
 [tool.ruff]
 line-length = 100
