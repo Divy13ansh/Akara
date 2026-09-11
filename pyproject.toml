@@ -1,0 +1,21 @@
+[project]
+name = "akara"
+version = "0.1.0"
+description = "Akara: Watch. Explain. Learn. - NCERT Feynman voice loop"
+requires-python = ">=3.11"
+dependencies = [
+  "livekit-agents>=1.2",
+  "livekit-plugins-ai-coustics",
+  "python-dotenv",
+  "fastapi",
+  "uvicorn",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "ruff",
+]
+
+[tool.ruff]
+line-length = 100
