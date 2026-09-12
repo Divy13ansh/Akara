@@ -8,7 +8,7 @@ deliberately for velocity ("worked like butter"). Swap before submission.
 
 | Layer | Now (hybrid) | Open target | Notes |
 |---|---|---|---|
-| STT | Deepgram Nova-3 multi | AI4Bharat IndicConformer / IndicASR, or Whisper large-v3-turbo self-hosted | Must keep Hindi + codeswitch quality; benchmark WER first |
+| STT | ✅ **DONE** — VEXYL-STT (AI4Bharat IndicConformer 600M, self-hosted) | — | See `vexyl-stt.md`. Swapped from Deepgram Nova-3. |
 | LLM tutor | Gemma-4-31b hosted | Qwen2.5-7B-Instruct (+ LoRA Socratic, DPO no-leak) | Self-host via vLLM/Ollama; tutor + scorer share base, different adapters |
 | TTS | Cartesia Sonic-3 | AI4Bharat IndicTTS / Kyutai Unmute / Coqui XTTS-v2 | Regional pitch tuning; one voice per lang, re-dub without re-render |
 | VAD | inference.VAD | Silero VAD (`livekit-plugins-silero`) | Already open, trivial swap |

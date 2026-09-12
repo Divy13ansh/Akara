@@ -6,10 +6,11 @@
 `AgentServer.rtc_session`. Transport = LiveKit room audio. Brain = Socratic
 prompt injected with `{topic, script, rubric}` from `ctx.job.metadata`.
 
-Current dev stack (hybrid, will swap — see `open-weights.md`):
+Current dev stack (hybrid, swapping to open — see `open-weights.md`):
 
-- `stt=inference.STT(model="deepgram/nova-3", language="multi")` — multilingual
-  + codeswitch (includes Hindi). `keyterm_detection` is English-only (no-op for Hindi).
+- `stt=VexylSTT(language="hi-IN")` — self-hosted AI4Bharat IndicConformer via
+  VEXYL-STT WebSocket server. See `vexyl-stt.md` for full details.
+  Replaced: `inference.STT(model="deepgram/nova-3")`.
 - `llm=inference.LLM(model="google/gemma-4-31b-it")`
 - `tts=inference.TTS(model="cartesia/sonic-3", voice="British Lady", language=...)`
 - `vad=inference.VAD()`, `TurnDetector()` + `preemptive_generation` ON

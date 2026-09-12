@@ -28,6 +28,7 @@ from livekit.agents import (
 )
 from livekit.agents.beta.tools import EndCallTool
 from livekit.plugins import ai_coustics
+from vexyl_stt_plugin import VexylSTT
 
 try:
     from akara_common.schemas import TopicData, Transcript, TranscriptTurn
@@ -45,10 +46,12 @@ load_dotenv(".env.local")
 DEFAULT_TTS_VOICE = "79a125e8-cd45-4c13-8a67-188112f4dd22"  # Cartesia multilingual
 
 
-def build_stt():
-    # "multi" enables Nova-3 multilingual/codeswitching (incl. Hindi).
-    # NOTE: keyterm detection is English-only — no-op for Hindi, not an error.
-    return inference.STT(model="deepgram/nova-3", language="multi")
+def build_stt(lang: str = "hi-IN"):
+    # SWAPPED: Deepgram Nova-3 (cloud) → VEXYL-STT (self-hosted, open-weight).
+    # Old: return inference.STT(model="deepgram/nova-3", language="multi")
+    # VEXYL-STT runs AI4Bharat IndicConformer locally via WebSocket.
+    # Requires: VEXYL-STT server running (cd ../vexyl-stt && ./run.sh)
+    return VexylSTT(language=lang)
 
 
 def build_llm():
@@ -241,12 +244,17 @@ async def dump_transcript(session: AgentSession, topic: TopicData, room_name: st
 @server.rtc_session(agent_name="akara-voice")
 async def entrypoint(ctx: JobContext):
     topic_data = resolve_topic_data(ctx.job.metadata)
+    # Per-session STT language: use full BCP-47 for VEXYL-STT (e.g. "hi-IN").
+    stt_lang = topic_data.lang or "hi"
+    if "-" not in stt_lang:
+        stt_lang = f"{stt_lang}-IN"  # VEXYL-STT expects "hi-IN", not "hi"
     # Per-session TTS language: metadata lang wins, fallback "hi" (back-compat).
     tts_lang = (topic_data.lang or "hi").split("-")[0]
 
     session = AgentSession(
-        stt=build_stt(),
-        stt_context_options={"keyterm_detection": {"enabled": True}},
+        stt=build_stt(stt_lang),
+        # NOTE: stt_context_options (keyterm detection) is Deepgram-specific,
+        # not applicable to VEXYL-STT. Removed.
         llm=build_llm(),
         tts=build_tts(tts_lang),
         expressive=True,
