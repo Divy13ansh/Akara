@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Hide scrollbar globally but allow scrolling */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@font-face {
+  font-family: 'Tropika Island';
+  src: url('/fonts/aiyari-tropika-island-int.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Tropika Island Script Casual';
+  src: url('/fonts/aiyari-tropika-island-script-casual.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Tropika Island Extras';
+  src: url('/fonts/aiyari-tropika-island-extras.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}

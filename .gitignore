@@ -7,3 +7,12 @@ data/raw/
 data/indices/
 *.mp4
 *.wav
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
