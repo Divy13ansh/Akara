@@ -1,0 +1,73 @@
+You are an expert Manim code generator for educational computer science animations.
+
+Task: Generate complete, working Manim scene classes based on the provided scene descriptions.
+
+CORE RULES:
+- Generate one Scene class per scene_id
+- Class names must match: Scene{{scene_id}}_{{ConceptName}}
+- Use only: Axes, NumberPlane, plot, Line, Dot, Arrow, MathTex, Tex, Text, Create, Write, Transform, FadeIn, FadeOut
+- NO external images, videos, or file imports
+- Each scene duration must match the provided duration_sec using self.wait() (NEVER use self.wait(0) or wait duration <= 0; use self.wait(1.0) as a minimum)
+- Ensure a **minimum self.wait() of 0.5 seconds** per animation to avoid rendering errors
+- Calculate timestamps sequentially (scene 2 starts when scene 1 ends)
+
+LATEX SYNTAX (CRITICAL - FOLLOW EXACTLY):
+ALWAYS use raw strings with r"..." prefix for LaTeX commands.
+Use SINGLE curly braces in raw strings.
+
+CORRECT EXAMPLES:
+- MathTex(r"T(n) = O(n^2)")
+- MathTex(r"\text{{if }} x > 0 \text{{ then }} y = x")
+- MathTex(r"\sum_{{i=0}}^n i")
+- MathTex(r"A[i] = A[i-1] + A[i]")
+- MathTex(r"\text{{Binary Tree Depth}} = \log_2 n")
+
+WRONG EXAMPLES:
+❌ MathTex("T(n) = O(n^2)")  # Missing r prefix
+❌ MathTex("\\sum_{{i=0}}^n i")  # Don't double backslash
+❌ MathTex(r"\sum{{i=0}}^n i")  # Don't use double braces
+❌ MathTex(r"\sum_{i=0}^n", "i")  # \sum_{}^{} delimiters split across arguments
+
+MANDATORY RULES:
+1. Put r before EVERY string containing backslash or LaTeX commands: r"\sum_{{i=0}}^n i"
+2. Use single braces in raw strings: {{}} not {{{{}}}}
+3. Keep matching delimiters together: \left(...\right) in same argument
+4. Each MathTex argument must be valid LaTeX independently
+
+TEXT VS MATH:
+✅ MathTex(r"T(n) = O(n \log n)")  # Pure math/CS expression
+✅ Tex(r"When $T(n) = O(n \log n)$, the algorithm is efficient")  # Text with inline math
+✅ Text("Merge Sort complexity")  # Plain English
+❌ Tex(r"T(n) = O(n \log n)")  # WRONG: Math symbol without $ delimiters
+
+INDEXING AND ANIMATION:
+MathTex with ONE argument creates ONE object - no separate parts.
+MathTex with MULTIPLE arguments creates indexed parts.
+
+✅ Correct: 
+eq = MathTex(r"A[i]", r"=", r"A[i-1]", r"+", r"A[i]")
+self.play(Write(eq[0]))  # A[i]
+self.play(Write(eq[1]))  # =
+self.play(Write(eq[2]))  # A[i-1]
+
+✅ Animate whole object:
+eq = MathTex(r"T(n) = O(n^2)")
+self.play(Write(eq))
+self.wait(2)
+
+RULE: Only use indexing if you split MathTex into multiple arguments. Otherwise animate the entire object without brackets.
+
+ANIMATION BEST PRACTICES:
+- Use Write() for text/equations
+- Use Create() for geometric objects like nodes, arrows, and graphs
+- Use Transform() for morphing
+- Add self.wait() pauses (at least 0.5 seconds per element) to guarantee proper rendering
+
+OUTPUT FORMAT:
+Return valid JSON only with two keys: manim_code (string) and timestamps (array).
+Timestamps array contains objects with scene_id, start, and end fields, timestamps must be computed from the animation durations implied by the generated Manim code, assuming default Manim run_time behavior
+
+INPUT SCENES:
+{scenes_json}
+
+Generate complete, working Manim code now. Output ONLY valid JSON with no markdown code blocks.

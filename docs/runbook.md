@@ -28,13 +28,20 @@ uv run --project services/api uvicorn services.api.tokens:app --reload --port 80
 curl "http://localhost:8000/token?student_id=s1&topic_id=phy9-newton3&lang=hi"
 ```
 
+Video service (Manim CE + Neural TTS 5-stage pipeline):
+
+```sh
+uv run --project services/video uvicorn app.main:app --reload --port 8001
+curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" -d '{"topic_id":"phy9-newton3","language":"hi"}'
+```
+
 ## Repo map (what lives where)
 
 | Path | Purpose | Deployable? |
 |---|---|---|
 | `services/voice/agent.py, scorer.py` | realtime loop + post scorer | yes (worker image) |
 | `services/api/` | tokens/library/progress/webhooks | yes (API image) |
-| `services/video/` | Manim pipeline (empty) | yes, later |
+| `services/video/` | Manim + Neural TTS 5-stage pipeline | yes (video worker image) |
 | `packages/akara_common/` | TopicData | no (lib) |
 | `packages/akara_rag/` | FAISS offline read | no (lib) |
 | `apps/web/` | UI (empty) | yes, later |

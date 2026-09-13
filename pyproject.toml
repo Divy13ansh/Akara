@@ -15,7 +15,8 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "ruff", "httpx", "fastapi"]
+dev = ["pytest", "ruff", "httpx", "fastapi", "python-dotenv", "openai", "requests"]
 
 [tool.ruff]
 line-length = 100
+

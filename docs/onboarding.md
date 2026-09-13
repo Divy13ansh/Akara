@@ -23,7 +23,7 @@ Only the **voice loop skeleton** is live. Everything else is placeholders:
 | Offline RAG | TODO skeleton | `packages/akara_rag/retrieve.py` |
 | Scorer | TODO skeleton | `services/voice/scorer.py` |
 | Shared contract | `TopicData` dataclass only | `packages/akara_common/schemas.py` |
-| Video pipeline | intentionally empty/disconnected | `services/video/` |
+| Video pipeline | 5-stage Manim + Neural TTS engine | `services/video/` |
 | Web UI | README only | `apps/web/` |
 
 ## How the loop works (30 seconds)
