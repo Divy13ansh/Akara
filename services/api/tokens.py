@@ -2,29 +2,51 @@
 
 GET /token?student_id=...&topic_id=...&lang=... -> {token, room, topic}
 Does pre-session lookup via akara_rag, then mints a LiveKit token with
-TopicData as job metadata. See docs/auth-traces-cost.md.
+SessionMetadata (TopicData + student_id + room_name) as job metadata.
+Also mounts POST /webhooks/transcript for the voice agent shutdown hook.
+See docs/auth-traces-cost.md.
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "packages"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "services"))
 
 try:
-    from akara_common.schemas import TopicData
+    from akara_common.schemas import SessionMetadata, TopicData
     from akara_rag.retrieve import fetch_topic, list_topics
 except ImportError:
-    from packages.akara_common.schemas import TopicData  # type: ignore
+    from packages.akara_common.schemas import (  # type: ignore
+        SessionMetadata,
+        TopicData,
+    )
     from packages.akara_rag.retrieve import fetch_topic, list_topics  # type: ignore
 
+try:
+    from api.webhooks import handle_transcript
+except ImportError:
+    from services.api.webhooks import handle_transcript  # type: ignore
+
+logger = logging.getLogger("akara-api")
+
 app = FastAPI(title="akara-api")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def _mint_livekit_token(room: str, identity: str, metadata: str) -> str:
@@ -77,11 +99,26 @@ def token(
     if topic is None:
         raise HTTPException(404, f"unknown topic_id: {topic_id}")
     room = f"{topic_id}-{student_id}-{int(time.time())}"
-    metadata = topic.to_metadata_json()
-    jwt = _mint_livekit_token(room, student_id, metadata)
+    session_meta = SessionMetadata(topic=topic, student_id=student_id, room_name=room)
+    metadata_json = session_meta.to_json()
+    jwt = _mint_livekit_token(room, student_id, metadata_json)
     return {
         "token": jwt,
         "room": room,
         "url": os.getenv("LIVEKIT_URL", ""),
-        "topic": json.loads(metadata),
+        "topic": json.loads(topic.to_metadata_json()),
     }
+
+
+@app.post("/webhooks/transcript")
+async def webhook_transcript(request: Request):
+    """Receive transcript from voice agent, score it, store progress."""
+    payload = await request.json()
+    try:
+        result = handle_transcript(payload)
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        logger.error("Webhook processing failed: %s", e)
+        raise HTTPException(500, "Scorer failed")

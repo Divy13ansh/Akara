@@ -7,11 +7,8 @@ dependencies = []
 
 [tool.uv.workspace]
 members = [
-  "services/voice",
-  "services/api",
-  "services/video",
-  "packages/akara_common",
-  "packages/akara_rag",
+  "services/*",
+  "packages/*",
 ]
 
 [dependency-groups]

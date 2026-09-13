@@ -1,0 +1,13 @@
+[project]
+name = "akara-scorer"
+version = "0.1.0"
+description = "Akara post-call scorer service (Azure OpenAI)"
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.30",
+  "python-dotenv",
+  "httpx",
+]
+
+[tool.ruff]
+line-length = 100
