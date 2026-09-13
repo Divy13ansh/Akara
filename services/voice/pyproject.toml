@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Akara voice worker (LiveKit Feynman loop)"
 requires-python = ">=3.11"
 dependencies = [
+  "dotenv>=0.9.9",
   "livekit-agents>=1.2",
   "livekit-plugins-ai-coustics",
   "python-dotenv",

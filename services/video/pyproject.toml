@@ -1,9 +1,23 @@
 [project]
 name = "akara-video"
 version = "0.1.0"
-description = "Akara video pipeline (Manim CE, future)"
+description = "Akara video pipeline (5-stage Manim CE + Neural TTS engine)"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "python-dotenv",
+  "pydantic",
+  "requests",
+  "rich",
+  "pillow",
+  "numpy",
+  "scipy",
+  "pydub",
+  "srt",
+  "openai",
+  "azure-cognitiveservices-speech",
+]
 
 [tool.ruff]
 line-length = 100
