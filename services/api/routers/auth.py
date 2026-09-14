@@ -5,6 +5,7 @@ onboarding_completed}}."""
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import UTC, datetime
 
@@ -19,11 +20,14 @@ from services.api.redis_client import rate_limit
 from services.api.security import (
     create_access_token,
     hash_password,
+    verify_google_access_token,
     verify_google_id_token,
     verify_password,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+logger = logging.getLogger("akara.auth")
 
 
 def _gen_user_id() -> str:
@@ -95,9 +99,13 @@ async def login(payload: LoginPayload, request: Request, session: DbSession):
     user = (
         await session.execute(select(User).where(User.email == payload.email.lower()))
     ).scalar_one_or_none()
-    if user is None or not user.password_hash or not verify_password(
-        payload.password, user.password_hash
+    if (
+        user is None
+        or not user.password_hash
+        or not verify_password(payload.password, user.password_hash)
     ):
+        # No PII in logs: failed-password vs unknown-email is not distinguished.
+        logger.warning("login rejected (401) from %s", client_ip(request))
         raise HTTPException(401, "Invalid email or password")
 
     user.last_login_at = datetime.now(UTC)
@@ -108,28 +116,48 @@ async def login(payload: LoginPayload, request: Request, session: DbSession):
 
 
 class GoogleAuthPayload(BaseModel):
-    id_token: str
+    id_token: str | None = None
+    access_token: str | None = None
     provider: str = "google"
 
 
 @router.post("/google")
 async def google_auth(payload: GoogleAuthPayload, request: Request, session: DbSession):
-    if not settings.google_client_id:
+    """Google sign-in AND sign-up (contract §1.3: never prompt — a Google
+    account that has never signed in before gets an account auto-created).
+    Accepts either a GIS id_token (One Tap / rendered button) or an OAuth2
+    access token (popup token-client flow, reliable on localhost)."""
+    if not settings.google_client_id and not getattr(settings, "google_client_ids", []):
         raise HTTPException(501, "Google sign-in not configured (GOOGLE_CLIENT_ID unset)")
 
-    claims = verify_google_id_token(payload.id_token)
-    if claims is None:
-        raise HTTPException(400, "Invalid or expired Google credential")
+    claims: dict | None = None
+    if payload.id_token:
+        claims = verify_google_id_token(payload.id_token)
+        if claims is None:
+            raise HTTPException(
+                401,
+                "Google credential not recognized — the sign-in expired or the "
+                "app's Google client ID doesn't match. Please try again.",
+            )
+    elif payload.access_token:
+        claims = verify_google_access_token(payload.access_token)
+        if claims is None:
+            raise HTTPException(
+                401,
+                "Google sign-in expired or not recognized. Please try again.",
+            )
+    else:
+        raise HTTPException(422, "Provide id_token or access_token")
 
-    google_id = claims["sub"]
+    google_id = claims.get("sub")
+    if not google_id:
+        raise HTTPException(400, "Google account did not return an identity")
     email = (claims.get("email") or "").lower()
     user = (
         await session.execute(select(User).where(User.google_id == google_id))
     ).scalar_one_or_none()
     if user is None and email:
-        user = (
-            await session.execute(select(User).where(User.email == email))
-        ).scalar_one_or_none()
+        user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
         if user is not None and user.google_id is None:
             user.google_id = google_id  # link existing password account
 

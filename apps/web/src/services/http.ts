@@ -54,6 +54,13 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     throw new ApiError(0, "Network unreachable. Check connection.");
   }
   if (res.status === 401) {
+    // Auth endpoints (login/signup/google) 401 = wrong credentials, NOT an
+    // expired session: surface the server's message and never wipe the token
+    // or bounce to /login (that loop produced the phantom "Session expired"
+    // on the login form itself).
+    if (path.startsWith("/api/auth/")) {
+      throw new ApiError(res.status, await res.text());
+    }
     setToken(null);
     if (window.location.pathname !== "/login" && window.location.pathname !== "/signup") {
       window.location.assign("/login");

@@ -9,6 +9,7 @@ arq>=0.26
 PyJWT>=2.8
 bcrypt>=4.1
 google-auth>=2.29
+requests>=2.31  # required by google-auth's transport (Google id_token verify)
 boto3>=1.34
 httpx>=0.27
 python-dotenv>=1.0

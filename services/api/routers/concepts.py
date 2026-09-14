@@ -71,21 +71,32 @@ async def _available_languages(session, concept_id: str) -> list[str]:
     if cached is not None:
         return cached
     rows = (
-        await session.execute(
-            select(ConceptMedia.lang).where(
-                ConceptMedia.concept_id == concept_id,
-                ConceptMedia.status == MediaStatus.COMPLETE,
+        (
+            await session.execute(
+                select(ConceptMedia.lang).where(
+                    ConceptMedia.concept_id == concept_id,
+                    ConceptMedia.status == MediaStatus.COMPLETE,
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     langs = sorted(set(rows))
     await cache_set_json(f"cache:media:{concept_id}:langs", langs, settings.cache_ttl_global)
     return langs
 
 
-def _status_payload(status: str, concept_id: str, lang: str, langs: list[str],
-                    progress: int = 0, stage: str | None = None,
-                    eta: int = 0, queue_position: int = 0) -> dict:
+def _status_payload(
+    status: str,
+    concept_id: str,
+    lang: str,
+    langs: list[str],
+    progress: int = 0,
+    stage: str | None = None,
+    eta: int = 0,
+    queue_position: int = 0,
+) -> dict:
     out = {
         "status": status,
         "progress_percent": progress,
@@ -103,7 +114,9 @@ def _status_payload(status: str, concept_id: str, lang: str, langs: list[str],
 
 
 @router.get("/{concept_id}/generation-status")
-async def generation_status(concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None):
+async def generation_status(
+    concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None
+):
     """Language: explicit ?lang= wins, else the student's profile
     default_language, else "hi" — one rule across the whole platform."""
     if lang is None:
@@ -169,7 +182,12 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
             eta = max(0, EST_TOTAL_SECONDS - int((progress / 100) * EST_TOTAL_SECONDS))
             payload = _status_payload(
                 "generating_first_time" if media.status == MediaStatus.PENDING else "finishing_dub",
-                concept_id, lang, langs, progress=progress, stage=stage, eta=eta,
+                concept_id,
+                lang,
+                langs,
+                progress=progress,
+                stage=stage,
+                eta=eta,
             )
             await cache_set_json(cache_key, payload, settings.cache_ttl_genstatus)
             return payload
@@ -178,10 +196,20 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
     async with distributed_lock(f"render:{concept_id}:{lang}", ttl_seconds=600) as mine:
         if not mine:
             # Someone else is creating the job right now — report as generating.
-            return _status_payload("generating_first_time", concept_id, lang, langs,
-                                   progress=1, stage="queued", eta=EST_TOTAL_SECONDS)
+            return _status_payload(
+                "generating_first_time",
+                concept_id,
+                lang,
+                langs,
+                progress=1,
+                stage="queued",
+                eta=EST_TOTAL_SECONDS,
+            )
 
         # Re-check inside the lock (double-create guard across workers).
+        # Media rows are global per (concept, lang) — one render serves every
+        # student, so a second student arriving mid-render must attach to the
+        # in-flight job, never trigger a duplicate render (token waste).
         media = (
             await session.execute(
                 select(ConceptMedia).where(
@@ -192,16 +220,52 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
         if media is not None and media.status in (MediaStatus.COMPLETE, MediaStatus.PROCESSING):
             payload = _status_payload(
                 "instant" if media.status == MediaStatus.COMPLETE else "finishing_dub",
-                concept_id, lang, langs, progress=100 if media.status == MediaStatus.COMPLETE else 5,
+                concept_id,
+                lang,
+                langs,
+                progress=100 if media.status == MediaStatus.COMPLETE else 5,
             )
             return payload
+        live_job = (
+            await session.execute(
+                select(VideoRenderJob)
+                .where(
+                    VideoRenderJob.concept_id == concept_id,
+                    VideoRenderJob.lang == lang,
+                    VideoRenderJob.status.in_(["pending", "processing"]),
+                )
+                .order_by(VideoRenderJob.created_at.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        if live_job is not None:
+            # Fresh in-flight render owned by another student/request — attach.
+            stale_cutoff = datetime.now(UTC) - timedelta(minutes=settings.render_stale_minutes)
+            if live_job.status == "processing" or (
+                live_job.created_at is not None and live_job.created_at >= stale_cutoff
+            ):
+                stage = live_job.current_stage or "queued"
+                return _status_payload(
+                    "generating_first_time",
+                    concept_id,
+                    lang,
+                    langs,
+                    progress=2,
+                    stage=stage,
+                    eta=EST_TOTAL_SECONDS,
+                )
+            # Stale pending job (worker died before callback) — mark dead so a
+            # single fresh render replaces it instead of piling on.
+            live_job.status = "failed"
+            live_job.error = "stale: no progress from video service"
+            if media is not None:
+                media.status = MediaStatus.FAILED
 
-        failed_before = 0
-        if media is not None:
-            failed_before = getattr(media, "retry_count", 0)
-            if failed_before >= settings.render_max_auto_retries:
-                return _status_payload("failed", concept_id, lang, langs,
-                                       stage=media.current_stage)
+        failed_before = media.retry_count if media is not None else 0
+        if failed_before >= settings.render_max_auto_retries:
+            return _status_payload(
+                "failed", concept_id, lang, langs, stage=(media.current_stage if media else None)
+            )
 
         # D-16 global render cap: when all render slots are busy, report a
         # queue position instead of piling more Manim jobs onto the machine.
@@ -210,16 +274,24 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
         if not await acquire_render_slot():
             # All render slots busy — everyone attaches to the queue instead.
             payload = _status_payload(
-                "generating_first_time", concept_id, lang, langs,
-                progress=1, stage="queued", eta=EST_TOTAL_SECONDS, queue_position=2,
+                "generating_first_time",
+                concept_id,
+                lang,
+                langs,
+                progress=1,
+                stage="queued",
+                eta=EST_TOTAL_SECONDS,
+                queue_position=2,
             )
             return payload
 
         video_id = f"vid-{uuid.uuid4().hex[:12]}"
         if media is None:
             media = ConceptMedia(
-                concept_id=concept_id, lang=lang,
-                status=MediaStatus.PENDING, current_stage="queued",
+                concept_id=concept_id,
+                lang=lang,
+                status=MediaStatus.PENDING,
+                current_stage="queued",
                 progress_percent=0,
             )
             session.add(media)
@@ -228,10 +300,17 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
             media.status = MediaStatus.PENDING
             media.current_stage = "queued"
             media.error = None
+        # Spend one attempt from the row's budget (terminal failures stop here
+        # instead of re-rendering — and re-burning tokens — on every poll).
+        media.retry_count = (media.retry_count or 0) + 1
 
         job = VideoRenderJob(
-            id=video_id, concept_id=concept_id, lang=lang, media_id=media.id,
-            status="pending", current_stage="queued",
+            id=video_id,
+            concept_id=concept_id,
+            lang=lang,
+            media_id=media.id,
+            status="pending",
+            current_stage="queued",
         )
         session.add(job)
         await session.commit()
@@ -246,8 +325,15 @@ async def generation_status(concept_id: str, lang: str | None = None, user: Curr
             await session.commit()
             raise HTTPException(502, "Video service unreachable; try again later")
 
-        payload = _status_payload("generating_first_time", concept_id, lang, langs,
-                                  progress=1, stage="queued", eta=EST_TOTAL_SECONDS)
+        payload = _status_payload(
+            "generating_first_time",
+            concept_id,
+            lang,
+            langs,
+            progress=1,
+            stage="queued",
+            eta=EST_TOTAL_SECONDS,
+        )
         await cache_set_json(cache_key, payload, settings.cache_ttl_genstatus)
         return payload
 
@@ -285,7 +371,9 @@ async def ask_doubt(concept_id: str, payload: DoubtPayload, user: CurrentUser, s
         f"Ground the answer in this script; if the question goes beyond it, answer "
         f"briefly from NCERT-level knowledge without inventing facts.\n"
         f"Reply in {language} (Devanagari if Hindi), max 120 words, warm and "
-        f"grade-appropriate. End with a tiny nudge to re-watch the relevant part "
+        f"grade-appropriate. Use short paragraphs (line breaks between ideas), "
+        f"**bold** for key terms, and one step per line for math — never a "
+        f"single unbroken line. End with a tiny nudge to re-watch the relevant part "
         f"only if useful."
         f"\n\nSCRIPT:\n{concept.script or '(no script)'}"
     )
@@ -316,7 +404,9 @@ async def ask_doubt(concept_id: str, payload: DoubtPayload, user: CurrentUser, s
 
 
 @router.get("/{concept_id}/media")
-async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None):
+async def get_media(
+    concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None
+):
     """Unified bundle: video URL + script + quiz + scene graph + mentor prompt."""
     concept = await _concept_or_404(session, concept_id)
     language = lang or user.default_language or "hi"
@@ -342,12 +432,26 @@ async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser 
     # D-7 on-demand fallback: video is ready but quiz content never generated
     # (e.g. callback enqueue lost). Mark the row 'generating' and enqueue once;
     # this client gets quiz=[] now, every later one gets the full set.
+    # Recovery: a row stuck at 'generating' (crashed worker run) or 'failed' is
+    # reset and re-enqueued under a FRESH arq job id — reusing the old id would
+    # silently no-op (arq never re-runs a completed job id) and strand it forever.
     if quiz_row is None:
         from services.api.queue import enqueue_quiz_generation
         from services.api.quiz_gen import ensure_quiz_row
 
         quiz_row, _created = await ensure_quiz_row(session, concept_id, language)
         await enqueue_quiz_generation(concept_id, language)
+    elif not quiz_row.quiz and quiz_row.generation_status in ("failed", "generating"):
+        from datetime import UTC, datetime, timedelta
+
+        stale_cutoff = datetime.now(UTC) - timedelta(minutes=15)
+        created = quiz_row.created_at
+        if quiz_row.generation_status == "failed" or created is None or created < stale_cutoff:
+            from services.api.queue import enqueue_quiz_generation as _enqueue
+
+            quiz_row.generation_status = "generating"
+            await session.commit()
+            await _enqueue(concept_id, language, fresh=True)
 
     chapter = await session.get(Chapter, concept.chapter_id)
     subject = await session.get(Subject, concept.subject_id)
@@ -361,8 +465,13 @@ async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser 
         quiz_status = "ready"
 
     duration = media.duration_seconds or 0
-    video_url = public_url(video_key(concept_id, language, media.source_video_id or "current", "final.mp4")) \
-        if False else public_url(media.video_r2_key) if media.video_r2_key else None
+    video_url = (
+        public_url(video_key(concept_id, language, media.source_video_id or "current", "final.mp4"))
+        if False
+        else public_url(media.video_r2_key)
+        if media.video_r2_key
+        else None
+    )
 
     summary = quiz_row.summary if quiz_row and quiz_row.summary else {}
     flashcards = summary.get("flashcards") or [
@@ -371,10 +480,18 @@ async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser 
         if isinstance(d, dict) and d.get("term")
     ]
 
+    # Localized concept title for cards/headers (cards previously repeated the
+    # English DB name on every card regardless of language).
+    from services.api.quiz_gen import localize_topic_name
+
+    topic_name = await localize_topic_name(session, quiz_row, concept, language)
+
     return {
         "concept_id": concept_id,
         "concept_name": concept.name,
-        "ncert_citation": concept.ncert_citation or f"NCERT — Class {concept.class_} {subject.name if subject else ''} · Chapter {chapter.name if chapter else ''}",
+        "topic_name": topic_name,
+        "ncert_citation": concept.ncert_citation
+        or f"NCERT — Class {concept.class_} {subject.name if subject else ''} · Chapter {chapter.name if chapter else ''}",
         "language": language,
         "available_languages": langs,
         "video": {

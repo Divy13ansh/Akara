@@ -153,6 +153,12 @@ class ConceptMedia(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
     current_stage: Mapped[str | None] = mapped_column(String(40))  # VideoStage values
     progress_percent: Mapped[int] = mapped_column(SmallInteger, default=0, nullable=False)
+    # Auto-render attempts spent on this row (generation-status trigger path).
+    # Caps re-renders after terminal failures so a deterministically failing
+    # render (e.g. missing system latex) can't burn tokens forever.
+    retry_count: Mapped[int] = mapped_column(
+        SmallInteger, default=0, server_default="0", nullable=False
+    )
     est_seconds_remaining: Mapped[int | None] = mapped_column(SmallInteger)
     error: Mapped[str | None] = mapped_column(Text)
     video_r2_key: Mapped[str | None] = mapped_column(Text)  # videos/{concept}/{lang}/{video_id}/final.mp4

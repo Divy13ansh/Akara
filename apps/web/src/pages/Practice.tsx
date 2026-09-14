@@ -88,6 +88,10 @@ export default function Practice() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conceptData, setConceptData] = useState<GeneratedConceptData | null>(null);
+  // Media (video/audio bundle) is global per (concept, lang) — when it 404s the
+  // render is still in flight, so we show a friendly "getting ready" state and
+  // retry instead of an infinite skeleton.
+  const [mediaNotReady, setMediaNotReady] = useState(false);
 
   // Determine if a specific activity is active from path params or query params
   const queryMode = searchParams.get('mode') as PracticeMode | null;
@@ -100,27 +104,69 @@ export default function Practice() {
   // Context query parameters
   const langParam = searchParams.get('lang') || '';
 
-  // Load unified shared concept data (backend media bundle; lang omitted → profile default)
+  // Load unified shared concept data (backend media bundle; lang omitted → profile default).
+  // The bundle is shared across all students per (concept, lang): a 404 means
+  // the render is still in flight, so poll and retry instead of failing.
   useEffect(() => {
     const targetConceptId = conceptId || 'cr-02';
+    let cancelled = false;
 
     async function load() {
       setLoading(true);
       setError(null);
+      setMediaNotReady(false);
       try {
         const profile = await authService.getProfile();
+        if (cancelled) return;
         setUser(profile);
-        const data = await conceptMediaService.getGeneratedConceptData(targetConceptId, langParam || undefined);
-        setConceptData(data);
+        try {
+          const data = await conceptMediaService.getGeneratedConceptData(targetConceptId, langParam || undefined);
+          if (cancelled) return;
+          setConceptData(data);
+          setMediaNotReady(false);
+        } catch (mediaErr) {
+          const { ApiError } = await import('../services/http');
+          if (mediaErr instanceof ApiError && mediaErr.status === 404) {
+            // Render in flight — poll until it lands, then retry once per poll.
+            if (cancelled) return;
+            setMediaNotReady(true);
+            setLoading(false);
+            const pollLang = langParam || undefined;
+            try {
+              await conceptMediaService.pollGenerationStatus(
+                targetConceptId,
+                pollLang,
+                () => {},
+                5000,
+                60,
+              );
+            } catch { /* polling is best-effort */ }
+            if (cancelled) return;
+            try {
+              const data = await conceptMediaService.getGeneratedConceptData(targetConceptId, langParam || undefined);
+              if (cancelled) return;
+              setConceptData(data);
+              setMediaNotReady(false);
+            } catch {
+              if (!cancelled) setMediaNotReady(true);
+            } finally {
+              if (!cancelled) setLoading(false);
+            }
+            return;
+          }
+          throw mediaErr;
+        }
       } catch (err) {
+        if (cancelled) return;
         const { parseError } = await import('../services/http');
         setError(parseError(err));
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     load();
+    return () => { cancelled = true; };
   }, [conceptId, langParam]);
 
   // Navigate to dedicated activity page
@@ -188,7 +234,7 @@ export default function Practice() {
             )}
             {conceptData?.quizStatus === 'generating' && (
               <div className="mt-3 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 max-w-2xl">
-                Quiz + mind-map content still generating for this language — Listen and Concept Card work now; Quiz unlocks in ~10s (refresh).
+                Your quiz and mind map are almost ready — Listen and Concept Card work now; the rest will unlock shortly (refresh).
               </div>
             )}
           </div>
@@ -242,10 +288,10 @@ export default function Practice() {
           {/* Header Section matching Home / Learn layout */}
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight mb-2">
-              {activeMode === 'card' 
-                ? 'Practice: Chemical Equations & Balancing' 
+              {activeMode === 'card'
+                ? `Practice: ${conceptData?.topicName || conceptData?.conceptName || activeOption?.title || 'Concept Card'}`
                 : activeMode === 'mindmap'
-                ? 'Mind maps'
+                ? `Mind maps: ${conceptData?.topicName || conceptData?.conceptName || ''}`.trim()
                 : `Practice: ${conceptData?.topicName || conceptData?.conceptName || activeOption?.title || 'Practice Activity'}`}
             </h1>
             <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
@@ -260,7 +306,16 @@ export default function Practice() {
           {/* Dedicated Renderer for the Chosen Option */}
           <div className="w-full">
             {loading || !conceptData ? (
-              <div className="h-64 bg-stone-200/50 rounded-3xl animate-pulse" />
+              mediaNotReady || !loading ? (
+                <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+                  <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
+                  <h3 className="mt-4 text-base font-bold text-stone-900">Your {activeMode === 'quiz' ? 'quiz' : activeMode === 'listen' ? 'audio' : activeMode === 'card' ? 'concept card' : 'mind map'} is getting ready — about 5 minutes left</h3>
+                  <p className="mt-1 text-xs text-stone-500">You can wait here or come back in a bit.</p>
+                  <button type="button" onClick={() => window.location.reload()} className="mt-4 px-5 py-2 rounded-full border-2 border-[#6d0e00] text-[#6d0e00] text-xs font-bold hover:bg-[#6d0e00] hover:text-white transition-colors cursor-pointer">Check again</button>
+                </div>
+              ) : (
+                <div className="h-64 bg-stone-200/50 rounded-3xl animate-pulse" />
+              )
             ) : (
               <>
                 {activeMode === 'listen' && <ListenRenderer conceptData={conceptData} />}
@@ -284,24 +339,46 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const totalDuration = conceptData.video.durationSeconds || 150;
+  const [duration, setDuration] = useState(conceptData.video.durationSeconds || 150);
+  const totalDuration = duration || conceptData.video.durationSeconds || 150;
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Keep element playback rate in sync with the speed button.
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime((prev) => {
-          if (prev >= totalDuration) {
-            setIsPlaying(false);
-            return totalDuration;
-          }
-          return prev + 1 * playbackSpeed;
-        });
-      }, 1000);
+    if (audioRef.current) audioRef.current.playbackRate = playbackSpeed;
+  }, [playbackSpeed]);
+
+  // The audio OF the video: prefer the dedicated audio track from R2, else
+  // stream the audio track of the video mp4 itself (browsers play mp4 audio
+  // through an <audio> element — no video is shown). Nothing is hardcoded.
+  const audioSrc = conceptData.audioUrl || conceptData.videoUrl || null;
+
+  const togglePlay = () => {
+    const el = audioRef.current;
+    if (!el || !audioSrc) return;
+    if (el.paused) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed, totalDuration]);
+  };
+
+  const seekBy = (delta: number) => {
+    const el = audioRef.current;
+    if (el && audioSrc) {
+      el.currentTime = Math.min(Math.max(0, el.currentTime + delta), totalDuration);
+    } else {
+      setCurrentTime((prev) => Math.min(Math.max(0, prev + delta), totalDuration));
+    }
+  };
+
+  const seekTo = (value: number) => {
+    const el = audioRef.current;
+    if (el && audioSrc) {
+      el.currentTime = value;
+    }
+    setCurrentTime(value);
+  };
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -313,29 +390,36 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
 
   return (
     <div className="w-full relative flex flex-col justify-between min-h-[540px] sm:min-h-[580px] lg:min-h-[620px] pt-2 pb-6 px-0 overflow-visible">
-      {conceptData.audioUrl && (
-        <div className="relative z-10 w-full mb-2 rounded-2xl bg-white/90 border border-stone-200 p-3">
-          <audio
-            ref={audioRef}
-            controls
-            preload="metadata"
-            src={conceptData.audioUrl}
-            className="w-full"
-            onTimeUpdate={(e) => {
-              const el = e.currentTarget;
-              setCurrentTime(el.currentTime);
-              if (!el.paused) setIsPlaying(true);
-            }}
-            onPause={() => setIsPlaying(false)}
-            onPlay={() => setIsPlaying(true)}
-          />
-          {conceptData.script.fullTranscript && (
-            <details className="mt-2 text-xs text-stone-600">
-              <summary className="cursor-pointer font-bold text-stone-800">Scrub captions (transcript)</summary>
-              <p className="mt-1.5 leading-relaxed whitespace-pre-line">{conceptData.script.fullTranscript}</p>
-            </details>
-          )}
+      {/* The single audio element: plays the same audio the video used. */}
+      {audioSrc ? (
+        <audio
+          ref={audioRef}
+          preload="metadata"
+          src={audioSrc}
+          className="hidden"
+          onTimeUpdate={(e) => {
+            const el = e.currentTarget;
+            setCurrentTime(el.currentTime);
+            if (!el.paused) setIsPlaying(true);
+          }}
+          onLoadedMetadata={(e) => {
+            const el = e.currentTarget;
+            if (el.duration && Number.isFinite(el.duration)) setDuration(el.duration);
+          }}
+          onPause={() => setIsPlaying(false)}
+          onPlay={() => setIsPlaying(true)}
+          onEnded={() => setIsPlaying(false)}
+        />
+      ) : (
+        <div className="relative z-10 w-full mb-2 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs font-medium text-amber-800">
+          Your audio is getting ready — about 5 minutes left. You can wait here or come back in a bit.
         </div>
+      )}
+      {conceptData.script.fullTranscript && (
+        <details className="relative z-10 w-full mb-2 rounded-2xl bg-white/90 border border-stone-200 px-4 py-3 text-xs text-stone-600">
+          <summary className="cursor-pointer font-bold text-stone-800">Read along (transcript)</summary>
+          <p className="mt-1.5 leading-relaxed whitespace-pre-line">{conceptData.script.fullTranscript}</p>
+        </details>
       )}
       {/* Purple & Blue Background Gradient with Grow/Ungrow Animation in open space - No container */}
       <GradientAudioBackground isPlaying={isPlaying} />
@@ -384,8 +468,9 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
               type="range"
               min={0}
               max={totalDuration}
+              step={0.1}
               value={currentTime}
-              onChange={(e) => setCurrentTime(Number(e.target.value))}
+              onChange={(e) => seekTo(Number(e.target.value))}
               aria-label="Seek audio"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
             />
@@ -410,7 +495,7 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
           <div className="flex items-center justify-center gap-6 sm:gap-8">
             <button
               type="button"
-              onClick={() => setCurrentTime(Math.max(0, currentTime - 10))}
+              onClick={() => seekBy(-10)}
               className="p-3 rounded-full text-stone-700 hover:text-stone-950 hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
               aria-label="Rewind 10s"
             >
@@ -419,8 +504,9 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
 
             <button
               type="button"
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="w-16 h-16 rounded-full bg-[#6d0e00] hover:bg-[#520a00] text-white flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all cursor-pointer"
+              onClick={togglePlay}
+              disabled={!audioSrc}
+              className="w-16 h-16 rounded-full bg-[#6d0e00] hover:bg-[#520a00] disabled:opacity-40 text-white flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all cursor-pointer"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? <Pause size={28} /> : <Play size={28} className="fill-white ml-0.5" />}
@@ -428,7 +514,7 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
 
             <button
               type="button"
-              onClick={() => setCurrentTime(Math.min(totalDuration, currentTime + 10))}
+              onClick={() => seekBy(10)}
               className="p-3 rounded-full text-stone-700 hover:text-stone-950 hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
               aria-label="Forward 10s"
             >
@@ -507,110 +593,6 @@ interface ChemistryFlashcard {
   solidBg: string; // purely solid colors matching the practice cards: listen blue, concept red, mindmap purple, quiz green, etc.
 }
 
-// 10 Curriculum-aligned Flashcards with solid colors and NO gradients
-const CHEMISTRY_FLASHCARDS: ChemistryFlashcard[] = [
-  {
-    id: 'conservation-mass',
-    conceptTitle: 'Law of Conservation of Mass',
-    hintQuestion: 'In any closed chemical reaction, what happens to the total mass of the reactants compared to the products? Can atoms ever be created or destroyed?',
-    answerTitle: 'Conservation Principle',
-    takeaway: 'Total mass of reactants strictly equals total mass of products in any closed chemical reaction. Atoms are never created or destroyed—only rearranged into new combinations.',
-    formula: 'Total Mass(Reactants) = Total Mass(Products)',
-    keyFact: 'Formulated by Antoine Lavoisier in 1789.',
-    solidBg: 'bg-[#254CE8]', // Solid Royal Blue (Listen card color)
-  },
-  {
-    id: 'balancing-coefficients',
-    conceptTitle: 'Balancing Chemical Equations',
-    hintQuestion: 'Why must equations be balanced strictly by modifying coefficients in front of formulas, and why is altering subscript numbers forbidden?',
-    answerTitle: 'The Stoichiometric Coefficient Rule',
-    takeaway: 'Changing subscripts alters the fundamental identity of the chemical compound. Equations are balanced exclusively by placing whole-number coefficients before formulas.',
-    formula: '2 H₂ + O₂ ➔ 2 H₂O  (Subscripts remain H₂ & O₂)',
-    keyFact: 'Subscripts define chemical identity; coefficients define molecule ratios.',
-    solidBg: 'bg-[#C9381A]', // Solid Crimson Red (Concept card color)
-  },
-  {
-    id: 'combination-reaction',
-    conceptTitle: 'Combination Reactions',
-    hintQuestion: 'What defines a combination (synthesis) reaction, and what occurs when quicklime (CaO) reacts vigorously with water?',
-    answerTitle: 'Synthesis Principle',
-    takeaway: 'Two or more substances chemically unite to synthesize a single compound. Quicklime reacting with water synthesizes slaked lime with rapid heat liberation.',
-    formula: 'CaO(s) + H₂O(l) ➔ Ca(OH)₂(aq) + Heat',
-    keyFact: 'Slaked lime solution Ca(OH)₂ is used for whitewashing walls.',
-    solidBg: 'bg-[#5B34C8]', // Solid Violet / Purple (Mind map color)
-  },
-  {
-    id: 'decomposition-reaction',
-    conceptTitle: 'Decomposition Reactions',
-    hintQuestion: 'What occurs when green ferrous sulphate crystals or white limestone (calcium carbonate) are heated strongly?',
-    answerTitle: 'Thermal Decomposition',
-    takeaway: 'A single chemical compound decomposes into simpler components upon the absorption of heat energy. Ferrous sulphate decomposes yielding ferric oxide and pungent gases.',
-    formula: '2 FeSO₄(s) —[Heat]➔ Fe₂O₃(s) + SO₂(g) + SO₃(g)',
-    keyFact: 'Green FeSO₄·7H₂O crystals turn brown releasing SO₂ and SO₃ fumes.',
-    solidBg: 'bg-[#0B7D58]', // Solid Emerald Green (Quick quiz color)
-  },
-  {
-    id: 'displacement-reaction',
-    conceptTitle: 'Displacement Reactions',
-    hintQuestion: 'What happens when an iron nail is immersed in blue copper sulphate solution? Which element displaces which?',
-    answerTitle: 'Single Displacement Rule',
-    takeaway: 'A more reactive chemical element displaces a less reactive element from its aqueous salt solution. Iron displaces copper, turning the blue solution greenish.',
-    formula: 'Fe(s) + CuSO₄(aq) ➔ FeSO₄(aq) + Cu(s)',
-    keyFact: 'Brown copper deposits onto the iron nail as blue solution fades.',
-    solidBg: 'bg-[#D97706]', // Solid Warm Amber
-  },
-  {
-    id: 'precipitation-reaction',
-    conceptTitle: 'Double Displacement & Precipitation',
-    hintQuestion: 'What is the insoluble solid product formed when sodium sulphate solution is mixed with barium chloride solution?',
-    answerTitle: 'Precipitation Reaction',
-    takeaway: 'Two aqueous ionic compounds exchange ionic partners to produce an insoluble solid residue that precipitates out of the liquid mixture.',
-    formula: 'Na₂SO₄(aq) + BaCl₂(aq) ➔ BaSO₄(s)↓ + 2 NaCl(aq)',
-    keyFact: 'Barium sulphate BaSO₄ forms an insoluble white precipitate (↓).',
-    solidBg: 'bg-[#0284C7]', // Solid Ocean Blue
-  },
-  {
-    id: 'exothermic-reaction',
-    conceptTitle: 'Exothermic Reactions',
-    hintQuestion: 'Why does the temperature of a reaction mixture rise during natural gas combustion and biological respiration?',
-    answerTitle: 'Heat Emitters',
-    takeaway: 'Chemical reactions in which thermal energy is liberated into the surrounding environment alongside products, warming the reaction vessel.',
-    formula: 'CH₄(g) + 2 O₂(g) ➔ CO₂(g) + 2 H₂O(g) + Heat',
-    keyFact: 'Respiration and decomposition of vegetable matter are exothermic.',
-    solidBg: 'bg-[#EA580C]', // Solid Warm Orange
-  },
-  {
-    id: 'endothermic-reaction',
-    conceptTitle: 'Endothermic Reactions',
-    hintQuestion: 'Why does the thermal decomposition of limestone or plant photosynthesis require continuous heat or sunlight absorption?',
-    answerTitle: 'Energy Absorbers',
-    takeaway: 'Reactions that require continuous absorption of energy from their surroundings to break chemical bonds before product formation can occur.',
-    formula: 'CaCO₃(s) —[Heat]➔ CaO(s) + CO₂(g)',
-    keyFact: 'Limestone decomposition and photosynthesis absorb external energy.',
-    solidBg: 'bg-[#7C3AED]', // Solid Deep Purple
-  },
-  {
-    id: 'redox-reaction',
-    conceptTitle: 'Redox: Oxidation & Reduction',
-    hintQuestion: 'When black copper(II) oxide is heated in hydrogen gas, which substance is oxidized and which is reduced?',
-    answerTitle: 'Coupled Redox Principle',
-    takeaway: 'Oxidation is the gain of oxygen or loss of electrons. Reduction is the loss of oxygen or gain of electrons. Both processes occur simultaneously.',
-    formula: 'CuO + H₂ —[Heat]➔ Cu (Reduced) + H₂O (Oxidized)',
-    keyFact: 'CuO loses oxygen (reduced); H₂ gains oxygen (oxidized).',
-    solidBg: 'bg-[#0D9488]', // Solid Dark Teal
-  },
-  {
-    id: 'corrosion-reaction',
-    conceptTitle: 'Corrosion & Rusting',
-    hintQuestion: 'What environmental conditions are necessary for iron to rust, and what is the chemical formula of hydrated ferric oxide?',
-    answerTitle: 'Atmospheric Oxidation',
-    takeaway: 'Iron slowly corrodes when exposed to both atmospheric oxygen and moisture simultaneously, forming a reddish-brown flaky hydrated oxide.',
-    formula: '4 Fe + 3 O₂ + 2x H₂O ➔ 2 Fe₂O₃·xH₂O (Rust)',
-    keyFact: 'Galvanization with zinc protects iron from oxygen and water contact.',
-    solidBg: 'bg-[#4338CA]', // Solid Indigo
-  },
-];
-
 /**
  * 2. CONCEPT CARD RENDERER
  * Two-deck layout solving wide screen presentation:
@@ -620,19 +602,21 @@ const CHEMISTRY_FLASHCARDS: ChemistryFlashcard[] = [
  * - Strictly NO numbers displayed anywhere
  */
 function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptData }) {
-  const backendCards: ChemistryFlashcard[] = (conceptData.flashcards ?? [])
+  // Cards come ONLY from the backend (quiz pipeline per concept+language).
+  // Nothing is hardcoded: with no backend cards yet we show a getting-ready
+  // notice instead of another topic's content.
+  const deck: ChemistryFlashcard[] = (conceptData.flashcards ?? [])
     .filter((f) => f.front || f.back)
     .map((f, i) => ({
       id: `backend-fc-${i}`,
-      conceptTitle: conceptData.conceptName,
+      conceptTitle: conceptData.topicName || conceptData.conceptName,
       hintQuestion: f.front,
-      answerTitle: conceptData.conceptName,
+      answerTitle: conceptData.topicName || conceptData.conceptName,
       takeaway: f.back,
       formula: '',
       keyFact: conceptData.ncertCitation,
       solidBg: ['bg-[#254CE8]', 'bg-[#C9381A]', 'bg-[#5B34C8]', 'bg-[#0B7D58]'][i % 4],
     }));
-  const deck = backendCards.length > 0 ? backendCards : CHEMISTRY_FLASHCARDS;
   const [unrevealedIndex, setUnrevealedIndex] = useState(0);
   const [revealedCards, setRevealedCards] = useState<ChemistryFlashcard[]>([]);
   const [rightCardFlipped, setRightCardFlipped] = useState(false);
@@ -730,6 +714,19 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
       triggerReturnAllToLeft();
     }
   };
+
+  // After every hook: no backend cards yet (quiz pipeline still running) —
+  // show getting-ready instead of another topic's hardcoded deck.
+  if (deck.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+        <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
+        <h3 className="mt-4 text-base font-bold text-stone-900">Your concept cards are almost ready…</h3>
+        <p className="mt-1 text-xs text-stone-500">We're putting them together. Give it a few seconds, then refresh.</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 px-5 py-2 rounded-full border-2 border-[#6d0e00] text-[#6d0e00] text-xs font-bold hover:bg-[#6d0e00] hover:text-white transition-colors cursor-pointer">Check again</button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[1440px] mx-auto py-2">
@@ -952,10 +949,10 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
                   >
                     <div className="space-y-5">
                       <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                        {CHEMISTRY_FLASHCARDS[0].conceptTitle}
+                        {deck[0].conceptTitle}
                       </h3>
                       <p className="text-white/95 text-base sm:text-lg font-medium leading-relaxed">
-                        {CHEMISTRY_FLASHCARDS[0].hintQuestion}
+                        {deck[0].hintQuestion}
                       </p>
                     </div>
                   </div>
@@ -1010,390 +1007,97 @@ function MindMapRenderer({ conceptData }: { conceptData: GeneratedConceptData })
   // Root -> 'branch-foundations' & 'branch-methods'
   // When Root expands, root stays stable and the primary nodes appear to the right!
   // Expanding branches reveals further horizontal sub-branches and leaves in a fixed, clear layout.
-  const defaultNodes: Record<string, MindMapNode> = {
-    'root': {
-      id: 'root',
-      label: conceptData?.conceptName || 'Chemical Reactions & Equations',
-      color: '#6366f1', // Indigo / Purple
-      iconType: 'circle',
-      level: 0,
-      x: 60,
-      y: 220,
-      width: 320,
-      height: 56,
-      childrenIds: ['branch-foundations', 'branch-methods'],
-      description: 'The foundation of chemical transformations governed by mass invariance and stoichiometric ratios.'
-    },
+  // Graph is built from the BACKEND scene_graph (already in the student's
+  // language) — nothing is hardcoded. Unreachable nodes attach to the root so
+  // no generated content is ever lost.
+  const graph: Record<string, MindMapNode> = useMemo(() => {
+    const scene = conceptData.sceneGraph;
+    const out: Record<string, MindMapNode> = {};
+    if (!scene || !scene.nodes || scene.nodes.length === 0) return out;
 
-    // Level 1: Two central branches that open when root is expanded
-    'branch-foundations': {
-      id: 'branch-foundations',
-      parentId: 'root',
-      label: 'Core Scientific Foundations',
-      color: '#ec4899', // Pink
-      iconType: 'bullet',
-      level: 1,
-      x: 460,
-      y: 130,
-      width: 260,
-      height: 52,
-      childrenIds: ['branch-conservation', 'branch-skeletal', 'branch-states'],
-      description: 'Fundamental principles of mass conservation and representation of chemical change.'
-    },
-    'branch-methods': {
-      id: 'branch-methods',
-      parentId: 'root',
-      label: 'Stoichiometry & Reactions',
-      color: '#3b82f6', // Blue
-      iconType: 'bullet',
-      level: 1,
-      x: 460,
-      y: 340,
-      width: 260,
-      height: 52,
-      childrenIds: ['branch-balancing', 'branch-types', 'branch-energy'],
-      description: 'Mathematical coefficients balancing and characteristic reaction pathways.'
-    },
-
-    // Level 2: Horizontal extension nodes
-    'branch-conservation': {
-      id: 'branch-conservation',
-      parentId: 'branch-foundations',
-      label: 'Conservation of Mass',
-      color: '#ec4899', // Pink
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 60,
-      width: 240,
-      height: 48,
-      childrenIds: ['leaf-invariance', 'leaf-lavoisier'],
-      description: 'Atoms are neither created nor destroyed during chemical rearrangements.'
-    },
-    'branch-skeletal': {
-      id: 'branch-skeletal',
-      parentId: 'branch-foundations',
-      label: 'Skeletal Word Equations',
-      color: '#ec4899', // Pink
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 150,
-      width: 240,
-      height: 48,
-      childrenIds: ['leaf-subscripts', 'leaf-symbols'],
-      description: 'Qualitative representation before equalizing atom counts on reactant and product sides.'
-    },
-    'branch-states': {
-      id: 'branch-states',
-      parentId: 'branch-foundations',
-      label: 'Physical State Symbols',
-      color: '#f59e0b', // Amber
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 230,
-      width: 240,
-      height: 48,
-      childrenIds: ['leaf-state-notations', 'leaf-precipitate'],
-      description: 'Designating physical phases (s, l, g, aq) and aqueous precipitate indicators.'
-    },
-    'branch-balancing': {
-      id: 'branch-balancing',
-      parentId: 'branch-methods',
-      label: 'Stoichiometric Balancing',
-      color: '#3b82f6', // Blue
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 320,
-      width: 250,
-      height: 48,
-      childrenIds: ['leaf-box-method', 'leaf-coefficients', 'leaf-tallies'],
-      description: 'Using multipliers in front of formulas without altering subscripts.'
-    },
-    'branch-types': {
-      id: 'branch-types',
-      parentId: 'branch-methods',
-      label: 'Reaction Classifications',
-      color: '#8b5cf6', // Violet
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 430,
-      width: 250,
-      height: 48,
-      childrenIds: ['leaf-combination', 'leaf-decomposition', 'leaf-displacement', 'leaf-redox'],
-      description: 'Patterns including combination, decomposition, displacement, and redox reactions.'
-    },
-    'branch-energy': {
-      id: 'branch-energy',
-      parentId: 'branch-methods',
-      label: 'Thermal & Energy Dynamics',
-      color: '#10b981', // Emerald
-      iconType: 'bullet',
-      level: 2,
-      x: 800,
-      y: 530,
-      width: 250,
-      height: 48,
-      childrenIds: ['leaf-exothermic', 'leaf-endothermic'],
-      description: 'Heat absorption or evolution during molecular reorganization.'
-    },
-
-    // Level 3: Extended leaf nodes
-    'leaf-invariance': {
-      id: 'leaf-invariance',
-      parentId: 'branch-conservation',
-      label: 'Atom Count Invariance',
-      color: '#10b981', // Green
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 30,
-      width: 230,
-      height: 44,
-      childrenIds: ['deep-dalton'],
-      description: 'Total number of each element must remain strictly identical on both sides.'
-    },
-    'deep-dalton': {
-      id: 'deep-dalton',
-      parentId: 'leaf-invariance',
-      label: "Dalton's Atomic Hypothesis",
-      color: '#059669', // Deep green
-      iconType: 'square',
-      level: 4,
-      x: 1450,
-      y: 30,
-      width: 240,
-      height: 44,
-      description: 'Atoms are indivisible particles that rearrange rather than transmute.'
-    },
-    'leaf-lavoisier': {
-      id: 'leaf-lavoisier',
-      parentId: 'branch-conservation',
-      label: 'Lavoisier Principle',
-      color: '#ef4444', // Red
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 90,
-      width: 220,
-      height: 44,
-      childrenIds: ['deep-closed-system'],
-      description: 'Established experimental proof that mass remains conserved in closed chemical systems.'
-    },
-    'deep-closed-system': {
-      id: 'deep-closed-system',
-      parentId: 'leaf-lavoisier',
-      label: 'Closed System Verification',
-      color: '#dc2626', // Deep red
-      iconType: 'square',
-      level: 4,
-      x: 1450,
-      y: 90,
-      width: 240,
-      height: 44,
-      description: 'Preventing gaseous loss to verify mass balance before and after reaction.'
-    },
-    'leaf-subscripts': {
-      id: 'leaf-subscripts',
-      parentId: 'branch-skeletal',
-      label: 'Formula Identity (Subscripts)',
-      color: '#f59e0b', // Amber
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 150,
-      width: 250,
-      height: 44,
-      description: 'Subscripts define chemical identity and must never be modified during balancing.'
-    },
-    'leaf-symbols': {
-      id: 'leaf-symbols',
-      parentId: 'branch-skeletal',
-      label: 'Reaction Direction Arrow (→)',
-      color: '#ec4899', // Pink
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 200,
-      width: 250,
-      height: 44,
-      description: 'Reactants transform into products with catalyst or temperature written above arrow.'
-    },
-    'leaf-state-notations': {
-      id: 'leaf-state-notations',
-      parentId: 'branch-states',
-      label: '(s), (l), (g), (aq) Phases',
-      color: '#f59e0b', // Amber
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 250,
-      width: 240,
-      height: 44,
-      description: 'Solid, liquid, gas, and aqueous solution phase designators in parentheses.'
-    },
-    'leaf-precipitate': {
-      id: 'leaf-precipitate',
-      parentId: 'branch-states',
-      label: 'Precipitate & Gas Arrows (↓ / ↑)',
-      color: '#d97706', // Deep Amber
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 300,
-      width: 250,
-      height: 44,
-      description: 'Insoluble precipitate settling downwards or effervescent gas release upwards.'
-    },
-    'leaf-box-method': {
-      id: 'leaf-box-method',
-      parentId: 'branch-balancing',
-      label: 'Box Method Protection',
-      color: '#10b981', // Green
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 350,
-      width: 230,
-      height: 44,
-      description: 'Enclose formulas in boxes to prevent accidental subscript alteration.'
-    },
-    'leaf-coefficients': {
-      id: 'leaf-coefficients',
-      parentId: 'branch-balancing',
-      label: 'Front Multipliers',
-      color: '#ef4444', // Red
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 400,
-      width: 210,
-      height: 44,
-      childrenIds: ['deep-lcm'],
-      description: 'Stoichiometric coefficients placed directly in front of formulas to scale molecules.'
-    },
-    'deep-lcm': {
-      id: 'deep-lcm',
-      parentId: 'leaf-coefficients',
-      label: 'Lowest Common Multiple (LCM)',
-      color: '#b91c1c', // Crimson
-      iconType: 'square',
-      level: 4,
-      x: 1450,
-      y: 400,
-      width: 250,
-      height: 44,
-      description: 'Finding smallest integer ratios to equalize odd/even atom numbers.'
-    },
-    'leaf-tallies': {
-      id: 'leaf-tallies',
-      parentId: 'branch-balancing',
-      label: 'Element Atom Tallies',
-      color: '#3b82f6', // Blue
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 450,
-      width: 220,
-      height: 44,
-      description: 'Systematic comparison of LHS vs RHS atom counts for each element.'
-    },
-    'leaf-combination': {
-      id: 'leaf-combination',
-      parentId: 'branch-types',
-      label: 'Synthesis (Quicklime CaO + H₂O)',
-      color: '#06b6d4', // Cyan
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 500,
-      width: 250,
-      height: 44,
-      description: 'Two or more substances join into a single product with slaked lime and heat.'
-    },
-    'leaf-decomposition': {
-      id: 'leaf-decomposition',
-      parentId: 'branch-types',
-      label: 'Decomposition (Thermal / Photo)',
-      color: '#0284c7', // Sky blue
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 550,
-      width: 250,
-      height: 44,
-      childrenIds: ['deep-electrolysis'],
-      description: 'Single compound splits into simpler components via heat, light, or electricity.'
-    },
-    'deep-electrolysis': {
-      id: 'deep-electrolysis',
-      parentId: 'leaf-decomposition',
-      label: 'Electrolysis of Water (2:1 Ratio)',
-      color: '#0369a1', // Deep Cyan
-      iconType: 'square',
-      level: 4,
-      x: 1450,
-      y: 550,
-      width: 250,
-      height: 44,
-      description: 'Splitting H₂O into 2 volumes of Hydrogen gas and 1 volume of Oxygen gas.'
-    },
-    'leaf-displacement': {
-      id: 'leaf-displacement',
-      parentId: 'branch-types',
-      label: 'Displacement (Reactivity Series)',
-      color: '#6366f1', // Indigo
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 600,
-      width: 250,
-      height: 44,
-      description: 'More reactive metal replaces less reactive metal (e.g., Fe in CuSO₄ solution).'
-    },
-    'leaf-redox': {
-      id: 'leaf-redox',
-      parentId: 'branch-types',
-      label: 'Oxidation & Reduction',
-      color: '#8b5cf6', // Violet
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 650,
-      width: 230,
-      height: 44,
-      description: 'Concurrently occurring gain and loss of oxygen / electron transfer.'
-    },
-    'leaf-exothermic': {
-      id: 'leaf-exothermic',
-      parentId: 'branch-energy',
-      label: 'Exothermic (Respiration & Heat)',
-      color: '#10b981', // Green
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 700,
-      width: 250,
-      height: 44,
-      description: 'Reactions that release thermal energy into surroundings (e.g. natural gas burning).'
-    },
-    'leaf-endothermic': {
-      id: 'leaf-endothermic',
-      parentId: 'branch-energy',
-      label: 'Endothermic (Photosynthesis)',
-      color: '#059669', // Emerald
-      iconType: 'square',
-      level: 3,
-      x: 1130,
-      y: 750,
-      width: 250,
-      height: 44,
-      description: 'Reactions requiring continuous thermal, radiant, or electrical energy input.'
+    const TYPE_COLORS: Record<string, string> = {
+      prerequisite: '#ec4899',
+      core: '#6366f1',
+      application: '#3b82f6',
+      extension: '#10b981',
+    };
+    const childrenOf = new Map<string, string[]>();
+    const incoming = new Map<string, number>();
+    for (const n of scene.nodes) incoming.set(n.id, 0);
+    for (const e of scene.edges ?? []) {
+      if (!incoming.has(e.from) || !incoming.has(e.to)) continue;
+      if (e.from === e.to) continue;
+      const list = childrenOf.get(e.from) ?? [];
+      if (!list.includes(e.to)) list.push(e.to);
+      childrenOf.set(e.from, list);
+      incoming.set(e.to, (incoming.get(e.to) ?? 0) + 1);
     }
-  };
+
+    const byId = new Map(scene.nodes.map((n) => [n.id, n]));
+    let rootId = scene.nodes.find((n) => (incoming.get(n.id) ?? 0) === 0)?.id;
+    if (!rootId || !byId.has(rootId)) {
+      rootId =
+        scene.nodes.find((n) => n.type === 'core')?.id ??
+        scene.nodes.find((n) => n.type === 'prerequisite')?.id ??
+        scene.nodes[0].id;
+    }
+
+    // BFS depths from the root; unreachable nodes hang off the root.
+    const depth = new Map<string, number>([[rootId, 0]]);
+    const queue: string[] = [rootId];
+    const seen = new Set(queue);
+    while (queue.length > 0) {
+      const cur = queue.shift() as string;
+      for (const child of childrenOf.get(cur) ?? []) {
+        if (seen.has(child)) continue;
+        seen.add(child);
+        depth.set(child, (depth.get(cur) ?? 0) + 1);
+        queue.push(child);
+      }
+    }
+    for (const n of scene.nodes) {
+      if (!depth.has(n.id)) {
+        depth.set(n.id, 1);
+        const list = childrenOf.get(rootId) ?? [];
+        if (!list.includes(n.id)) list.push(n.id);
+        childrenOf.set(rootId, list);
+      }
+    }
+
+    const depthIndex = new Map<number, number>();
+    const ordered = [...scene.nodes].sort(
+      (a, b) => (depth.get(a.id) ?? 0) - (depth.get(b.id) ?? 0)
+    );
+    for (const n of ordered) {
+      const d = depth.get(n.id) ?? 0;
+      const idx = depthIndex.get(d) ?? 0;
+      depthIndex.set(d, idx + 1);
+      const label = n.label || 'Concept';
+      out[n.id] = {
+        id: n.id,
+        label,
+        color: TYPE_COLORS[(n.type || '').toLowerCase()] ?? '#8b5cf6',
+        iconType: d === 0 ? 'circle' : d === 1 ? 'bullet' : 'square',
+        parentId: undefined,
+        level: d,
+        x: 60 + d * 360,
+        y: 40 + idx * 84,
+        width: Math.min(320, Math.max(210, label.length * 7 + 84)),
+        height: 52,
+        childrenIds: childrenOf.get(n.id) ?? [],
+        description: n.description || '',
+      };
+    }
+    // Parent links (skip the synthetic root attachments' cycles safely).
+    for (const [parent, kids] of childrenOf) {
+      for (const kid of kids) {
+        if (out[kid] && kid !== rootId && !out[kid].parentId) out[kid].parentId = parent;
+      }
+    }
+    return out;
+  }, [conceptData]);
+
+  const defaultNodes = graph;
 
   // All nodes closed by default (empty set)
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
@@ -1543,6 +1247,19 @@ function MindMapRenderer({ conceptData }: { conceptData: GeneratedConceptData })
     });
   });
 
+  // After every hook: with no backend scene graph yet there is nothing true
+  // to draw — show getting-ready instead of a wrong-language placeholder map.
+  if (Object.keys(graph).length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+        <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
+        <h3 className="mt-4 text-base font-bold text-stone-900">Your mind map is almost ready…</h3>
+        <p className="mt-1 text-xs text-stone-500">We're putting it together. Give it a few seconds, then refresh.</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 px-5 py-2 rounded-full border-2 border-[#6d0e00] text-[#6d0e00] text-xs font-bold hover:bg-[#6d0e00] hover:text-white transition-colors cursor-pointer">Check again</button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-[#F6F4F0] rounded-3xl border border-stone-200/80 shadow-xs overflow-hidden flex flex-col">
       {/* Mindmap Sub-Header */}
@@ -1561,7 +1278,7 @@ function MindMapRenderer({ conceptData }: { conceptData: GeneratedConceptData })
           </div>
         </div>
       ) : conceptData.quizStatus === 'generating' ? (
-        <div className="px-6 py-3 border-b border-amber-200 bg-amber-50 text-[11px] font-medium text-amber-800">Mind-map content generating — showing preview layout.</div>
+        <div className="px-6 py-3 border-b border-amber-200 bg-amber-50 text-[11px] font-medium text-amber-800">Your mind map is almost ready — showing a preview for now.</div>
       ) : null}
 
       {/* Natural Scrollable Canvas Container matching website background */}
@@ -1845,17 +1562,10 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
       ? conceptData.quiz
       : TEN_DEFAULT_CHEMISTRY_QUESTIONS;
   const usingFallback = !(conceptData.quiz && conceptData.quiz.length > 0);
+  const quizPending = conceptData.quizStatus === 'generating' && conceptData.quiz.length === 0;
 
-  if (conceptData.quizStatus === 'generating' && conceptData.quiz.length === 0) {
-    return (
-      <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
-        <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
-        <h3 className="mt-4 text-base font-bold text-stone-900">Quiz generating…</h3>
-        <p className="mt-1 text-xs text-stone-500">The quiz for this language is being created. Refresh in ~10s.</p>
-      </div>
-    );
-  }
-
+  // Hooks must run unconditionally (before any early return) so a
+  // generating→ready transition never breaks hook order.
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | null>>({});
   const [isAnswered, setIsAnswered] = useState(false);
@@ -1866,6 +1576,15 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
   const autoNextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const quizContainerRef = useRef<HTMLDivElement | null>(null);
   const explanationRef = useRef<HTMLDivElement | null>(null);
+
+  const pendingQuizNotice = (
+    <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+      <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
+      <h3 className="mt-4 text-base font-bold text-stone-900">Your quiz is almost ready…</h3>
+      <p className="mt-1 text-xs text-stone-500">We're putting your questions together. Give it a few seconds, then refresh.</p>
+      <button type="button" onClick={() => window.location.reload()} className="mt-4 px-5 py-2 rounded-full border-2 border-[#6d0e00] text-[#6d0e00] text-xs font-bold hover:bg-[#6d0e00] hover:text-white transition-colors cursor-pointer">Check again</button>
+    </div>
+  );
 
   const currentQ = questions[currentIndex];
   const userChoice = selectedAnswers[currentIndex];
@@ -1905,9 +1624,9 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
     }, EXPLANATION_DURATION_MS);
   };
 
-  // Reset timer on question change
+  // Reset timer on question change (skipped while the quiz is still pending).
   useEffect(() => {
-    if (isQuizCompleted) return;
+    if (quizPending || isQuizCompleted) return;
 
     setTimeLeft(QUESTION_TIME_SECONDS);
     setIsAnswered(false);
@@ -1930,7 +1649,7 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
       if (timerRef.current) clearInterval(timerRef.current);
       if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
     };
-  }, [currentIndex, isQuizCompleted]);
+  }, [currentIndex, isQuizCompleted, quizPending]);
 
   const handleTimeExpired = () => {
     setIsAnswered(true);
@@ -1979,6 +1698,10 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
       )
     )
   );
+
+  // Rendered after every hook so hook order never changes between the
+  // pending and ready states.
+  if (quizPending) return pendingQuizNotice;
 
   return (
     <div ref={quizContainerRef} className="w-full bg-white rounded-3xl p-6 sm:p-10 shadow-md space-y-6 relative">

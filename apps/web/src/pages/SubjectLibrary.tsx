@@ -273,7 +273,10 @@ export default function SubjectLibrary() {
                 className="w-full flex items-center justify-between px-4 py-3 bg-[#FAF8F5] hover:bg-stone-100/80 rounded-full border border-stone-200 text-sm font-medium text-stone-900 focus:outline-hidden focus:border-stone-900 shadow-2xs cursor-pointer transition-all text-left"
               >
                 <div className="flex items-center gap-2 truncate pr-2">
-                  <span className="truncate">
+                  <span
+                    className="truncate"
+                    title={selectedChapter === 'all' ? 'All Chapters' : (activeChapter ? `Chapter ${activeChapter.chapter_number}: ${activeChapter.name}` : selectedChapter)}
+                  >
                     {selectedChapter === 'all' 
                       ? 'All Chapters' 
                       : (activeChapter ? `Chapter ${activeChapter.chapter_number}: ${activeChapter.name}` : selectedChapter)}
@@ -293,7 +296,7 @@ export default function SubjectLibrary() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 right-0 top-full mt-2 bg-white rounded-full border border-stone-200/90 shadow-xl z-30 max-h-72 overflow-y-auto p-1.5 space-y-0.5"
+                    className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-stone-200/90 shadow-xl z-30 max-h-72 overflow-y-auto overflow-x-hidden p-1.5 space-y-0.5"
                   >
                     <button
                       type="button"
@@ -321,13 +324,14 @@ export default function SubjectLibrary() {
                             setSelectedChapter(ch.id);
                             setIsChapterDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer text-left ${
+                          title={`Chapter ${ch.chapter_number}: ${ch.name}`}
+                          className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer text-left ${
                             isSelected
                               ? 'bg-stone-900 text-white font-semibold'
                               : 'text-stone-800 hover:bg-stone-100'
                           }`}
                         >
-                          <span className="truncate">
+                          <span className="flex-1 min-w-0 whitespace-normal break-words leading-snug">
                             Chapter {ch.chapter_number}: {ch.name}
                           </span>
                           {isSelected && <Check size={16} className="shrink-0 ml-2" />}
@@ -381,7 +385,7 @@ export default function SubjectLibrary() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-0 right-0 top-full mt-2 bg-white rounded-full border border-stone-200/90 shadow-xl z-30 max-h-72 overflow-y-auto p-1.5 space-y-0.5"
+                    className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-stone-200/90 shadow-xl z-30 max-h-72 overflow-y-auto overflow-x-hidden p-1.5 space-y-0.5"
                   >
                     {SUPPORTED_LANGUAGES.map((lang) => {
                       const isSelected = selectedLanguage === lang.code;

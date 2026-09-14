@@ -91,6 +91,12 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        # Stamps the Google OAuth client id into the built bundle. Must be one
+        # of the backend's GOOGLE_CLIENT_IDS or Google auth 401s. Defaults to
+        # the project's client id; override with VITE_GOOGLE_CLIENT_ID=... in
+        # the shell when building for a different OAuth client.
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-354190554871-c313vjstblmkcoqk2ulqja9ed65fagp0.apps.googleusercontent.com}
     ports:
       - "80:80" # THE user-facing URL: http://localhost
     depends_on:

@@ -13,7 +13,12 @@ def test_video_health():
     client = TestClient(app)
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "service": "akara-video"}
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["service"] == "akara-video"
+    # Manim Tex/MathTex needs system latex — surfaced for diagnosability.
+    assert isinstance(body["latex"], bool)
+    assert isinstance(body["dvisvgm"], bool)
 
 
 def test_video_render_async_enqueue(monkeypatch):

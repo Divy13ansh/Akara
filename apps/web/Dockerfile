@@ -2,6 +2,10 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Must match one of the backend's GOOGLE_CLIENT_IDS or Google auth 401s.
+ARG VITE_GOOGLE_CLIENT_ID=""
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
 COPY package.json package-lock.json* bun.lock* ./
 RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 

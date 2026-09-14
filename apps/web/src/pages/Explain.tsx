@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { AppNavbar } from '../components/AppNavbar';
 import {
@@ -8,7 +8,7 @@ import {
 } from '../services/conceptMediaService';
 import { authService, UserProfile } from '../services/api';
 import { parseError } from '../services/http';
-import { VoiceMentorButton } from '../components/VoiceMentorButton';
+import { connectVoiceMentor, VoiceSession } from '../services/voiceService';
 import { TeachingBlob, BlobState } from '../components/TeachingBlob';
 import { DoodleBlobs } from '../components/DoodleBlobs';
 
@@ -25,22 +25,89 @@ export default function Explain() {
   const [answer, setAnswer] = useState('');
   const [evaluating, setEvaluating] = useState(false);
   const [result, setResult] = useState<ExplanationEvaluationResult | null>(null);
+  // LiveKit voice mentor driven BY the blob (no browser TTS anywhere).
+  const [voiceState, setVoiceState] = useState<'idle' | 'connecting' | 'live' | 'error'>('idle');
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const voiceSessionRef = useRef<VoiceSession | null>(null);
 
-  const subjectId = searchParams.get('subject') || 'science';
-  const chapterId = searchParams.get('chapter') || 'chemical-reactions';
+  const subjectId = searchParams.get('subject') || '';
+  const chapterId = searchParams.get('chapter') || '';
   const langParam = searchParams.get('lang') || '';
-  const hardcodedSpeech = "Hello I am Akara. What are you going to teach me today ?";
+  const effectiveLang = langParam || user?.default_language || 'hi';
+
+  // Tapping Akara starts the LiveKit voice mentor (in the student's language);
+  // tapping again ends it. All speech comes from the LiveKit agent — the blob
+  // is purely the visual body it speaks through (sound-wave rings).
+  const handleBlobTap = async () => {
+    if (voiceState === 'connecting') return;
+    if (voiceState === 'live') {
+      voiceSessionRef.current?.disconnect();
+      voiceSessionRef.current = null;
+      setVoiceState('idle');
+      setBlobState('idle');
+      return;
+    }
+    const cid = conceptId || conceptData?.conceptId;
+    if (!cid) return;
+    setVoiceError(null);
+    setVoiceState('connecting');
+    setBlobState('thinking');
+    try {
+      const s = await connectVoiceMentor(
+        cid,
+        effectiveLang,
+        () => {},
+        (st) => {
+          if (st === 'live') {
+            setVoiceState('live');
+            setBlobState('user-speaking');
+          } else if (st === 'ended') {
+            setVoiceState('idle');
+            setBlobState('idle');
+            voiceSessionRef.current = null;
+          } else if (st === 'error') {
+            setVoiceState('error');
+            setBlobState('idle');
+          }
+        },
+        (speaking) => setBlobState(speaking ? 'blob-speaking' : 'user-speaking'),
+      );
+      voiceSessionRef.current = s;
+    } catch (e) {
+      setVoiceError(parseError(e));
+      setVoiceState('error');
+      setBlobState('idle');
+    }
+  };
+
+  // Never strand a live voice session when leaving the page.
+  useEffect(() => {
+    return () => {
+      voiceSessionRef.current?.disconnect();
+      voiceSessionRef.current = null;
+    };
+  }, []);
 
   const handleGoToPractice = () => {
-    const targetConcept = conceptId || 'cr-02';
-    const targetLang = langParam || user?.default_language || 'hi';
-    navigate(`/practice/${targetConcept}?subject=${subjectId}&chapter=${chapterId}&lang=${targetLang}`);
+    const targetConcept = conceptId || conceptData?.conceptId || 'cr-02';
+    const targetLang = langParam || conceptData?.language || user?.default_language || 'hi';
+    const query = new URLSearchParams({
+      subject: conceptData?.subjectId || subjectId,
+      chapter: conceptData?.chapterId || chapterId,
+      lang: targetLang,
+    }).toString();
+    navigate(`/practice/${targetConcept}?${query}`);
   };
 
   const handleGoToLearn = () => {
-    const targetConcept = conceptId || 'cr-02';
-    const targetLang = langParam || user?.default_language || 'hi';
-    navigate(`/learn/${targetConcept}?subject=${subjectId}&chapter=${chapterId}&lang=${targetLang}`);
+    const targetConcept = conceptId || conceptData?.conceptId || 'cr-02';
+    const targetLang = langParam || conceptData?.language || user?.default_language || 'hi';
+    const query = new URLSearchParams({
+      subject: conceptData?.subjectId || subjectId,
+      chapter: conceptData?.chapterId || chapterId,
+      lang: targetLang,
+    }).toString();
+    navigate(`/learn/${targetConcept}?${query}`);
   };
 
   // Load concept data
@@ -102,16 +169,6 @@ export default function Explain() {
           <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
             Teach this concept in your own words to your companion.
           </p>
-          {conceptData?.mentorPrompt?.questionText && (
-            <p className="mt-2 text-sm text-stone-700 bg-white border border-stone-200 rounded-2xl px-4 py-2.5 max-w-2xl">
-              <span className="font-bold text-[#6d0e00]">Mentor prompt: </span>{conceptData.mentorPrompt.questionText}
-            </p>
-          )}
-          {conceptData && (
-            <div className="mt-3">
-              <VoiceMentorButton conceptId={conceptData.conceptId} language={langParam || user?.default_language || undefined} />
-            </div>
-          )}
           {error && (
             <div role="alert" className="mt-3 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 max-w-2xl">{error}</div>
           )}
@@ -133,22 +190,34 @@ export default function Explain() {
             </div>
           ) : (
             <div className="relative flex flex-col items-center justify-center z-10 w-full">
-              {/* The Companion Blob */}
+              {/* The Companion Blob IS the AI mentor: tap it to start the live
+                  voice session (LiveKit, in your language). Sound waves come
+                  out of Akara itself while it speaks. No separate button. */}
               <div className="cursor-pointer">
-                <TeachingBlob 
-                  size={320} 
+                <TeachingBlob
+                  size={320}
                   interactive={true}
                   state={blobState}
                   onStateChange={setBlobState}
-                  speechText={hardcodedSpeech}
-                  onSpeechEnd={() => setBlobState('idle')}
+                  onTap={handleBlobTap}
                 />
               </div>
 
-              {/* Simple line below Akara */}
+              {/* Single status line below Akara */}
               <p className="text-sm font-medium text-stone-500 mt-4 tracking-wide text-center select-none">
-                Tap Akara to start listening
+                {voiceState === 'connecting'
+                  ? 'Connecting to your AI mentor…'
+                  : voiceState === 'live'
+                    ? 'Mentor live — speak now, tap Akara to end'
+                    : voiceState === 'error'
+                      ? 'Could not reach your AI mentor — tap Akara to retry'
+                      : 'Tap Akara to talk to your AI mentor'}
               </p>
+              {voiceError && (
+                <p role="alert" className="mt-2 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-1.5 max-w-md text-center">
+                  {voiceError}
+                </p>
+              )}
             </div>
           )}
         </div>

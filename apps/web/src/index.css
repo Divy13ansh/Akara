@@ -10,6 +10,29 @@ html, body {
   display: none; /* Chrome, Safari and Opera */
 }
 
+/* Opt-in visible scrollbar for bounded panels (e.g. the Learn chatbox):
+   global scrollbars stay hidden, but scrollable panels show a thin one so
+   users can see there is more content without growing the page. */
+.chat-scroll {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(214 211 209) transparent;
+}
+
+.chat-scroll::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgb(214 211 209);
+  border-radius: 999px;
+}
+
 @font-face {
   font-family: 'Tropika Island';
   src: url('/fonts/aiyari-tropika-island-int.otf') format('opentype');

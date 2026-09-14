@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { authService } from '../services/api';
 import { parseError } from '../services/http';
-import { promptGoogleSignIn } from '../services/googleIdentity';
+import { promptGoogleCredential } from '../services/googleIdentity';
 import { handleImageFallback } from '../components/CardThemeUtils';
 
 export default function Login() {
@@ -38,24 +38,19 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      let credential: string | undefined;
-      try {
-        credential = await promptGoogleSignIn();
-      } catch {
-        credential = undefined;
-      }
-      if (!credential) {
-        setError("Google sign-in was cancelled. Try again or use email login.");
-        return;
-      }
+      // One Tap first, popup token flow as fallback; the backend auto-creates
+      // an account on first Google sign-in, so this works for new users too.
+      const credential = await promptGoogleCredential();
       const res = await authService.googleAuth(credential);
       if (!res.user.onboarding_completed) {
         navigate('/onboarding/class');
       } else {
         navigate('/home');
       }
-    } catch {
-      setError("Google sign-in failed. Try again or use email login.");
+    } catch (err) {
+      // Surface the real reason (cancelled vs expired vs not configured).
+      const msg = parseError(err);
+      setError(msg === 'Something went wrong.' ? "Google sign-in failed. Try again or use email login." : msg);
     } finally {
       setLoading(false);
     }

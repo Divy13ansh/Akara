@@ -88,6 +88,12 @@ using the Feynman technique: they explain it back, you probe the gaps.
 TOPIC: {topic}
 GROUND-TRUTH SCRIPT: {script}
 
+## Language — HIGHEST PRIORITY
+Conduct the ENTIRE session in {lang_name}. Your very first greeting AND every
+question, acknowledgement, and closing MUST be in {lang_name} — never default
+to English. If the student code-switches (Hinglish), respond naturally in kind
+but stay anchored in {lang_name}.
+
 ## Rubric — MASTERY LEVELS (progress through these IN ORDER)
 {leveled_rubric}
 
@@ -150,6 +156,22 @@ def _format_leveled_rubric(topic: TopicData) -> str:
     return "\n".join(lines)
 
 
+_LANG_NAMES = {
+    "hi": "Hindi (Devanagari speech)",
+    "en": "English",
+    "mr": "Marathi",
+    "bn": "Bengali",
+    "te": "Telugu",
+    "ta": "Tamil",
+    "gu": "Gujarati",
+    "kn": "Kannada",
+    "ml": "Malayalam",
+    "pa": "Punjabi",
+    "ur": "Urdu",
+    "or": "Odia",
+}
+
+
 def _grade_to_age_range(grade: str) -> str:
     """Convert grade string to approximate age range."""
     try:
@@ -187,11 +209,13 @@ DEFAULT_TOPIC_DATA = TopicData(
 
 class DefaultAgent(Agent):
     def __init__(self, topic_data: TopicData) -> None:
+        lang_name = _LANG_NAMES.get((topic_data.lang or "hi").split("-")[0].lower(), "Hindi")
         instructions = INSTRUCTIONS_TEMPLATE_V2.format(
             topic=topic_data.topic,
             script=topic_data.script,
             leveled_rubric=_format_leveled_rubric(topic_data),
             grade_range=_grade_to_age_range(topic_data.grade),
+            lang_name=lang_name,
         )
         super().__init__(
             instructions=instructions,
@@ -210,11 +234,15 @@ class DefaultAgent(Agent):
         self._topic_data = topic_data
 
     async def on_enter(self):
+        lang_name = _LANG_NAMES.get(
+            (self._topic_data.lang or "hi").split("-")[0].lower(), "Hindi"
+        )
         await self.session.generate_reply(
             instructions=(
-                "Greet the student briefly and ask them to explain what "
-                f"they understood about {self._topic_data.topic} from the video they "
-                "just watched."
+                f"Greet the student briefly IN {lang_name} and ask them IN {lang_name} "
+                "to explain what they understood about "
+                f"{self._topic_data.topic} from the video they just watched. "
+                f"Every word you speak must be in {lang_name}."
             ),
             allow_interruptions=True,
         )
@@ -357,8 +385,12 @@ async def _post_transcript_webhook(
             async with asyncio.timeout(15):
                 import httpx
 
+                headers = {}
+                secret = os.getenv("WEBHOOK_SECRET", "")
+                if secret:
+                    headers["X-Webhook-Secret"] = secret
                 async with httpx.AsyncClient(timeout=15) as client:
-                    r = await client.post(url, json=payload)
+                    r = await client.post(url, json=payload, headers=headers)
                     r.raise_for_status()
                     logger.info("Transcript webhook POST succeeded (%s)", r.status_code)
                     return

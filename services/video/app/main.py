@@ -200,7 +200,16 @@ def run_pipeline(video_id: str, req: ExplainRequest):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "akara-video"}
+    # Manim's Tex/MathTex shell out to `latex` — report its presence so a
+    # missing TeX install is diagnosable without burning a render's tokens.
+    import shutil
+
+    return {
+        "status": "ok",
+        "service": "akara-video",
+        "latex": shutil.which("latex") is not None,
+        "dvisvgm": shutil.which("dvisvgm") is not None,
+    }
 
 
 @app.post("/explain")

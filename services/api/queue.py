@@ -42,15 +42,24 @@ async def enqueue_scoring(session_id: str) -> bool:
         return False
 
 
-async def enqueue_quiz_generation(concept_id: str, lang: str) -> bool:
-    """One Azure call per (concept, lang) — deduped by arq job id (D-7)."""
+async def enqueue_quiz_generation(concept_id: str, lang: str, fresh: bool = False) -> bool:
+    """One Azure call per (concept, lang) — deduped by arq job id (D-7).
+
+    fresh=True mints a unique job id for recovery re-enqueues: arq never
+    re-runs a completed job id, so retrying a crashed run under the same id
+    would silently no-op and leave the row stuck at 'generating' forever."""
     try:
         q = await _get_queue()
+        job_id = f"quiz:{concept_id}:{lang}"
+        if fresh:
+            import uuid
+
+            job_id = f"{job_id}:retry-{uuid.uuid4().hex[:8]}"
         await q.enqueue_job(
             "quiz_generation_task",
             concept_id,
             lang,
-            _job_id=f"quiz:{concept_id}:{lang}",
+            _job_id=job_id,
         )
         return True
     except Exception as e:

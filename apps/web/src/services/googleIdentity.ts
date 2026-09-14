@@ -84,6 +84,74 @@ export function promptGoogleSignIn(timeoutMs = 120000): Promise<string> {
   });
 }
 
+/**
+ * Request an OAuth2 access token via a user-gesture popup. This flow is far
+ * more reliable than One Tap prompt() on localhost (FedCM / third-party
+ * cookie phase-out often silently suppresses the One Tap prompt, which is
+ * what produced the "Google sign-in failed" dead-end). The backend verifies
+ * the token and auto-creates the account on first sign-in.
+ */
+export function promptGoogleAccessToken(timeoutMs = 120000): Promise<string> {
+  return new Promise((outerResolve, outerReject) => {
+    let settled = false;
+    const done = (fn: () => void) => {
+      if (!settled) {
+        settled = true;
+        fn();
+      }
+    };
+
+    loadGoogleScript()
+      .then(() => {
+        const google = (window as unknown as {
+          google?: {
+            accounts: {
+              oauth2: {
+                initTokenClient: (cfg: {
+                  client_id: string;
+                  scope: string;
+                  callback: (res: { access_token?: string; error?: string }) => void;
+                }) => { requestAccessToken: (opts?: { prompt?: string }) => void };
+              };
+            };
+          };
+        }).google;
+        if (!google?.accounts?.oauth2) throw new Error('Google OAuth2 unavailable');
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: 'openid email profile',
+          callback: (res) => {
+            if (res.access_token) done(() => outerResolve(res.access_token as string));
+            else done(() => outerReject(new Error(res.error || 'Google sign-in dismissed')));
+          },
+        });
+        client.requestAccessToken({ prompt: 'select_account' });
+      })
+      .catch((e) => done(() => outerReject(e)));
+
+    setTimeout(
+      () => done(() => outerReject(new Error('Google sign-in timed out'))),
+      timeoutMs,
+    );
+  });
+}
+
+/**
+ * Best-effort sign-in: try the silent One Tap credential first, fall back to
+ * the popup access-token flow. Resolves with {idToken?, accessToken?} —
+ * exactly one is always set.
+ */
+export async function promptGoogleCredential(): Promise<{ idToken?: string; accessToken?: string }> {
+  try {
+    const idToken = await promptGoogleSignIn(15000);
+    if (idToken) return { idToken };
+  } catch {
+    /* One Tap unavailable/dismissed — fall through to the popup flow */
+  }
+  const accessToken = await promptGoogleAccessToken();
+  return { accessToken };
+}
+
 export async function renderGoogleButton(
   container: HTMLElement,
   onCredential: (idToken: string) => void,

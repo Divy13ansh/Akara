@@ -74,10 +74,16 @@ export const authService = {
     return data;
   },
 
-  async googleAuth(credential: string): Promise<AuthResponse> {
+  async googleAuth(credential: string | { idToken?: string; accessToken?: string }): Promise<AuthResponse> {
+    const body =
+      typeof credential === "string"
+        ? { id_token: credential, provider: "google" }
+        : credential.accessToken
+          ? { access_token: credential.accessToken, provider: "google" }
+          : { id_token: credential.idToken, provider: "google" };
     const data = await apiFetch<AuthResponse>("/api/auth/google", {
       method: "POST",
-      body: JSON.stringify({ id_token: credential, provider: "google" }),
+      body: JSON.stringify(body),
     });
     setToken(data.token);
     cacheUser(data.user);

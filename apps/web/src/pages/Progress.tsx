@@ -331,16 +331,11 @@ export default function Progress() {
                         </div>
                       </div>
 
-                      {/* Card Footer: Needs Revisit Count Badge - Clean without dividing lines or chapter counts */}
+                      {/* Card Footer: Needs Revisit Count Badge (nothing when clear) */}
                       <div className="pt-3 mt-3 flex items-center justify-between">
-                        {subject.revisitCount > 0 ? (
+                        {subject.revisitCount > 0 && (
                           <div className="inline-flex items-center text-xs font-bold text-[#6d0e00] bg-[#FDF2F0] px-3 py-1.5 rounded-xl border border-[#F4D2CC]">
                             <span>{subject.revisitCount} {subject.revisitCount === 1 ? 'Concept' : 'Concepts'} to Revisit</span>
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-                            <CheckCircle2 size={13} strokeWidth={2.4} />
-                            <span>All Clear &bull; No Weak Gaps</span>
                           </div>
                         )}
                       </div>

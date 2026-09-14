@@ -48,9 +48,13 @@ export function VideoPlayer({
   const [isVideoEnded, setIsVideoEnded] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Live generation pipeline state tracking (backend-driven; poll while rendering)
+  // Live generation pipeline state tracking (backend-driven; poll while rendering).
+  // Progress/stage stay in state for the polling loop; the student-facing copy
+  // is a friendly ETA (no percentages, no jargon).
   const [liveProgress, setLiveProgress] = useState(statusInfo.progressPercent);
   const [liveStage, setLiveStage] = useState(statusInfo.currentStage || 'Checking generation status…');
+  void liveProgress;
+  void liveStage;
   const [isReady, setIsReady] = useState(statusInfo.status === 'instant');
   const videoSrc = conceptData.videoUrl || SAMPLE_VIDEO_SRC;
 
@@ -221,10 +225,10 @@ export function VideoPlayer({
 
             <div className="space-y-1">
               <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-white font-sans">
-                Generating this for the first time… {liveProgress}%
+                Your video is getting ready — about 5 minutes left
               </h3>
               <p className="text-stone-400 text-sm font-medium leading-relaxed">
-                {liveStage || 'Rendering your explainer video.'}
+                You can wait here or come back in a bit — we'll have it ready for you.
               </p>
             </div>
           </div>

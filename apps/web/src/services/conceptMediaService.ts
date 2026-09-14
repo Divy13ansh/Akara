@@ -153,6 +153,7 @@ interface BackendQuizItem {
 interface BackendMedia {
   concept_id: string;
   concept_name: string;
+  topic_name?: string;
   ncert_citation?: string;
   language: string;
   available_languages?: string[];
@@ -211,7 +212,7 @@ function mapMedia(b: BackendMedia): GeneratedConceptData {
     subjectName: "",
     chapterId: "",
     chapterName: "",
-    topicName: "",
+    topicName: b.topic_name || b.concept_name,
     classNumber: 10,
     ncertCitation: b.ncert_citation ?? "",
     language: b.language,

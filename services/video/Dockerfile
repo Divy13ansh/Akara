@@ -2,6 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Manim's Tex/MathTex compile step shells out to `latex`/`dvisvgm`. Without a
+# TeX install EVERY render using math text fails deterministically, and each
+# retry burns Azure tokens — so a minimal TeX is baked into the image.
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     build-essential \
@@ -15,6 +18,10 @@ RUN apt-get update && apt-get install -y \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
+    texlive-latex-base \
+    texlive-latex-recommended \
+    dvisvgm \
+    cm-super \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

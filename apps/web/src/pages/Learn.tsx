@@ -6,7 +6,6 @@ import { DoubtsChat } from '../components/DoubtsChat';
 import { conceptMediaService, GeneratedConceptData, GenerationStatusResponse } from '../services/conceptMediaService';
 import { authService, UserProfile } from '../services/api';
 import { parseError } from '../services/http';
-import { VoiceMentorButton } from '../components/VoiceMentorButton';
 
 export default function Learn() {
   const { conceptId } = useParams<{ conceptId: string }>();
@@ -124,16 +123,6 @@ export default function Learn() {
           <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
             Watch the video explanation to master this concept.
           </p>
-          {conceptData && (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <VoiceMentorButton conceptId={conceptData.conceptId} language={conceptData.language} />
-              {conceptData.quizStatus === 'generating' && (
-                <span className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-3 py-1.5">
-                  Practice quiz still generating — check the Practice tab in ~10s
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         {error && (
@@ -153,7 +142,7 @@ export default function Learn() {
           </div>
         ) : !conceptData ? (
           <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div className="lg:col-span-8">
+            <div ref={videoContainerRef} className="lg:col-span-8 min-w-0">
               <VideoPlayer
                 conceptData={{
                   conceptId: conceptId || 'cr-02',
@@ -184,14 +173,14 @@ export default function Learn() {
                 onContinueToExplain={handleExplainItBack}
               />
             </div>
-            <div className="lg:col-span-4 w-full flex flex-col min-h-0 h-[480px] lg:h-auto overflow-hidden" style={videoHeight ? { height: `${videoHeight}px`, maxHeight: `${videoHeight}px` } : undefined}>
+            <div className="lg:col-span-4 min-w-0 w-full flex flex-col min-h-0 h-[480px] lg:h-auto overflow-hidden" style={videoHeight ? { height: `${videoHeight}px`, maxHeight: `${videoHeight}px` } : undefined}>
               <DoubtsChat topicName="this concept" conceptId={conceptId} language={statusInfo.language} />
             </div>
           </div>
         ) : (
           <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left: Video Player */}
-            <div ref={videoContainerRef} className="lg:col-span-8 w-full flex flex-col justify-start">
+            <div ref={videoContainerRef} className="lg:col-span-8 min-w-0 w-full flex flex-col justify-start">
               <VideoPlayer
                 conceptData={conceptData}
                 statusInfo={statusInfo}
@@ -204,7 +193,7 @@ export default function Learn() {
 
             {/* Right: AI Doubts Chat strictly fixed to video player height */}
             <div 
-              className="lg:col-span-4 w-full flex flex-col min-h-0 h-[480px] lg:h-auto overflow-hidden"
+              className="lg:col-span-4 min-w-0 w-full flex flex-col min-h-0 h-[480px] lg:h-auto overflow-hidden"
               style={
                 videoHeight
                   ? { height: `${videoHeight}px`, maxHeight: `${videoHeight}px` }

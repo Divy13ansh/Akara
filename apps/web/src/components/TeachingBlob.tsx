@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export type BlobState = 'idle' | 'user-speaking' | 'thinking' | 'blob-speaking';
@@ -8,94 +8,23 @@ interface TeachingBlobProps {
   interactive?: boolean;
   state?: BlobState;
   onStateChange?: (state: BlobState) => void;
-  speechText?: string;
-  onSpeechEnd?: () => void;
+  /** Tap handler owned by the parent (Explain wires it to the LiveKit voice
+   * mentor). The blob itself plays NO audio — all speech comes from LiveKit. */
+  onTap?: () => void;
 }
 
-export const TeachingBlob: React.FC<TeachingBlobProps> = ({ 
-  size = 320, 
+export const TeachingBlob: React.FC<TeachingBlobProps> = ({
+  size = 320,
   interactive = true,
   state: controlledState,
   onStateChange,
-  speechText = "Hello I am Akara. What are you going to teach me today ?",
-  onSpeechEnd,
+  onTap,
 }) => {
   const [internalState, setInternalState] = useState<BlobState>('idle');
   const currentState = controlledState ?? internalState;
 
   const [isSquishing, setIsSquishing] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
-  const [visibleWordCount, setVisibleWordCount] = useState<number>(0);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-
-  const speechTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const userSpeakingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const thinkingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const wordIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const words = speechText.split(' ').filter(Boolean);
-  const MAX_VISIBLE_WORDS = 4; // Single compact line window
-  const startWordIdx = Math.max(0, visibleWordCount - MAX_VISIBLE_WORDS);
-  const currentChunk = words.slice(startWordIdx, visibleWordCount);
-
-  // Load available speech synthesis voices for the nicest companion voice
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    const loadVoices = () => {
-      const v = window.speechSynthesis.getVoices();
-      if (v && v.length > 0) setVoices(v);
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-
-    return () => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
-    };
-  }, []);
-
-  const pickBestVoice = (): SpeechSynthesisVoice | null => {
-    const list = voices.length > 0 ? voices : (typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis.getVoices() : []);
-    if (!list || list.length === 0) return null;
-
-    // High quality, warm, friendly and curious companion voices
-    const preferredNames = [
-      'Microsoft Maisie Online (Natural)',
-      'Microsoft Ana Online (Natural)',
-      'Microsoft Jenny Online (Natural)',
-      'Microsoft Aria Online (Natural)',
-      'Google UK English Female',
-      'Samantha',
-      'Victoria',
-      'Google US English',
-      'Karen',
-      'Moira',
-      'Tessa',
-      'Serena',
-      'Fiona',
-    ];
-
-    for (const name of preferredNames) {
-      const match = list.find(v => v.name.toLowerCase().includes(name.toLowerCase()));
-      if (match) return match;
-    }
-
-    const naturalEn = list.find(v => 
-      v.lang.startsWith('en') && (
-        v.name.toLowerCase().includes('natural') || 
-        v.name.toLowerCase().includes('female') ||
-        v.name.toLowerCase().includes('premium') ||
-        v.name.toLowerCase().includes('online')
-      )
-    );
-    if (naturalEn) return naturalEn;
-
-    const en = list.find(v => v.lang.startsWith('en'));
-    return en || list[0] || null;
-  };
 
   const updateState = (newState: BlobState) => {
     if (!controlledState) {
@@ -125,163 +54,17 @@ export const TeachingBlob: React.FC<TeachingBlobProps> = ({
     return () => clearInterval(blinkInterval);
   }, [currentState]);
 
-  // Audio Speech synthesis when entering blob-speaking
-  useEffect(() => {
-    if (currentState === 'blob-speaking') {
-      let isCancelled = false;
-      setVisibleWordCount(0);
-
-      // Start word-by-word reveal timer
-      if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-      let wordIndex = 1;
-      setVisibleWordCount(1);
-
-      // Interval tailored to word length and natural speaking pace (~275ms per word)
-      wordIntervalRef.current = setInterval(() => {
-        if (wordIndex < words.length) {
-          wordIndex++;
-          setVisibleWordCount(wordIndex);
-        } else {
-          if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-        }
-      }, 275);
-
-      // Speak text using browser speech synthesis with nice companion voice
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-          // Clean trailing space before question marks for natural speech inflection
-          const naturalSpokenText = speechText.replace(/\s+\?/g, '?');
-          const utterance = new SpeechSynthesisUtterance(naturalSpokenText);
-          const bestVoice = pickBestVoice();
-          if (bestVoice) {
-            utterance.voice = bestVoice;
-          }
-          utterance.rate = 0.98; // Engaging, clear, natural tempo
-          utterance.pitch = 1.24; // Friendly, curious, warm companion pitch
-
-          // Word boundary hook for browsers that support it
-          utterance.onboundary = (e: SpeechSynthesisEvent) => {
-            if (e.name === 'word') {
-              setVisibleWordCount((prev) => Math.max(prev, Math.min(prev + 1, words.length)));
-            }
-          };
-
-          utterance.onend = () => {
-            if (!isCancelled) {
-              if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-              setVisibleWordCount(words.length);
-              setTimeout(() => {
-                if (!isCancelled) {
-                  updateState('idle');
-                  setVisibleWordCount(0);
-                  onSpeechEnd?.();
-                }
-              }, 1200);
-            }
-          };
-
-          utterance.onerror = () => {
-            if (!isCancelled) {
-              if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-              setVisibleWordCount(words.length);
-              setTimeout(() => {
-                if (!isCancelled) {
-                  updateState('idle');
-                  setVisibleWordCount(0);
-                  onSpeechEnd?.();
-                }
-              }, 1200);
-            }
-          };
-
-          window.speechSynthesis.speak(utterance);
-        } catch (e) {
-          console.warn('Speech synthesis error:', e);
-        }
-      }
-
-      // Safety fallback timer in case speech synthesis fails or is muted
-      speechTimeoutRef.current = setTimeout(() => {
-        if (!isCancelled) {
-          if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-          setVisibleWordCount(words.length);
-          setTimeout(() => {
-            if (!isCancelled) {
-              updateState('idle');
-              setVisibleWordCount(0);
-              onSpeechEnd?.();
-            }
-          }, 1200);
-        }
-      }, 5500);
-
-      return () => {
-        isCancelled = true;
-        if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-        if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-        }
-      };
-    } else {
-      setVisibleWordCount(0);
-      if (wordIntervalRef.current) clearInterval(wordIntervalRef.current);
-    }
-  }, [currentState, speechText]);
-
-  // Handle user speech timer -> transitions to thinking
-  useEffect(() => {
-    if (currentState === 'user-speaking') {
-      // Transition to thinking after 3.2 seconds of user speaking
-      userSpeakingTimerRef.current = setTimeout(() => {
-        updateState('thinking');
-      }, 3200);
-
-      return () => {
-        if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
-      };
-    }
-  }, [currentState]);
-
-  // Handle thinking timer -> transitions to blob-speaking
-  useEffect(() => {
-    if (currentState === 'thinking') {
-      // Companion thinks with 3 blinking gradient dots on its head for 1.8 seconds
-      thinkingTimerRef.current = setTimeout(() => {
-        updateState('blob-speaking');
-      }, 1800);
-
-      return () => {
-        if (thinkingTimerRef.current) clearTimeout(thinkingTimerRef.current);
-      };
-    }
-  }, [currentState]);
-
-  // Click handler to speak
+  // Click handler: the parent owns the voice session (LiveKit). No browser
+  // TTS, no fake state timers — tapping only squishes and notifies the parent.
   const handleClick = () => {
     if (!interactive) return;
-
-    if (currentState === 'idle') {
-      // User clicks it to speak -> enters user-speaking mode
-      setIsSquishing(true);
-      setTimeout(() => setIsSquishing(false), 300);
-      updateState('user-speaking');
-    } else if (currentState === 'user-speaking') {
-      // User clicks while speaking to finish speaking early -> triggers thinking
-      if (userSpeakingTimerRef.current) clearTimeout(userSpeakingTimerRef.current);
-      updateState('thinking');
-    } else if (currentState === 'thinking') {
-      // User clicks during thinking -> immediately starts speaking
-      if (thinkingTimerRef.current) clearTimeout(thinkingTimerRef.current);
-      updateState('blob-speaking');
-    } else if (currentState === 'blob-speaking') {
-      // User clicks while blob is speaking -> cancel and reset to idle
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      updateState('idle');
+    setIsSquishing(true);
+    setTimeout(() => setIsSquishing(false), 300);
+    if (onTap) {
+      onTap();
+      return;
     }
+    updateState(currentState === 'idle' ? 'user-speaking' : 'idle');
   };
 
   const isRadiating = currentState === 'user-speaking' || currentState === 'thinking' || currentState === 'blob-speaking';
@@ -291,31 +74,6 @@ export const TeachingBlob: React.FC<TeachingBlobProps> = ({
       className="relative flex items-center justify-center select-none"
       style={{ width: size, height: size * 0.95 }}
     >
-      {/* Floating text right above head with disappearing magic (moved down closer to Akara) */}
-      <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 w-[min(92vw,480px)] flex justify-center pointer-events-none z-30 px-3">
-        {currentState === 'blob-speaking' && (
-          <p className="text-center font-semibold text-stone-800 text-sm sm:text-base leading-normal tracking-tight min-h-[1.5rem] flex items-center justify-center">
-            <AnimatePresence mode="popLayout">
-              {currentChunk.map((word, relIdx) => {
-                const absIdx = startWordIdx + relIdx;
-                return (
-                  <motion.span
-                    key={`word-${absIdx}`}
-                    initial={{ opacity: 0, y: 6, filter: 'blur(2px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -6, filter: 'blur(3px)', transition: { duration: 0.2 } }}
-                    transition={{ duration: 0.18 }}
-                    className="inline-block mr-1.5 whitespace-nowrap"
-                  >
-                    {word}
-                  </motion.span>
-                );
-              })}
-            </AnimatePresence>
-          </p>
-        )}
-      </div>
-
       {/* 1. Ambient Background Glow - Includes Wide Horizontal Elliptical Side Glow to eliminate empty sides */}
       <div 
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(94vw,720px)] sm:w-[840px] md:w-[980px] lg:w-[1120px] h-[340px] sm:h-[380px] rounded-full blur-3xl sm:blur-[80px] opacity-45 pointer-events-none transition-all duration-700"
@@ -433,6 +191,17 @@ export const TeachingBlob: React.FC<TeachingBlobProps> = ({
                 background: 'radial-gradient(circle, rgba(244, 114, 182, 0.4) 0%, rgba(129, 140, 248, 0.25) 50%, transparent 75%)',
               }}
             />
+            {/* Sound waves emanating FROM the blob while it speaks — the audio
+                visibly comes out of Akara itself (no separate speaker button). */}
+            {currentState === 'blob-speaking' && [0, 1, 2].map((ring) => (
+              <motion.div
+                key={`voice-ring-${ring}`}
+                animate={{ scale: [0.55, 1.15], opacity: [0.7, 0] }}
+                transition={{ repeat: Infinity, duration: 1.6, delay: ring * 0.45, ease: 'easeOut' }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-pink-300/80 pointer-events-none"
+                style={{ width: size * 0.9, height: size * 0.9 }}
+              />
+            ))}
           </>
         )}
       </AnimatePresence>

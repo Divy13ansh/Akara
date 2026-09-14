@@ -17,15 +17,79 @@ interface DoubtsChatProps {
   language?: string;
 }
 
+function greetingFor(topicName: string, language?: string): string {
+  const lang = (language || 'hi').toLowerCase();
+  if (lang.startsWith('hi')) {
+    return `Namaste! Ye video dekhte hue ${topicName} par koi bhi doubt ho to bejhijhak poochho!`;
+  }
+  return `Hello! If you have any doubts while watching this video on ${topicName}, ask me anytime!`;
+}
+
+/** Minimal readable renderer: paragraphs, **bold**, `code`, and line lists. */
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return <strong key={`${keyPrefix}-b${i}`} className="font-bold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+      return <code key={`${keyPrefix}-c${i}`} className="font-mono text-[11px] sm:text-xs bg-black/5 px-1 py-0.5 rounded">{part.slice(1, -1)}</code>;
+    }
+    return <React.Fragment key={`${keyPrefix}-t${i}`}>{part}</React.Fragment>;
+  });
+}
+
+function FormattedText({ text }: { text: string }) {
+  // Backend answers often arrive as ONE unbroken line (no \n at all). Split
+  // those into sentences so each idea breathes on its own line.
+  let blocks = text.split(/\n+/).map((b) => b.trim()).filter(Boolean);
+  if (blocks.length <= 1 && text.length > 200) {
+    const sentences = text
+      .split(/(?<=[.!?।])\s+(?=[A-Z0-9\u0900-\u097F*])/g)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (sentences.length > 1) blocks = sentences;
+  }
+  if (blocks.length <= 1) {
+    return <p className="text-xs sm:text-[13px] font-medium leading-relaxed whitespace-pre-line break-words">{renderInline(text, 's')}</p>;
+  }
+  return (
+    <div className="space-y-1.5">
+      {blocks.map((block, i) => {
+        const listMatch = block.match(/^(\d+[.)]\s+|[-*•]\s+)(.*)$/s);
+        if (listMatch) {
+          return (
+            <p key={i} className="text-xs sm:text-[13px] font-medium leading-relaxed flex gap-1.5 break-words">
+              <span className="shrink-0 font-bold">{listMatch[1].trim()}</span>
+              <span>{renderInline(listMatch[2], `b${i}`)}</span>
+            </p>
+          );
+        }
+        return <p key={i} className="text-xs sm:text-[13px] font-medium leading-relaxed break-words">{renderInline(block, `b${i}`)}</p>;
+      })}
+    </div>
+  );
+}
+
 export function DoubtsChat({ topicName = 'this concept', conceptId, language }: DoubtsChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-1',
       sender: 'ai',
-      text: `Hello! If you have any doubts while watching this video on ${topicName}, ask me anytime!`,
+      text: greetingFor(topicName, language),
       time: ''
     },
   ]);
+
+  // Keep the opening greeting in the student's chosen language.
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'msg-1') {
+        return [{ ...prev[0], text: greetingFor(topicName, language) }];
+      }
+      return prev;
+    });
+  }, [topicName, language]);
 
   const [inputVal, setInputVal] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -33,14 +97,13 @@ export function DoubtsChat({ topicName = 'this concept', conceptId, language }: 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Scroll the MESSAGES BOX only — never the page. (An earlier
+  // scrollIntoView fallback scrolled the whole page on long answers.)
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior,
-      });
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior });
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    if (el.scrollHeight > el.clientHeight + 4) {
+      el.scrollTo({ top: el.scrollHeight, behavior });
     }
   };
 
@@ -107,23 +170,23 @@ export function DoubtsChat({ topicName = 'this concept', conceptId, language }: 
 
       <div
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm overscroll-contain"
+        className="chat-scroll flex-1 min-h-0 p-4 overflow-y-auto overflow-x-hidden space-y-3 text-xs sm:text-sm overscroll-contain"
       >
         {messages.map((m) => {
           const isAI = m.sender === 'ai';
           return (
             <div
               key={m.id}
-              className={`flex ${isAI ? 'justify-start' : 'justify-end'}`}
+              className={`flex min-w-0 ${isAI ? 'justify-start' : 'justify-end'}`}
             >
               <div
-                className={`max-w-[85%] px-4 py-2.5 rounded-2xl leading-relaxed ${
+                className={`max-w-[85%] min-w-0 px-4 py-2.5 rounded-2xl leading-relaxed [overflow-wrap:anywhere] ${
                   isAI
                     ? 'bg-[#F6F4F0] text-stone-900 border border-stone-200/70 rounded-tl-xs'
                     : 'bg-[#6d0e00] text-white rounded-tr-xs'
                 }`}
               >
-                <p className="text-xs sm:text-[13px] font-medium leading-relaxed">{m.text}</p>
+                <FormattedText text={m.text} />
               </div>
             </div>
           );
