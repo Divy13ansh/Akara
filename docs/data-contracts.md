@@ -6,7 +6,7 @@ Single source of truth. Import `TopicData`, never redefine shapes per service.
 
 ```json
 {
-  "topic_id": "phy9-newton3",
+  "topic_id": "phy11-newton3",
   "topic": "Newton's Third Law of Motion",
   "script": "Every action has...",
   "rubric": "1. pairs... 2. equal/opposite... 3. DIFFERENT objects... 4. example...",
@@ -27,8 +27,8 @@ Single source of truth. Import `TopicData`, never redefine shapes per service.
 
 ```json
 {
-  "room_name": "phy9-newton3-s1-1726...",
-  "topic_id": "phy9-newton3",
+  "room_name": "phy11-newton3-s1-1726...",
+  "topic_id": "phy11-newton3",
   "student_id": "s1",
   "lang": "hi",
   "turns": [
@@ -45,7 +45,7 @@ Save raw `.json` per `room_name`. Never truncate student text before scoring.
 
 ```json
 {
-  "topic_id": "phy9-newton3",
+  "topic_id": "phy11-newton3",
   "student_id": "s1",
   "mastery": 0.72,
   "points": [

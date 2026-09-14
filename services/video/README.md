@@ -1,6 +1,12 @@
-# Video service (future, currently disconnected)
+# Video service
 
-Manim CE explainer library lives here when linked. See `docs/video-pipeline.md`.
+Manim CE + Azure Neural TTS 5-stage render pipeline: scene files → TTS audio →
+stitch → R2 upload → callback to the API. See `docs/video-pipeline.md`.
 
-Intentionally empty — voice loop does not depend on it.
-`topic_id` is the only join key between video scripts and voice sessions.
+Runs as the `video` compose service (:8001). The API's
+`POST /internal/render-callback` is fed by this service after upload; render
+jobs are created by the API's generation-status endpoint (D-6 auto-trigger)
+under a global render-slot cap (D-16).
+
+Known gap: MathTex-heavy scenes need `texlive` in the Dockerfile (math falls
+back to a fixer pass today).

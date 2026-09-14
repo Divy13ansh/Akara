@@ -8,7 +8,8 @@ Requirement: learn + assess in the language the student actually uses
 - STT `language="multi"` (Nova-3 multilingual, includes Hindi) — good.
 - TTS `language="hi"` hardcoded — bad. Forces Hindi prosody even for English
   answers, mismatched with British Lady voice. Fix next (see below).
-- `keyterm_detection` is English-only on Deepgram — no-op for Hindi, not error.
+- `keyterm_detection` was English-only on Deepgram — moot now: STT is
+  VEXYL-STT (self-hosted IndicConformer, 14 Indian languages).
 - Prompt says "match the student's language, don't force pure English" — good,
   but needs the audio layers to cooperate.
 

@@ -41,7 +41,10 @@ The gold seeds `phy9-newton3` / `phy9-inertia` (grade "9") are renamed for grade
 consistency with D-3 (they live in the class-11 Laws of Motion chapter):
 
 - `phy9-newton3` → **`phy11-newton3`**, `phy9-inertia` → **`phy11-inertia`** (script/rubric content unchanged; `grade` becomes `"11"`)
-- `math10-quadratic` unchanged (quadratic-equations is class-10 maths; catalog-only, gold content still seeded)
+- `math10-quadratic` → the syllabus splits quadratic-equations into several
+  topics, so the seeder renames the standard-form topic to **`math10-quadratic`**
+  (gold content still seeded). All renames are D-13, applied in
+  `scripts/seed_curriculum.py`.
 
 Touches: `packages/akara_rag/retrieve.py`, `services/voice/agent.py`
 (`DEFAULT_TOPIC_DATA`), `tests/test_api.py`, `tests/test_contracts.py`.
@@ -121,15 +124,16 @@ MEDIA_CDN_BASE=            # e.g. https://cdn.akara.example (custom domain or pu
 `{subject_prefix}{grade}-{slug}`, subject prefixes: `sci` (Science 6–10),
 `math`, `phy`, `chem`, `bio`. Slugs are short kebab-case. Examples:
 
-| Frontend ID (retired) | Canonical ID | Chapter |
+| Frontend ID (retired) | Canonical ID (illustrative — syllabus.json is the source of truth) | Chapter (chapter id: `c10-chemical-reactions-and-equations`) |
 |---|---|---|
-| cr-01 | `sci10-word-equations` | chemical-reactions |
-| cr-02 | `sci10-balancing-equations` | chemical-reactions |
-| cr-03 | `sci10-conservation-mass` | chemical-reactions |
-| cr-04 | `sci10-combination-reactions` | chemical-reactions |
-| cr-05 | `sci10-decomposition-reactions` | chemical-reactions |
-| cr-06 | `sci10-displacement-reactions` | chemical-reactions |
-| cr-07 | `sci10-double-displacement` | chemical-reactions |
+| cr-01 | `sci10-chemical-reactions` | chemical-reactions |
+| cr-02 | `sci10-chemical-equation` | chemical-reactions |
+| cr-03 | `sci10-balanced-chemical-equation` | chemical-reactions |
+
+> The old cr-01..cr-07 → slug table was a guess written before the seeder
+> existed; the seeded catalog came out differently (e.g. `sci10-acids-and-bases-
+> definitions-in-terms-of-furnishing-of-h-and-`). Don't hardcode IDs — query
+> the DB or `syllabus.json`.
 | cr-08 | `sci10-redox-reactions` | chemical-reactions |
 | cr-09 | `sci10-corrosion-rusting` | chemical-reactions |
 | cr-10 | `sci10-rancidity-antioxidants` | chemical-reactions |
@@ -184,9 +188,11 @@ callers unchanged.
 3. Alembic init + `0001_initial` migration.
 4. Run the three seed scripts.
 5. **Checkpoint:** `docker compose up -d && alembic upgrade head && uv run
-   scripts/seed_curriculum.py` → psql shows 20 tables, ~5 subjects, ~50 chapters,
-   ~40+ concepts, 3 gold concepts with rubric_points; `redis-cli ping` → PONG.
-   Existing pytest still green.
+   scripts/seed_curriculum.py` → psql shows 20 tables, 5 subjects,
+   **239 chapters, 2,027 concepts** (full syllabus.json catalog), 3 gold
+   concepts with rubric_points; `redis-cli ping` → PONG. Existing pytest still
+   green. (This plan's earlier "~50 chapters / ~40 concepts" estimate described
+   the mock catalog — the real syllabus is far larger.)
 
 ### 3b. Concurrency architecture (cross-cutting, applies to Phases 3–5)
 

@@ -27,6 +27,8 @@
 > `packages/akara_db/syllabus.json` by `scripts/seed_curriculum.py` (2,027 concepts,
 > 239 chapters, 5 subjects) — not the frontend mock catalog. Gold topics:
 > `phy11-inertia`, `phy11-newton3`, `math10-quadratic` (D-13 renames applied in the seeder).
+> Migration history: `ad8f17b309e7` (initial 20 tables) + `94cc4063d201`
+> (`concept_quizzes.generation_status`).
 
 ## 1. Entity overview (20 tables)
 
@@ -109,7 +111,7 @@ Index: `(subject_id, chapter_number)`.
 ### `concepts` ← **the central table; `id` == `topic_id`**
 | column | type | notes |
 |---|---|---|
-| id | TEXT PK | `phy9-newton3`, `cr-02` |
+| id | TEXT PK | `phy11-newton3`, `sci10-chemical-reactions` |
 | chapter_id | TEXT FK→chapters | |
 | subject_id | TEXT FK→subjects | denormalized for library filters |
 | domain | TEXT | `Chemistry`, `Algebra`… (library hierarchy groups by this) |
@@ -176,13 +178,21 @@ Index: `(concept_id, lang, created_at DESC)` — "latest run wins" for status.
 | lang | TEXT(10) | |
 | quiz | JSONB | `[{id, question, options[], correct_index, explanation}]` |
 | scene_graph | JSONB | `{nodes[], edges[]}` for Mind Map mode |
-| summary | JSONB | `{summary_bullets[], key_definitions[], ncert_summary}` |
+| summary | JSONB | `{summary_bullets[], key_definitions[], ncert_summary, flashcards[{front,back}]}` |
 | mentor_prompt | JSONB | `{scenario, question_text}` |
+| generation_status | TEXT(16) | `ready` (default) \| `generating` \| `failed` — D-7 on-demand lifecycle marker |
 | created_at | TIMESTAMPTZ | |
 
 UNIQUE `(concept_id, lang)`. (Separate from `concept_media` so quizzes can be
 regenerated without re-uploading video.) All four blobs together satisfy
 `GET /api/concepts/:id/media` in one query.
+
+**Generation is ON-DEMAND (D-7, token-saving):** rows are created when a video
+render completes (render-callback enqueues `quiz_generation_task` on the arq
+worker) or the first time `/media` is fetched without content. One Azure call
+per (concept, lang), deduped; the row doubles as the dedup marker
+(`generation_status='generating'` before the LLM call). Bulk backfill remains
+available: `scripts/backfill_concept_quizzes.py --all`.
 
 ### Cloudflare R2 conventions
 - **Bucket layout** (single bucket `akara-media`, keys are immutable):
@@ -190,7 +200,7 @@ regenerated without re-uploading video.) All four blobs together satisfy
   videos/{concept_id}/{lang}/{video_id}/final.mp4
   videos/{concept_id}/{lang}/{video_id}/poster.jpg
   videos/{concept_id}/{lang}/{video_id}/audio.mp3
-  avatars/{user_id}.jpg
+  avatars/{user_id}/{uuid}.{ext}
   ```
 - **DB stores keys only.** Public URL = `MEDIA_CDN_BASE + "/" + key`, where
   `MEDIA_CDN_BASE` is a Cloudflare custom domain or public dev URL from env.
@@ -209,7 +219,7 @@ regenerated without re-uploading video.) All four blobs together satisfy
 ### `sessions` — both voice (LiveKit) and typed (evaluate-explanation) runs
 | column | type | notes |
 |---|---|---|
-| id | TEXT PK | = `room_name` for voice (`phy9-newton3-s1-1726…`) |
+| id | TEXT PK | = `room_name` for voice (`phy11-newton3-s1-1726…`) |
 | session_type | TEXT | `voice` \| `text` |
 | student_id | TEXT FK→users | |
 | concept_id | TEXT FK→concepts | the topic_id |

@@ -40,18 +40,18 @@ uv run --project services/voice python services/voice/agent.py dev
 lk agent console
 ```
 
-API (once `tokens.py` implemented):
+API (dev without docker):
 
 ```sh
-uv run --project services/api uvicorn services.api.tokens:app --reload --port 8000
-curl "http://localhost:8000/token?student_id=s1&topic_id=phy9-newton3&lang=hi"
+uv run uvicorn services.api.main:app --reload --port 8000
+curl "http://localhost:8000/token?student_id=s1&topic_id=phy11-newton3&lang=hi"
 ```
 
 Video service (Manim CE + Neural TTS 5-stage pipeline):
 
 ```sh
 uv run --project services/video uvicorn app.main:app --reload --port 8001
-curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" -d '{"topic_id":"phy9-newton3","language":"hi"}'
+curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" -d '{"topic_id":"phy11-newton3","language":"hi"}'
 ```
 
 ## Repo map (what lives where)
@@ -92,5 +92,7 @@ curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" 
 - [x] Webhook → async scoring → coverage → mastery → prereq unlock
 - [x] generation-status gate + render trigger + R2 upload + render callback
 - [x] evaluate-explanation (sync heuristic + async LLM refine) + mark-mastered (D-9 gate)
-- [ ] Voice agent in compose (`--profile voice`) end-to-end test call
-- [ ] Frontend rewiring off mocks (D-11 exception for GIS button already done)
+- [x] On-demand quiz/flashcards/scene-graph generation (render-callback + /media triggers)
+- [x] Profile photo upload to R2 · doubts chat endpoint · language propagation (profile default)
+- [x] VEXYL-STT as compose service (`stt`) + voice worker registered with LiveKit Cloud
+- [ ] Frontend rewiring off mocks — the ONLY remaining feature work (docs/pending.md §2)

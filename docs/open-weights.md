@@ -1,8 +1,9 @@
 # Open weights path (YuvAI compliance)
 
-YuvAI requires open-source LLMs as hero/sidekick. Current dev stack is hosted
-closed audio (`deepgram/nova-3`, `cartesia/sonic-3`) + hosted Gemma — kept
-deliberately for velocity ("worked like butter"). Swap before submission.
+YuvAI requires open-source LLMs as hero/sidekick. Current dev stack: STT is
+**already open-weight** (VEXYL-STT self-hosted); TTS is hosted
+`cartesia/sonic-3` and the tutor LLM is hosted Gemma — kept deliberately for
+velocity ("worked like butter"). Swap before submission.
 
 ## Swap map (constructors isolated in `services/voice/agent.py`)
 

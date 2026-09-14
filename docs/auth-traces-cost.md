@@ -32,7 +32,7 @@ read transcripts, not derived scores.
 Hosted (now):
 
 ```
-cost/min = livekit_min + stt_min(deepgram) + tts_chars(cartesia) + llm_tokens(gemma)
+cost/min = livekit_min + stt_min(vexyl: $0, self-hosted CPU/GPU) + tts_chars(cartesia) + llm_tokens(gemma)
 ```
 
 Log LiveKit + provider usage per room in the webhook. Emit one CSV/JSONL line

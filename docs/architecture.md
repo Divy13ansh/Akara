@@ -38,21 +38,24 @@ Shared: `packages/akara_common` (TopicData), `packages/akara_rag` (FAISS read).
 9. scorer writes coverage JSON -> progress.py -> GET /progress/s1
 ```
 
-## Key decisions (locked)
+## Key decisions (current)
 
-1. **Hybrid models for now.** Dev on hosted `deepgram/nova-3 + cartesia/sonic-3 +
-   gemma` for velocity; swap to open weights before YuvAI submission.
-   Constructors isolated in `agent.py` so swap is 3 lines. Details:
-   `open-weights.md`.
-2. **Offline retrieval.** No RAG tool in voice loop. RAG runs in step 2,
-   pre-session. Voice hot path is pure prompt + transcript. Saves 1.5-3s/turn.
-3. **Two-tier scoring.** Lightweight in-call coverage signal (steer tutoring)
-   + heavy post-call judge (auditable mastery). Neither blocks audio.
-   Details: `scoring.md`.
-4. **Minimal prod slice.** Token server + OTel traces + cost logger only.
-   No user DB, dashboards, moderation yet. Details: `auth-traces-cost.md`.
-5. **Video disconnected.** `topic_id` is the only join key. Voice must work
-   with hand-written script/rubric even if no video exists.
+1. **Hybrid models for now.** STT is already open-weight (VEXYL-STT,
+   self-hosted — see `vexyl-stt.md`). TTS remains hosted
+   `cartesia/sonic-3`, tutor LLM hosted Gemma — swap to open weights before
+   YuvAI submission. Constructors isolated in `agent.py` so swap is 3 lines.
+   Details: `open-weights.md`.
+2. **Offline retrieval.** No RAG tool in voice loop. RAG runs pre-session
+   (`fetch_topic` reads gold topics from Postgres; FAISS fallback). Voice hot
+   path is pure prompt + transcript. Saves 1.5-3s/turn.
+3. **Two-tier scoring.** Lightweight sync heuristic on submit (instant
+   feedback) + heavy LLM judge in the arq worker (auditable mastery).
+   Neither blocks audio. Details: `scoring.md`.
+4. **Full backend now exists** (Postgres + Redis + arq, 20 tables, JWT auth,
+   rate limits, cache-aside) — `auth-traces-cost.md`'s "no user DB yet" note
+   is historical. Video is wired via render-callback, no longer disconnected.
+5. **One language rule:** explicit `?lang=` > profile `default_language` >
+   `hi` — drives video rendering, quizzes, flashcards, doubts, and voice.
 
 ## What is NOT in the voice hot path (and why)
 

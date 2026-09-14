@@ -1,4 +1,4 @@
-# Scoring (`services/voice/scorer.py` + `services/api/*`)
+# Scoring (`services/scorer/` + `services/api/*` + `services/worker/main.py`)
 
 Two tiers. Neither blocks audio.
 
@@ -31,7 +31,8 @@ human spot-checks can overturn a point without re-running everything.
 ## Storage
 
 - Raw: `transcript.json` per room (immutable).
-- Derived: `coverage.json` per (student_id, topic_id) via `progress.py`.
+- Derived: `coverage_points` rows per (student_id, concept_id) via the arq
+  worker (`score_session`), mastery rolled up in `services/api/mastery.py`.
 - `GET /progress/{student_id}` returns mastery trail for dashboards later.
 
 ## Eval before trusting scores

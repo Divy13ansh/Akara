@@ -10,7 +10,9 @@ Current dev stack (hybrid, swapping to open — see `open-weights.md`):
 
 - `stt=VexylSTT(language="hi-IN")` — self-hosted AI4Bharat IndicConformer via
   VEXYL-STT WebSocket server. See `vexyl-stt.md` for full details.
-  Replaced: `inference.STT(model="deepgram/nova-3")`.
+  Replaced: `inference.STT(model="deepgram/nova-3")` → now VEXYL-STT
+  (self-hosted, open-weight) via `services/voice/vexyl_stt_plugin.py`;
+  runs as the `stt` compose service.
 - `llm=inference.LLM(model="google/gemma-4-31b-it")`
 - `tts=inference.TTS(model="cartesia/sonic-3", voice="British Lady", language=...)`
 - `vad=inference.VAD()`, `TurnDetector()` + `preemptive_generation` ON

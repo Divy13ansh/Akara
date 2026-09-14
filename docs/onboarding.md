@@ -12,19 +12,20 @@ Biology under NCERT. Rural classrooms, noisy audio, cheap phones, Hindi or a
 regional language often more natural than English. YuvAI requires open-source
 LLMs as hero/sidekick.
 
-## What exists right now
+## What exists right now (2026-09-14)
 
-Only the **voice loop skeleton** is live. Everything else is placeholders:
+The **entire backend + database are built and running** (see `docs/pending.md`).
+Only frontend wiring remains:
 
 | Area | Status | Location |
 |---|---|---|
-| Voice worker (LiveKit) | skeleton, working test prompt existed | `services/voice/agent.py` |
-| Token server | TODO skeleton | `services/api/tokens.py` |
-| Offline RAG | TODO skeleton | `packages/akara_rag/retrieve.py` |
-| Scorer | TODO skeleton | `services/voice/scorer.py` |
-| Shared contract | `TopicData` dataclass only | `packages/akara_common/schemas.py` |
-| Video pipeline | 5-stage Manim + Neural TTS engine | `services/video/` |
-| Web UI | README only | `apps/web/` |
+| Database (20 tables, full NCERT catalog: 2,027 concepts / 239 chapters) | ✅ live | `packages/akara_db/` + `scripts/seed_curriculum.py` |
+| API (auth, curriculum, library, concepts, progress, webhooks) | ✅ live | `services/api/` |
+| Worker (LLM scoring + on-demand quiz/flashcards) | ✅ live | `services/worker/` |
+| Voice worker (LiveKit, VEXYL-STT) | ✅ registered, needs browser client | `services/voice/agent.py` |
+| STT server | ✅ compose service | `services/stt/` |
+| Video pipeline (Manim + Azure TTS → R2 → callback) | ✅ E2E verified | `services/video/` |
+| Web UI | ✅ built, 🔴 still reads mocks | `apps/web/` |
 
 ## How the loop works (30 seconds)
 
@@ -43,16 +44,15 @@ No RAG tool and no Score tool inside the voice hot path. That is deliberate
 ## Setup for a new dev
 
 ```sh
-cp .env.example .env.local   # fill LIVEKIT_URL/KEY/SECRET
-uv sync
-pytest
+cp .env.example .env.local   # which keys to generate: docs/secrets.md
+docker compose up -d --build # web+api+worker+video+stt+postgres+redis
+# app: http://localhost · API docs: http://localhost:8000/docs
 ```
 
-To run voice (once implemented):
+Voice (optional profile — uses the `stt` compose service):
 
 ```sh
-uv run --project services/voice python services/voice/agent.py dev
-uv run --project services/api uvicorn services.api.tokens:app --reload
+docker compose --profile voice up -d --build voice
 ```
 
 ## Where to go next

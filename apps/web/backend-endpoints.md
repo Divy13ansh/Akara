@@ -1,5 +1,16 @@
 # Backend API Contract & Endpoints Specification
 
+> **READ ME FIRST (2026-09-14):** every endpoint in this document is now
+> **implemented and live** (see `docs/backend-api-mapping.md` for the
+> field-by-field audit). Statuses below still say "MOCKED" from when only the
+> frontend existed — ignore those, they describe the *frontend service* files,
+> not the backend. Real concept IDs are DB-canonical (e.g. `sci10-chemical-
+> reactions`, `phy11-inertia`) — NOT `c1`/`cr-01`. New endpoints not in this
+> doc: `PUT /api/users/me/profile/photo`, `POST /api/concepts/:id/doubts`,
+> `POST /api/concepts/:id/mark-mastered`, `/media` now returns `quiz_status`
+> + `flashcards[]`. Language params are optional everywhere (profile default
+> applies). See `docs/pending.md` for the wiring guide.
+
 This document serves as the formal frontend-to-backend API contract for backend engineers.
 Whenever a frontend feature requires backend data, authentication, database persistence, progress tracking, content generation, or language requests, this document is updated.
 

@@ -2,11 +2,13 @@
 
 The catalog is seeded from `packages/akara_db/syllabus.json` — every concept id
 follows `{subj}{class}-{slug}` (e.g. `sci10-chemical-reactions`,
-`math10-quadratic-equations`, `phy11-newton3`). Chapter ids are
-`c{class}-{syllabus_id}` because syllabus ids collide across classes.
+`sci10-balanced-chemical-equation`, `phy11-newton3`, `math10-quadratic`).
+Chapter ids are `c{class}-{syllabus_id}` (e.g. `c10-chemical-reactions-and-equations`)
+because syllabus ids collide across classes.
 
 The per-frontend-concept mapping from the earlier mock-catalog seed is
-obsolete; it will be regenerated during the frontend rewiring phase.
+obsolete; it will be regenerated during the frontend rewiring phase
+(see `docs/pending.md`).
 
 ## Gold-topic renames (D-13)
 
