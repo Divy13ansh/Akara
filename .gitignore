@@ -19,3 +19,4 @@ media/
 outputs/
 docs/feynman.md
 .ruff_cache
+venv

@@ -13,6 +13,7 @@ export default function SubjectChapters() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [subjectInfo, setSubjectInfo] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const subjectId = (subjectParam || 'science').toLowerCase();
 
@@ -34,7 +35,8 @@ export default function SubjectChapters() {
         const chapterList = await curriculumService.getChapters(subjectId, userClass);
         setChapters(chapterList);
       } catch (err) {
-        console.error('Failed to load chapters:', err);
+        const { parseError } = await import('../services/http');
+        setError(parseError(err));
       } finally {
         setLoading(false);
       }
@@ -58,6 +60,11 @@ export default function SubjectChapters() {
           <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
             Select a chapter to explore concepts and practice.
           </p>
+          {error && (
+            <div role="alert" className="mt-3 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 max-w-2xl">
+              {error} <button type="button" onClick={() => window.location.reload()} className="ml-2 font-bold underline">Retry</button>
+            </div>
+          )}
         </div>
 
         {/* Chapters Cards Grid - 3 containers in one line on desktop */}

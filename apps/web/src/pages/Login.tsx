@@ -4,6 +4,7 @@ import { Logo } from '../components/Logo';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { authService } from '../services/api';
+import { parseError } from '../services/http';
 import { promptGoogleSignIn } from '../services/googleIdentity';
 import { handleImageFallback } from '../components/CardThemeUtils';
 
@@ -12,11 +13,13 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const res = await authService.login({ email, password });
       if (!res.user.onboarding_completed) {
@@ -24,6 +27,8 @@ export default function Login() {
       } else {
         navigate('/home');
       }
+    } catch (err) {
+      setError(parseError(err));
     } finally {
       setLoading(false);
     }
@@ -31,14 +36,17 @@ export default function Login() {
 
   const handleGoogleAuth = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Real GIS flow: get the id_token from Google One Tap, exchange it at
-      // POST /api/auth/google (mock fallback when GIS fails, e.g. http origin).
       let credential: string | undefined;
       try {
         credential = await promptGoogleSignIn();
       } catch {
         credential = undefined;
+      }
+      if (!credential) {
+        setError("Google sign-in was cancelled. Try again or use email login.");
+        return;
       }
       const res = await authService.googleAuth(credential);
       if (!res.user.onboarding_completed) {
@@ -46,6 +54,8 @@ export default function Login() {
       } else {
         navigate('/home');
       }
+    } catch {
+      setError("Google sign-in failed. Try again or use email login.");
     } finally {
       setLoading(false);
     }
@@ -123,6 +133,11 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleLogin} className="w-full flex flex-col gap-3">
+              {error && (
+                <div role="alert" className="w-full text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </div>
+              )}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-700">Email</label>
                 <input 
