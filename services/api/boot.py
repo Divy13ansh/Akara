@@ -53,12 +53,18 @@ async def run_boot_init() -> None:
                 "SELECT (SELECT count(*) FROM subjects) AS s, "
                 "(SELECT count(*) FROM concepts) AS c"))
             row = counts.mappings().first() or {}
+            # Commit the check transaction BEFORE seeding: the seed TRUNCATEs
+            # on other connections, and our open snapshot (AccessShare locks)
+            # would block it forever — self-deadlock. Advisory locks are
+            # session-level and survive COMMIT, so the seed stays serialised.
+            await conn.commit()
             if (row.get("s") or 0) > 0 and (row.get("c") or 0) > 0:
                 log.info("catalog present (%s subjects, %s concepts) — seed skipped",
                          row.get("s"), row.get("c"))
                 return
             log.info("empty catalog — seeding full NCERT catalog from syllabus.json…")
             await _run_seeds()
+            await conn.commit()
         finally:
             await conn.execute(text(f"SELECT pg_advisory_unlock({SEED_LOCK_KEY})"))
 

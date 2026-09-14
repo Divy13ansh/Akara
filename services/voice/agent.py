@@ -412,7 +412,7 @@ async def entrypoint(ctx: JobContext):
         try:
             path = await dump_transcript(session, topic_data, room_name, student_id)
             # Read back the saved transcript for POST
-            transcript_dict = json.loads(path.read_text())
+            transcript_dict = json.loads(path.read_text(encoding="utf-8"))
             topic_dict = json.loads(topic_data.to_metadata_json())
             await _post_transcript_webhook(transcript_dict, topic_dict, dur_s)
         except Exception as e:

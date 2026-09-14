@@ -19,7 +19,7 @@ def get_progress(student_id: str) -> list[dict]:
     if not SCORES_FILE.exists():
         return []
     out = []
-    for line in SCORES_FILE.read_text().splitlines():
+    for line in SCORES_FILE.read_text(encoding="utf-8").splitlines():
         try:
             row = json.loads(line)
         except json.JSONDecodeError:

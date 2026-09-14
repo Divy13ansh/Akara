@@ -17,6 +17,11 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // Dev proxy mirrors the compose nginx behavior (same-origin /api + /token → api:8000).
+      proxy: {
+        '/api': { target: 'http://localhost:8000', changeOrigin: true },
+        '/token': { target: 'http://localhost:8000', changeOrigin: true },
+      },
     },
   };
 });

@@ -199,7 +199,7 @@ def load_catalog() -> tuple[
     list[dict],  # chapters
     list[dict],  # concepts
 ]:
-    data = json.loads(SYLLABUS_PATH.read_text())
+    data = json.loads(SYLLABUS_PATH.read_text(encoding="utf-8"))
 
     chapters: list[dict] = []
     concepts: list[dict] = []
