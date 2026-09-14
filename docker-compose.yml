@@ -44,6 +44,24 @@ services:
       timeout: 3s
       retries: 10
 
+  migrate:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env.local
+    environment:
+      # Same DB host override as api/worker — inside the compose network
+      # the DB is the `postgres` service, not localhost.
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:akara@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:akara@postgres:5432/akara
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    logging: *default-logging
+
   api:
     build:
       context: .
@@ -62,6 +80,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=5).status == 200 else 1)\""]
       interval: 15s
@@ -87,6 +107,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
     logging: *default-logging
 

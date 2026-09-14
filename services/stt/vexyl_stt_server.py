@@ -48,6 +48,14 @@ logging.basicConfig(
 )
 log = logging.getLogger("vexyl_stt")
 
+# The websockets library logs every HTTP request lifecycle event (handshake,
+# "HTTP response sent", "connection closed") at INFO. The Docker compose
+# healthcheck hits /health every 15s, which turned the logs into one long
+# stream of per-check noise with zero signal. Session-level events are already
+# logged by this app itself ("New connection", "Session started", "Connection
+# closed"), so only the library's chatter is hidden — real errors still show.
+logging.getLogger("websockets").setLevel(logging.WARNING)
+
 # ─── Config ────────────────────────────────────────────────────────────────────
 HOST        = os.getenv("VEXYL_STT_HOST",   "0.0.0.0")
 PORT        = int(os.getenv("PORT", os.getenv("VEXYL_STT_PORT", "8080")))

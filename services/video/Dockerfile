@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     texlive-latex-base \
     texlive-latex-recommended \
+    texlive-latex-extra \
     dvisvgm \
     cm-super \
     fonts-indic \
