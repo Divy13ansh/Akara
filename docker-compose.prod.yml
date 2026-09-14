@@ -1,0 +1,18 @@
+# Akara — production overlay for a single VPS.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile voice up -d --build voice
+# What it changes vs dev: internal-only services stop publishing ports to the
+# host. Only nginx :80 stays public (put TLS in front — see runbook §VPS).
+# Postgres/Redis/video/API/STT remain reachable over the compose network.
+services:
+  postgres:
+    ports: []
+  redis:
+    ports: []
+  api:
+    ports: []
+  video:
+    ports: []
+  stt:
+    ports: []

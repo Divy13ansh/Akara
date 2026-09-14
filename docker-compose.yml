@@ -6,9 +6,18 @@
 # gated ai4bharat/indic-conformer-600m-multilingual model on first boot (docs/vexyl-stt.md).
 name: akara
 
+# Shared log rotation (a VPS disk dies silently to unbounded json-file logs).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: akara
       POSTGRES_PASSWORD: akara
@@ -25,6 +34,8 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    logging: *default-logging
     ports:
       - "6379:6379" # dev tooling only — do NOT publish on the VPS
     healthcheck:
@@ -51,7 +62,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=5).status == 200 else 1)\""]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
+    logging: *default-logging
 
   worker:
     build:
@@ -70,6 +88,7 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
 
   video:
     build:
@@ -85,7 +104,14 @@ services:
       - "8001:8001"
     volumes:
       - video_outputs:/app/outputs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     restart: unless-stopped
+    logging: *default-logging
 
   web:
     build:
@@ -101,7 +127,14 @@ services:
       - "80:80" # THE user-facing URL: http://localhost
     depends_on:
       - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
+    logging: *default-logging
 
   # VEXYL-STT: self-hosted STT (AI4Bharat IndicConformer) the voice agent
   # transcribes with. Vendored at services/stt/ (Apache-2.0). The gated ~2.4GB
@@ -146,6 +179,7 @@ services:
       stt:
         condition: service_healthy
     restart: unless-stopped
+    logging: *default-logging
 
 volumes:
   pgdata:

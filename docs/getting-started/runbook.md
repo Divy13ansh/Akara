@@ -74,6 +74,41 @@ curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" 
 | `infra/` | deploy notes | n/a |
 | `docs/` | you are here | n/a |
 
+## Single-VPS production deploy
+
+Minimum sizing: **4 vCPU / 8 GB RAM / 60 GB disk**. (STT model ~2.4 GB,
+video image with TeX + Indic fonts ~2 GB, Manim renders spike CPU.)
+A GPU is optional — STT runs on CPU (`VEXYL_STT_DEVICE=cpu`).
+
+```sh
+# 1. DNS: point https://akara.example.com at the VPS.
+# 2. Env:
+cp .env.example .env.local   # fill JWT_SECRET (openssl rand -hex 32),
+                             # WEBHOOK_SECRET, GOOGLE_CLIENT_ID, Azure/R2/LiveKit keys
+                             # + append https://akara.example.com to WEB_ORIGIN
+# 3. TLS in front (Google GIS + LiveKit require https off-localhost).
+#    Caddy one-liner on the host (or any reverse proxy):
+#    akara.example.com { reverse_proxy localhost:80 }
+# 4. Firewall: only 22/80/443 public —
+sudo ufw allow 22,80,443/tcp && sudo ufw enable
+# 5. Boot with the prod overlay (unpublishes 5432/6379/8000/8001/8091):
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose exec -T api alembic upgrade head     # migrations are NOT auto-run
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile voice up -d --build voice
+```
+
+- First boot takes a while: STT downloads ~2.4 GB once into `stt_models`
+  (watch `docker compose logs stt`), api seeds the NCERT catalog when empty.
+- Google Cloud Console → OAuth client → Authorized JavaScript origins must
+  include `https://akara.example.com` (GIS refuses plain http in prod).
+- Backups: `docker compose exec -T postgres pg_dump -U akara akara | gzip >
+  backup-$(date +%F).sql.gz` (nightly cron; keep R2 creds to re-pull media).
+- Updates: `git pull && docker compose … up -d --build && docker compose exec -T
+  api alembic upgrade head`. Volumes (`pgdata`, `video_outputs`, `stt_models`)
+  survive rebuilds.
+- Boot refuses to start with a missing/default `JWT_SECRET` or missing
+  `WEBHOOK_SECRET` — by design, so a misconfigured VPS fails loud, not open.
+
 ## Troubleshooting
 
 | Symptom | Fix |

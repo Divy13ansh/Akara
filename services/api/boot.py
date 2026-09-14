@@ -28,6 +28,22 @@ async def run_boot_init() -> None:
 
     load_dotenv(ROOT / ".env.local")
 
+    # 0. secrets guard (VPS safety): never boot with forgeable JWTs or an
+    # open webhook/callback surface. Fresh clones must fill .env.local first
+    # (see .env.example); this fails loud instead of running insecure.
+    from services.api.config import settings
+
+    if (
+        not settings.jwt_secret
+        or settings.jwt_secret == "dev-insecure-secret"
+        or len(settings.jwt_secret) < 32
+    ):
+        log.critical("JWT_SECRET missing/default — generate one (openssl rand -hex 32)")
+        raise RuntimeError("JWT_SECRET must be set to a strong random value in .env.local")
+    if not settings.webhook_secret:
+        log.critical("WEBHOOK_SECRET missing — webhooks and render callbacks are unguarded")
+        raise RuntimeError("WEBHOOK_SECRET must be set in .env.local")
+
     from akara_db.base import get_engine
     from sqlalchemy import text
 
