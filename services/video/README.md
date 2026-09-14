@@ -8,5 +8,3 @@ Runs as the `video` compose service (:8001). The API's
 jobs are created by the API's generation-status endpoint (D-6 auto-trigger)
 under a global render-slot cap (D-16).
 
-Known gap: MathTex-heavy scenes need `texlive` in the Dockerfile (math falls
-back to a fixer pass today).

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Logo } from './Logo';
 import { authService, UserProfile } from '../services/api';
@@ -10,12 +10,40 @@ interface AppNavbarProps {
   activeChapter?: string;
 }
 
+/**
+ * Avatar used across the app chrome: shows the user's profile photo
+ * (uploaded or the Google account picture) whenever one exists, falling
+ * back to the first-letter circle if there is no photo or it fails to load.
+ */
+function UserAvatar({ user, sizeClass }: { user: UserProfile | null; sizeClass: string }) {
+  const [failed, setFailed] = useState(false);
+  const photo = user?.profile_photo || null;
+  const initial = (user?.name?.trim() ? user.name.trim()[0] : 'A').toUpperCase();
+
+  if (photo && !failed) {
+    return (
+      <img
+        src={photo}
+        alt={user?.name || 'Profile'}
+        onError={() => setFailed(true)}
+        className={`${sizeClass} rounded-full object-cover shadow-sm select-none`}
+        referrerPolicy="no-referrer"
+      />
+    );
+  }
+  return (
+    <span
+      className={`${sizeClass} rounded-full bg-[#6b1302] text-white flex items-center justify-center font-bold shadow-sm select-none`}
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
+  );
+}
+
 export function AppNavbar({ user: propUser }: AppNavbarProps) {
   const location = useLocation();
   const user = propUser || authService.getCurrentUser();
-
-  // Extract first letter of name or fallback to 'A'
-  const initial = (user?.name?.trim() ? user.name.trim()[0] : 'A').toUpperCase();
 
   const isHomeActive = location.pathname === '/home' || location.pathname.startsWith('/home/');
   const isLibraryActive = location.pathname === '/library';
@@ -73,11 +101,11 @@ export function AppNavbar({ user: propUser }: AppNavbarProps) {
           <Link
             to="/profile"
             id="nav-profile-circle"
-            className="w-10 h-10 rounded-full bg-[#6b1302] text-white flex items-center justify-center font-bold text-base shadow-sm hover:ring-2 hover:ring-[#6b1302]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+            className="shrink-0 rounded-full hover:ring-2 hover:ring-[#6b1302]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             aria-label="User Profile"
             title={user?.name || 'My Profile'}
           >
-            {initial}
+            <UserAvatar user={user} sizeClass="w-10 h-10 text-base" />
           </Link>
         </div>
       </nav>
@@ -93,11 +121,11 @@ export function AppNavbar({ user: propUser }: AppNavbarProps) {
         </Link>
         <Link
           to="/profile"
-          className="w-9 h-9 rounded-full bg-[#6b1302] text-white flex items-center justify-center font-bold text-sm shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+          className="shrink-0 rounded-full hover:scale-105 active:scale-95 transition-all cursor-pointer"
           aria-label="User Profile"
           title={user?.name || 'My Profile'}
         >
-          {initial}
+          <UserAvatar user={user} sizeClass="w-9 h-9 text-sm" />
         </Link>
       </div>
 

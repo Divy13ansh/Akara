@@ -27,65 +27,103 @@ function greetingFor(topicName: string, language?: string): string {
   return `Hello! If you have any doubts while watching this video on ${topicName}, ask me anytime!`;
 }
 
-/** Minimal readable renderer: paragraphs, **bold**, `code`, and line lists. */
-function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
-  // Math first: \(...\), \[...\], $$...$$ segments become KaTeX equations
-  // (ChatGPT-style). Everything else keeps the bold/code treatment.
-  const segments = text.split(/(\\\(.+?\\\)|\\\[.+?\\\]|\$\$.+?\$\$)/gs);
-  return segments.map((seg, i) => {
-    const math = seg.match(/^(\\\((.+?)\\\)|\\\[(.+?)\\\]|\$\$(.+?)\$\$)$/s);
-    if (math) {
-      const display = seg.startsWith('\\[') || seg.startsWith('$$');
-      const tex = math[2] ?? math[3] ?? math[4] ?? '';
-      let html = '';
-      try {
-        html = katex.renderToString(tex, { displayMode: display, throwOnError: false });
-      } catch {
-        return <React.Fragment key={`${keyPrefix}-m${i}`}>{seg}</React.Fragment>;
-      }
-      return (
-        <span
-          key={`${keyPrefix}-m${i}`}
-          className={display ? 'block max-w-full overflow-x-auto py-1' : 'inline-block max-w-full overflow-x-auto align-middle px-0.5'}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
+/**
+ * Protect display math from block splitting: \[...\] and $$...$$ answers span
+ * multiple lines, but FormattedText splits on \n+ first — which strands the
+ * \[ and \] delimiters in their own blocks and renders them literally. Pull
+ * every math span out FIRST (replacing it with a sentinel paragraph on its
+ * own line), then split, then restore. \(...\) and $...$ stay inline-safe.
+ */
+function extractMathBlocks(text: string): { text: string; math: Map<string, string> } {
+  const math = new Map<string, string>();
+  let n = 0;
+  const out = text.replace(
+    /(\\\[[\s\S]+?\\\]|\$\$[\s\S]+?\$\$)/g,
+    (m) => {
+      const token = `AKARAMATH${n++}AKARAMATH`;
+      math.set(token, m);
+      return token;
     }
-    const parts = seg.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-    return (
-      <React.Fragment key={`${keyPrefix}-s${i}`}>
-        {parts.map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-            return <strong key={`${keyPrefix}-b${i}-${j}`} className="font-bold">{part.slice(2, -2)}</strong>;
-          }
-          if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
-            return <code key={`${keyPrefix}-c${i}-${j}`} className="font-mono text-[11px] sm:text-xs bg-black/5 px-1 py-0.5 rounded">{part.slice(1, -1)}</code>;
-          }
-          return <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{part}</React.Fragment>;
-        })}
-      </React.Fragment>
-    );
-  });
+  );
+  return { text: out, math };
+}
+
+/** Render a LaTeX span via KaTeX (display or inline). */
+function renderMathSpan(tex: string, display: boolean, key: string): React.ReactNode {
+  let html = '';
+  try {
+    html = katex.renderToString(tex, { displayMode: display, throwOnError: false });
+  } catch {
+    return <React.Fragment key={key}>{tex}</React.Fragment>;
+  }
+  return (
+    <span
+      key={key}
+      className={display ? 'block max-w-full overflow-x-auto py-1' : 'inline-block max-w-full overflow-x-auto align-middle px-0.5'}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
+// One tokenizer for EVERY inline token. Bold must be scanned at the same
+// level as math — answers like **\(H^+\)** (bold wrapping an equation) get
+// their ** markers orphaned if math is split out first.
+const INLINE_TOKEN_RE = /(\*\*[\s\S]+?\*\*)|(`[^`\n]+`)|(\\\([\s\S]+?\\\))|(\\\[[\s\S]+?\\\])|(\$\$[\s\S]+?\$\$)|(\$[^$\n]+?\$)/g;
+
+/** Single-pass inline renderer: **bold**, `code`, and math in one scan,
+ * with bold content rendered recursively so it can contain math. */
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  let last = 0;
+  let k = 0;
+  for (const m of text.matchAll(INLINE_TOKEN_RE)) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    const tok = m[0];
+    const key = `${keyPrefix}-k${k++}`;
+    if (tok.startsWith('**') && tok.endsWith('**') && tok.length > 4) {
+      nodes.push(
+        <strong key={key} className="font-bold">{renderInline(tok.slice(2, -2), key)}</strong>
+      );
+    } else if (tok.startsWith('`') && tok.endsWith('`') && tok.length > 2) {
+      nodes.push(
+        <code key={key} className="font-mono text-[11px] sm:text-xs bg-black/5 px-1 py-0.5 rounded">{tok.slice(1, -1)}</code>
+      );
+    } else {
+      const display = tok.startsWith('\\[') || tok.startsWith('$$');
+      const tex = tok.startsWith('$') && !tok.startsWith('$$') ? tok.slice(1, -1) : tok.slice(2, -2);
+      nodes.push(renderMathSpan(tex, display, key));
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
 }
 
 function FormattedText({ text }: { text: string }) {
+  // Display math (\[...\] / $$...$$) spans multiple lines — extract it before
+  // block splitting so its delimiters can't be orphaned by the \n split.
+  const { text: safeText, math } = extractMathBlocks(text);
   // Backend answers often arrive as ONE unbroken line (no \n at all). Split
   // those into sentences so each idea breathes on its own line.
-  let blocks = text.split(/\n+/).map((b) => b.trim()).filter(Boolean);
-  if (blocks.length <= 1 && text.length > 200) {
-    const sentences = text
+  let blocks = safeText.split(/\n+/).map((b) => b.trim()).filter(Boolean);
+  if (blocks.length <= 1 && safeText.length > 200) {
+    const sentences = safeText
       .split(/(?<=[.!?।])\s+(?=[A-Z0-9\u0900-\u097F*])/g)
       .map((s) => s.trim())
       .filter(Boolean);
     if (sentences.length > 1) blocks = sentences;
   }
+  // Restore display-math sentinels (block splitting may have kept them as
+  // standalone blocks — renderInline knows how to KaTeX them).
+  const restore = (b: string) => b.replace(/AKARAMATH\d+AKARAMATH/g, (t) => math.get(t) ?? t);
   if (blocks.length <= 1) {
-    return <p className="text-xs sm:text-[13px] font-medium leading-relaxed whitespace-pre-line break-words">{renderInline(text, 's')}</p>;
+    return <p className="text-xs sm:text-[13px] font-medium leading-relaxed whitespace-pre-line break-words">{renderInline(restore(blocks[0] ?? safeText), 's')}</p>;
   }
   return (
     <div className="space-y-1.5">
       {blocks.map((block, i) => {
-        const listMatch = block.match(/^(\d+[.)]\s+|[-*•]\s+)(.*)$/s);
+        const restored = restore(block);
+        const listMatch = restored.match(/^(\d+[.)]\s+|[-*•]\s+)(.*)$/s);
         if (listMatch) {
           return (
             <p key={i} className="text-xs sm:text-[13px] font-medium leading-relaxed flex gap-1.5 break-words">
@@ -94,7 +132,7 @@ function FormattedText({ text }: { text: string }) {
             </p>
           );
         }
-        return <p key={i} className="text-xs sm:text-[13px] font-medium leading-relaxed break-words">{renderInline(block, `b${i}`)}</p>;
+        return <p key={i} className="text-xs sm:text-[13px] font-medium leading-relaxed break-words">{renderInline(restored, `b${i}`)}</p>;
       })}
     </div>
   );
