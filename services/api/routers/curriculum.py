@@ -233,6 +233,11 @@ async def get_chapter_detail(subject_id: str, chapter_id: str, user: CurrentUser
     for c in concepts:
         m = mastery.get(c.id)
         status = _status_of(m)
+        if m is None and not c.prerequisite_id:
+            # Chain entry points are open by design: no bootstrap mastery rows
+            # are created at signup, so a missing row on a prerequisite-free
+            # concept means "available", not "locked".
+            status = "available"
         if c.id in misconception_concepts:
             status = "needs-revisit"
         total += 1
