@@ -17,6 +17,8 @@ from akara_db.models import (
     VideoRenderJob,
 )
 from fastapi import APIRouter, HTTPException
+from openai import AzureOpenAI
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from services.api.config import settings
@@ -26,6 +28,7 @@ from services.api.redis_client import (
     cache_get_json,
     cache_set_json,
     distributed_lock,
+    rate_limit,
 )
 from services.api.video_client import trigger_render
 
@@ -100,7 +103,11 @@ def _status_payload(status: str, concept_id: str, lang: str, langs: list[str],
 
 
 @router.get("/{concept_id}/generation-status")
-async def generation_status(concept_id: str, lang: str = "hi", user: CurrentUser = None, session: DbSession = None):
+async def generation_status(concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None):
+    """Language: explicit ?lang= wins, else the student's profile
+    default_language, else "hi" — one rule across the whole platform."""
+    if lang is None:
+        lang = user.default_language if user and user.default_language else "hi"
     concept = await _concept_or_404(session, concept_id)
     langs = await _available_languages(session, concept_id)
 
@@ -245,6 +252,69 @@ async def generation_status(concept_id: str, lang: str = "hi", user: CurrentUser
         return payload
 
 
+class DoubtPayload(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    language: str | None = Field(default=None, max_length=10)
+    # Client holds the thread: [{"role": "user"|"assistant", "content": str}]
+    history: list[dict] = Field(default_factory=list)
+
+
+@router.post("/{concept_id}/doubts")
+async def ask_doubt(concept_id: str, payload: DoubtPayload, user: CurrentUser, session: DbSession):
+    """Doubt-solving chat for the Learn page (DoubtsChat component).
+    Stateless: the client sends the recent thread; we answer grounded in the
+    concept script. One Azure call per question."""
+    import os
+
+    if not await rate_limit("doubts", user.id, 10, 60):
+        raise HTTPException(429, "Too many questions, slow down")
+
+    concept = await _concept_or_404(session, concept_id)
+    language = payload.language or user.default_language or "hi"
+
+    client = AzureOpenAI(
+        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+        api_key=os.environ["AZURE_API_KEY"],
+        api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2024-06-01"),
+    )
+    deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-mini")
+
+    system = (
+        "You are Akara's doubt-solving tutor for an Indian NCERT student.\n"
+        f"Concept: {concept.name} (Class {concept.class_} {concept.subject_id}).\n"
+        f"Ground the answer in this script; if the question goes beyond it, answer "
+        f"briefly from NCERT-level knowledge without inventing facts.\n"
+        f"Reply in {language} (Devanagari if Hindi), max 120 words, warm and "
+        f"grade-appropriate. End with a tiny nudge to re-watch the relevant part "
+        f"only if useful."
+        f"\n\nSCRIPT:\n{concept.script or '(no script)'}"
+    )
+    messages = [{"role": "system", "content": system}]
+    for turn in payload.history[-10:]:
+        role = turn.get("role")
+        content = turn.get("content")
+        if role in ("user", "assistant") and isinstance(content, str) and content.strip():
+            messages.append({"role": role, "content": content[:2000]})
+    messages.append({"role": "user", "content": payload.question})
+
+    def _call() -> str:
+        resp = client.chat.completions.create(
+            model=deployment,
+            messages=messages,
+            temperature=0.4,
+            max_completion_tokens=400,
+        )
+        return resp.choices[0].message.content or ""
+
+    import asyncio
+
+    try:
+        answer = await asyncio.to_thread(_call)
+    except Exception as e:
+        raise HTTPException(502, f"Doubt answer unavailable: {e}") from e
+    return {"answer": answer, "language": language}
+
+
 @router.get("/{concept_id}/media")
 async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser = None, session: DbSession = None):
     """Unified bundle: video URL + script + quiz + scene graph + mentor prompt."""
@@ -269,13 +339,37 @@ async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser 
         )
     ).scalar_one_or_none()
 
+    # D-7 on-demand fallback: video is ready but quiz content never generated
+    # (e.g. callback enqueue lost). Mark the row 'generating' and enqueue once;
+    # this client gets quiz=[] now, every later one gets the full set.
+    if quiz_row is None:
+        from services.api.queue import enqueue_quiz_generation
+        from services.api.quiz_gen import ensure_quiz_row
+
+        quiz_row, _created = await ensure_quiz_row(session, concept_id, language)
+        await enqueue_quiz_generation(concept_id, language)
+
     chapter = await session.get(Chapter, concept.chapter_id)
     subject = await session.get(Subject, concept.subject_id)
     langs = await _available_languages(session, concept_id)
 
+    if quiz_row.quiz:
+        quiz_status = "ready"
+    elif quiz_row.generation_status in ("generating", "failed"):
+        quiz_status = quiz_row.generation_status
+    else:
+        quiz_status = "ready"
+
     duration = media.duration_seconds or 0
     video_url = public_url(video_key(concept_id, language, media.source_video_id or "current", "final.mp4")) \
         if False else public_url(media.video_r2_key) if media.video_r2_key else None
+
+    summary = quiz_row.summary if quiz_row and quiz_row.summary else {}
+    flashcards = summary.get("flashcards") or [
+        {"front": d.get("term"), "back": d.get("definition")}
+        for d in summary.get("key_definitions", [])
+        if isinstance(d, dict) and d.get("term")
+    ]
 
     return {
         "concept_id": concept_id,
@@ -286,15 +380,18 @@ async def get_media(concept_id: str, lang: str | None = None, user: CurrentUser 
         "video": {
             "title": f"{concept.name} — Full Explainer",
             "url": video_url,
+            "audio_url": public_url(media.audio_r2_key) if media.audio_r2_key else None,
             "duration_seconds": duration,
             "duration_formatted": f"{duration // 60}:{duration % 60:02d}",
             "size_bytes": media.size_bytes,
         },
         "script": {
             "full_transcript": concept.script or "",
-            **(quiz_row.summary if quiz_row and quiz_row.summary else {}),
+            **summary,
         },
         "scene_graph": quiz_row.scene_graph if quiz_row else None,
         "quiz": quiz_row.quiz if quiz_row else [],
+        "quiz_status": quiz_status,
+        "flashcards": flashcards,
         "mentor_prompt": quiz_row.mentor_prompt if quiz_row else None,
     }

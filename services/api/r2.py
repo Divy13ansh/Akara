@@ -48,3 +48,21 @@ def public_url(key: str) -> str:
 
 def video_key(concept_id: str, lang: str, video_id: str, filename: str) -> str:
     return f"videos/{concept_id}/{lang}/{video_id}/{filename}"
+
+
+def avatar_key(user_id: str, ext: str) -> str:
+    """Profile photos: avatars/{user_id}/{uuid}.{ext} (immutable, cacheable)."""
+    import uuid as _uuid
+
+    return f"avatars/{user_id}/{_uuid.uuid4().hex[:12]}.{ext}"
+
+
+def upload_bytes(key: str, data: bytes, content_type: str) -> None:
+    """Small-object put (avatars, thumbnails). Raises on failure."""
+    get_s3().put_object(
+        Bucket=settings.r2_bucket,
+        Key=key,
+        Body=data,
+        ContentType=content_type,
+        CacheControl="public, max-age=31536000, immutable",
+    )

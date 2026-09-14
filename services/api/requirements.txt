@@ -15,3 +15,4 @@ python-dotenv>=1.0
 pydantic[email]>=2.7
 livekit-api>=0.7
 openai>=1.30
+python-multipart>=0.0.9

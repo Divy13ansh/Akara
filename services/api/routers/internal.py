@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
 from services.api.config import settings
-from services.api.deps import DbSession, require_webhook_secret
+from services.api.deps import DbSession, OptionalUser, require_webhook_secret
 from services.api.redis_client import cache_invalidate, cache_invalidate_pattern, cache_set_json
 
 logger = logging.getLogger("akara-internal")
@@ -98,6 +98,14 @@ async def render_callback(payload: dict, session: DbSession):
             settings.cache_ttl_genstatus,
         )
 
+    # D-7 on-demand quiz content: the moment the video completes, generate
+    # quiz/scene-graph/summary/mentor-prompt in that language (one Azure call,
+    # deduped) so it's ready by the time the student finishes watching.
+    if status == "complete" and concept_id:
+        from services.api.queue import enqueue_quiz_generation
+
+        await enqueue_quiz_generation(concept_id, lang)
+
     logger.info("render callback: %s → %s", video_id, status)
     return {"ok": True, "video_id": video_id, "status": status}
 
@@ -106,15 +114,20 @@ async def render_callback(payload: dict, session: DbSession):
 async def token(
     student_id: str,
     topic_id: str,
-    lang: str = "hi",
+    lang: str | None = None,
     session: DbSession = None,
+    user: OptionalUser = None,
 ):
     """LiveKit token minting (legacy route; also proxied by nginx at /token).
     Checks concept unlock + media (soft warnings only — voice works without
-    video)."""
+    video). Language: explicit ?lang= wins, else the student's profile
+    default_language — this is what drives the whole LiveKit pipeline
+    (STT + TTS + tutor prompt) for the session."""
     concept = await session.get(Concept, topic_id)
     if concept is None:
         raise HTTPException(404, f"unknown topic_id: {topic_id}")
+    if lang is None:
+        lang = user.default_language if user and user.default_language else "hi"
 
     warnings = []
     m = (

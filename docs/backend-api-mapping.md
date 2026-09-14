@@ -147,21 +147,63 @@ Legend: ✅ mapped and verified · 🟡 mapped with deviation · ❌ not mapped
 
 ## 3. What is NOT mapped (action items)
 
+Updated 2026-09-14 (same day, later): quiz content, profile-photo upload, and
+language propagation are now **done** — see §5. Remaining:
+
 1. **Frontend still reads mocks** — `api.ts`, `progressData.ts`, `libraryData.ts`,
    `conceptMediaService.ts`, `profilePreferences.ts`, `languageDemandService.ts`,
    `diagnosticData.ts` simulate responses. The backend for every one of those
    calls exists and is contract-shaped; the pages just don't call it yet
-   (except the Google button, which is wired). This is the next phase of work.
-2. **Quiz / scene-graph content** — schema + backfill script ready
-   (`scripts/backfill_concept_quizzes.py`) but rows are empty until you run it
-   (Azure OpenAI cost per concept×language).
-3. **Offline downloads** — backend tracks registrations; nothing on the frontend
+   (except the Google button, which is wired). **This is the only real
+   remaining work** (plus refinements).
+2. **Offline downloads** — backend tracks registrations; nothing on the frontend
    actually caches media files yet.
-4. **Session token rotation / refresh tokens** — contract §1.1 mentions
+3. **Session token rotation / refresh tokens** — contract §1.1 mentions
    `sessions`/`refresh_tokens` tables; we mint stateless JWTs (24h) and don't
    persist sessions server-side. Fine for MVP; add refresh flow when needed.
-5. **`profile_photo` uploads** — Google picture is stored as a URL; there's no
-   upload endpoint (contract only implies Google-provided photos, so OK).
+
+## 5. Language propagation, on-demand quizzes, profile photos (2026-09-14)
+
+### Language — one rule everywhere
+
+`explicit ?lang=` **>** `user.default_language` (profile/settings) **>** `"hi"`.
+Applied at every edge where language enters the system:
+
+| Entry point | Behavior |
+|---|---|
+| `GET /api/concepts/:id/generation-status` | `lang` now optional — defaults to profile language. Videos RENDER in the student's language (D-6 auto-trigger uses this lang). |
+| `GET /api/concepts/:id/media` | already defaulted to profile language ✓ |
+| `GET /token` (voice) | `lang` now optional — token metadata carries the profile language into LiveKit; agent's `resolve_session_metadata` drives per-session VEXYL-STT (`xx-IN`) + Azure TTS + tutor prompt in that language |
+| evaluate-explanation | contract passes `language` in the body; scorer gets it ✓ |
+
+So: set once in profile/settings → videos generate in that language, quizzes
+and summary generate in that language, and the entire LiveKit voice session
+(STT + TTS + tutor) speaks it.
+
+### On-demand quiz / scene-graph content (D-7, token-saving)
+
+Nothing is pre-generated. One Azure call per **(concept, lang) that actually
+exists**, deduped:
+
+- **Trigger 1**: render-callback `status=complete` → enqueue `quiz_generation_task`
+- **Trigger 2**: first `GET /media` without quiz content → mark row `generating`
+  + enqueue (self-heals lost enqueues)
+- Worker generates quiz (8–10 Q), scene graph, summary bullets, key definitions,
+  ncert summary, mentor prompt — **in the same language as the video**
+- `/media` now returns `quiz_status`: `ready | generating | failed` so the
+  client can show a spinner on the Practice tab instead of an empty quiz
+- Manual bulk (re)generation still possible: `scripts/backfill_concept_quizzes.py --all`
+  (now shares the exact same prompt/code path — no drift)
+
+### Profile photo upload → R2
+
+`PUT /api/users/me/profile/photo` (multipart `file`, jpeg/png/webp, ≤5MB):
+
+- Validates type + size, uploads to `avatars/{user_id}/{uuid}.{ext}` in R2 with
+  1-year immutable cache headers, stores the public CDN URL in
+  `users.profile_photo`, returns the full profile payload (one round-trip)
+- Verified: upload → 200 → URL serves publicly from the akara bucket
+- Not yet in the frontend contract doc — add when wiring the profile page
 
 ---
 

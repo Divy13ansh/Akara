@@ -23,15 +23,36 @@ def _redis_settings() -> RedisSettings:
     return RedisSettings(host=host or "localhost", port=int(port or 6379), database=db)
 
 
-async def enqueue_scoring(session_id: str) -> bool:
+async def _get_queue():
     global _queue
+    if _queue is None:
+        _queue = await create_pool(_redis_settings())
+    return _queue
+
+
+async def enqueue_scoring(session_id: str) -> bool:
     try:
-        if _queue is None:
-            _queue = await create_pool(_redis_settings())
-        await _queue.enqueue_job("score_session", session_id, _job_id=f"score:{session_id}")
+        q = await _get_queue()
+        await q.enqueue_job("score_session", session_id, _job_id=f"score:{session_id}")
         return True
     except Exception as e:
         # Redis down: transcript is already persisted; the worker's startup
         # sweep will re-enqueue unscored sessions (plan §3b failure stance).
         logger.error("enqueue failed (worker sweep will recover): %s", e)
+        return False
+
+
+async def enqueue_quiz_generation(concept_id: str, lang: str) -> bool:
+    """One Azure call per (concept, lang) — deduped by arq job id (D-7)."""
+    try:
+        q = await _get_queue()
+        await q.enqueue_job(
+            "quiz_generation_task",
+            concept_id,
+            lang,
+            _job_id=f"quiz:{concept_id}:{lang}",
+        )
+        return True
+    except Exception as e:
+        logger.error("quiz enqueue failed for %s [%s]: %s", concept_id, lang, e)
         return False

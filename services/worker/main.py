@@ -162,8 +162,17 @@ async def startup_sweep(ctx) -> None:
         logger.info("startup sweep re-enqueued %d unscored sessions", len(rows))
 
 
+async def quiz_generation_task(ctx, concept_id: str, lang: str) -> dict:
+    """On-demand quiz/scene-graph/summary/mentor-prompt generation (D-7).
+    One Azure call per (concept, lang), deduped by job id + row state."""
+    from services.api.quiz_gen import generate_quiz_content
+
+    status = await generate_quiz_content(concept_id, lang)
+    return {"concept_id": concept_id, "lang": lang, "status": status}
+
+
 class WorkerSettings:
-    functions = [score_session]  # noqa: RUF012 — arq reads these as class attrs
+    functions = [score_session, quiz_generation_task]  # noqa: RUF012 — arq reads these as class attrs
     on_startup = startup_sweep
     redis_settings = None  # filled below
 

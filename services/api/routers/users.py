@@ -14,16 +14,72 @@ from akara_db.models import (
     UserInterest,
     UserPreference,
 )
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import delete, func, select
 
 from services.api.deps import CurrentUser, DbSession
+from services.api.r2 import public_url
 
 router = APIRouter(prefix="/api/users/me", tags=["users"])
 
 
 # ------------------------------------------------------------------ profile
+
+
+ALLOWED_PHOTO_TYPES = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
+MAX_PHOTO_BYTES = 5 * 1024 * 1024  # 5MB
+
+
+@router.put("/profile/photo", status_code=200)
+async def upload_profile_photo(
+    file: UploadFile,
+    user: CurrentUser,
+    session: DbSession,
+):
+    """Upload a profile photo to R2 and set it as the user's avatar.
+
+    Returns the SAME profile shape as GET /profile (with the new
+    profile_photo URL) so the client can update state in one round-trip.
+    """
+    ext = ALLOWED_PHOTO_TYPES.get(file.content_type or "")
+    if ext is None:
+        raise HTTPException(415, "Unsupported image type (jpeg/png/webp only)")
+
+    data = await file.read()
+    if len(data) == 0:
+        raise HTTPException(400, "Empty file")
+    if len(data) > MAX_PHOTO_BYTES:
+        raise HTTPException(413, "Image too large (max 5MB)")
+
+    from services.api.r2 import avatar_key, upload_bytes
+
+    key = avatar_key(user.id, ext)
+    try:
+        upload_bytes(key, data, file.content_type or "image/jpeg")
+    except Exception as e:
+        raise HTTPException(502, f"Storage upload failed: {e}") from e
+
+    url = public_url(key)
+    user.profile_photo = url
+    await session.commit()
+    await session.refresh(user)  # reload server onupdate fields (updated_at)
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "profile_photo": user.profile_photo,
+        "class": user.class_,
+        "default_language": user.default_language,
+        "onboarding_completed": user.onboarding_completed,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+    }
 
 
 @router.get("/profile")

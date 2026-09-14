@@ -205,6 +205,9 @@ class ConceptQuiz(Base):
     scene_graph: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # {nodes[], edges[]}
     summary: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # {summary_bullets[], key_definitions[], ncert_summary}
     mentor_prompt: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # {scenario, question_text, ...}
+    # D-7 on-demand lifecycle: generating → ready | failed (ready rows with
+    # content were seeded/backfilled before this column existed).
+    generation_status: Mapped[str] = mapped_column(String(16), default="ready", server_default="ready", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

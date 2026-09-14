@@ -31,7 +31,25 @@ async def get_current_user(
     return user
 
 
+async def get_optional_user(
+    authorization: Annotated[str | None, Header()] = None,
+    session: AsyncSession = Depends(get_session),
+) -> User | None:
+    """Like get_current_user but returns None instead of 401 — for endpoints
+    that personalize when a token is present (legacy /token, library)."""
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    token = authorization.split(" ", 1)[1].strip()
+    user_id = decode_access_token(token)
+    if not user_id:
+        return None
+    return (
+        await session.execute(select(User).where(User.id == user_id))
+    ).scalar_one_or_none()
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 DbSession = Annotated[AsyncSession, Depends(get_session)]
 
 
