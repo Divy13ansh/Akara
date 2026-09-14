@@ -1,6 +1,6 @@
 # Concept ID scheme (D-1)
 
-The catalog is seeded from `packages/akara_db/syllabus.json` â€” every concept id
+The catalog is seeded from `packages/akara_db/syllabus.json` — every concept id
 follows `{subj}{class}-{slug}` (e.g. `sci10-chemical-reactions`,
 `sci10-balanced-chemical-equation`, `phy11-newton3`, `math10-quadratic`).
 Chapter ids are `c{class}-{syllabus_id}` (e.g. `c10-chemical-reactions-and-equations`)

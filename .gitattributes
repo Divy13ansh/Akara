@@ -1,0 +1,2 @@
+# Force LF for shell scripts copied into Docker images (Windows CRLF breaks shebangs).
+*.sh text eol=lf
