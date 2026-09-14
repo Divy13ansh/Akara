@@ -124,9 +124,11 @@ export default function ChapterDetail() {
     }
   }, [isModalOpen, selectedConcept]);
 
-  // Handle concept mastery transition
+  // Handle concept mastery transition (D-9 server-gated: 409 = must practice first)
+  const [masteryError, setMasteryError] = useState<string | null>(null);
   const handleMasterConcept = async (conceptId: string) => {
     setIsProcessingMastery(true);
+    setMasteryError(null);
     try {
       const updatedConstellation = await constellationService.setConceptMastered(
         subjectId,
@@ -173,7 +175,12 @@ export default function ChapterDetail() {
         setRecentlyMasteredId(undefined);
       }, 2000);
     } catch (err) {
-      console.error('Failed to master concept:', err);
+      const { ApiError, parseError } = await import('../services/http');
+      if (err instanceof ApiError && err.status === 409) {
+        setMasteryError("Practice first — explain or quiz this concept to unlock mastery.");
+      } else {
+        setMasteryError(parseError(err));
+      }
     } finally {
       setIsProcessingMastery(false);
     }
@@ -223,6 +230,11 @@ export default function ChapterDetail() {
       </main>
 
       {/* Node Tap Popover (Desktop) / Bottom Sheet (Mobile) */}
+      {masteryError && (
+        <div role="alert" className="max-w-5xl mx-auto mb-4 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-2xl px-4 py-2.5">
+          {masteryError}
+        </div>
+      )}
       <ConceptDetailsModal
         concept={selectedConcept}
         isOpen={isModalOpen}

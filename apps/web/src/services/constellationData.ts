@@ -304,9 +304,73 @@ function generateDefaultTopicsForChapter(chapterId: string, chapterName: string)
 
 export const constellationService = {
   /**
-   * Get the full constellation topic & node tree for a chapter
+   * Get the full constellation topic & node tree for a chapter.
+   * Backend-first (DB-canonical IDs); falls back to the bundled mock catalog offline.
    */
   async getChapterConstellation(subjectId: string, chapterId: string, chapterName: string): Promise<ChapterConstellation> {
+    try {
+      const { apiFetch } = await import("./http");
+      const data = await apiFetch<{
+        chapter_number?: number;
+        name?: string;
+        total_concepts?: number;
+        mastered_concepts?: number;
+        topics?: Array<{
+          id: string;
+          topic_number: number;
+          name: string;
+          description?: string;
+          concepts: Array<{
+            id: string;
+            order?: number;
+            name: string;
+            short_description?: string;
+            status: ConceptNodeStatus;
+            topic_id?: string;
+            topic_number?: number;
+            topic_name?: string;
+            prerequisite_id?: string | null;
+            available_languages?: string[];
+          }>;
+        }>;
+      }>(`/api/curriculum/subjects/${encodeURIComponent(subjectId)}/chapters/${encodeURIComponent(chapterId)}`);
+      if (data && Array.isArray(data.topics)) {
+        let order = 1;
+        const topics: TopicGroup[] = data.topics.map((t, tIdx) => ({
+          id: t.id || `topic-${tIdx + 1}`,
+          topic_number: t.topic_number || tIdx + 1,
+          name: t.name,
+          description: t.description || "",
+          concepts: (t.concepts || []).map((c) => ({
+            id: c.id,
+            order: c.order ?? order++,
+            name: c.name,
+            short_description: c.short_description || "",
+            status: (c.status as ConceptNodeStatus) || "locked",
+            topic_id: c.topic_id || t.id || `topic-${tIdx + 1}`,
+            topic_number: c.topic_number || t.topic_number || tIdx + 1,
+            topic_name: c.topic_name || t.name,
+            prerequisite_id: c.prerequisite_id || null,
+            video_duration: "6 mins",
+            feynman_cleared: c.status === "mastered",
+            chapter_id: chapterId,
+            subject_id: subjectId,
+            available_languages: c.available_languages || [],
+          })),
+        }));
+        const total = data.total_concepts ?? topics.reduce((a, t) => a + t.concepts.length, 0);
+        const mastered = data.mastered_concepts ?? topics.reduce((a, t) => a + t.concepts.filter((c) => c.status === "mastered").length, 0);
+        return {
+          chapter_id: chapterId,
+          subject_id: subjectId,
+          chapter_number: data.chapter_number ?? 1,
+          chapter_name: data.name || chapterName,
+          total_concepts: total,
+          mastered_concepts: mastered,
+          topics,
+        };
+      }
+    } catch { /* fall through to mock */ }
     const storageKey = `${STORAGE_PREFIX}${subjectId}_${chapterId}`;
     
     // Check local storage for persistent student progress
@@ -395,6 +459,14 @@ export const constellationService = {
    * Mark a node as mastered, unlock dependent nodes, and persist to storage
    */
   async setConceptMastered(subjectId: string, chapterId: string, conceptId: string): Promise<ChapterConstellation> {
+    try {
+      const { apiFetch } = await import("./http");
+      await apiFetch(`/api/concepts/${encodeURIComponent(conceptId)}/mark-mastered`, { method: "POST" });
+      return this.getChapterConstellation(subjectId, chapterId, "");
+    } catch (e) {
+      const { ApiError } = await import("./http");
+      if (e instanceof ApiError && e.status === 409) throw e;
+    }
     const storageKey = `${STORAGE_PREFIX}${subjectId}_${chapterId}`;
     let stateMap: Record<string, ConceptNodeStatus> = {};
     try {

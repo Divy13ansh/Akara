@@ -48,51 +48,46 @@ export function VideoPlayer({
   const [isVideoEnded, setIsVideoEnded] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Live generation pipeline state tracking
+  // Live generation pipeline state tracking (backend-driven; poll while rendering)
   const [liveProgress, setLiveProgress] = useState(statusInfo.progressPercent);
-  const [liveStage, setLiveStage] = useState(statusInfo.currentStage || 'Initializing generation pipeline…');
+  const [liveStage, setLiveStage] = useState(statusInfo.currentStage || 'Checking generation status…');
   const [isReady, setIsReady] = useState(statusInfo.status === 'instant');
+  const videoSrc = conceptData.videoUrl || SAMPLE_VIDEO_SRC;
 
-  // Handle generation states progression
   useEffect(() => {
     setIsReady(statusInfo.status === 'instant');
     setLiveProgress(statusInfo.progressPercent);
     setLiveStage(statusInfo.currentStage || '');
+  }, [statusInfo.status, statusInfo.progressPercent, statusInfo.currentStage]);
 
-    if (statusInfo.status === 'finishing_dub') {
-      const timer = setTimeout(() => {
-        conceptMediaService.markGenerationReady(conceptData.conceptId, conceptData.language);
-        setIsReady(true);
-        if (onStatusPromoted) onStatusPromoted();
-      }, 2400);
-      return () => clearTimeout(timer);
-    }
-
-    if (statusInfo.status === 'generating_first_time') {
-      const stages = [
-        { pct: 25, label: 'Extracting NCERT curriculum formulas and rules…' },
-        { pct: 50, label: 'Synthesizing verified pedagogical script…' },
-        { pct: 75, label: 'Rendering visual scene graph & molecular animation…' },
-        { pct: 92, label: 'Synthesizing localized regional audio track…' },
-        { pct: 100, label: 'Finalizing explainer package…' },
-      ];
-
-      let currentStep = 0;
-      const interval = setInterval(() => {
-        if (currentStep < stages.length) {
-          setLiveProgress(stages[currentStep].pct);
-          setLiveStage(stages[currentStep].label);
-          currentStep++;
-        } else {
-          clearInterval(interval);
-          conceptMediaService.markGenerationReady(conceptData.conceptId, conceptData.language);
+  useEffect(() => {
+    if (statusInfo.status !== 'generating_first_time' && statusInfo.status !== 'queued') return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const next = await conceptMediaService.getGenerationStatus(conceptData.conceptId, conceptData.language);
+        if (cancelled) return;
+        setLiveProgress(next.progressPercent);
+        setLiveStage(next.currentStage || next.status);
+        if (next.status === 'instant') {
           setIsReady(true);
           if (onStatusPromoted) onStatusPromoted();
+          return true;
         }
-      }, 1200);
-
-      return () => clearInterval(interval);
-    }
+        if (next.status === 'failed' || next.status === 'locked') {
+          setLiveStage(next.currentStage || next.status);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    };
+    const id = setInterval(async () => {
+      const done = await tick();
+      if (done) clearInterval(id);
+    }, 5000);
+    return () => { cancelled = true; clearInterval(id); };
   }, [statusInfo.status, conceptData.conceptId, conceptData.language]);
 
   // Handle video element time update & ended event
@@ -216,8 +211,8 @@ export function VideoPlayer({
       onMouseMove={handleMouseMove}
       className="relative w-full aspect-16/9 bg-stone-950 rounded-3xl overflow-hidden shadow-xl border border-stone-800 select-none group font-sans"
     >
-      {/* 1. BACKEND STATE: GENERATING FOR THE FIRST TIME */}
-      {!isReady && statusInfo.status === 'generating_first_time' && (
+      {/* 1. BACKEND STATE: GENERATING / QUEUED */}
+      {!isReady && (statusInfo.status === 'generating_first_time' || statusInfo.status === 'queued') && (
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-stone-950/95 text-stone-100 z-30 font-sans">
           <div className="max-w-sm w-full text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-stone-800/80 border border-stone-700 flex items-center justify-center mx-auto shadow-inner">
@@ -226,32 +221,26 @@ export function VideoPlayer({
 
             <div className="space-y-1">
               <h3 className="text-lg sm:text-xl font-semibold tracking-tight text-white font-sans">
-                Buffering…
+                Generating this for the first time… {liveProgress}%
               </h3>
               <p className="text-stone-400 text-sm font-medium leading-relaxed">
-                Preparing the video for playback.
+                {liveStage || 'Rendering your explainer video.'}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. BACKEND STATE: FINISHING THE DUB */}
-      {!isReady && statusInfo.status === 'finishing_dub' && (
+      {/* 1b. BACKEND STATE: LOCKED / FAILED */}
+      {!isReady && (statusInfo.status === 'locked' || statusInfo.status === 'failed') && (
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-stone-950/90 text-stone-100 z-30 font-sans">
-          <div className="max-w-sm w-full text-center space-y-4">
-            <div className="w-14 h-14 rounded-full bg-stone-800/80 border border-stone-700 flex items-center justify-center mx-auto shadow-inner">
-              <Loader2 size={26} className="animate-spin text-stone-200" />
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="text-lg font-semibold text-white tracking-tight font-sans">
-                Buffering…
-              </h3>
-              <p className="text-stone-400 text-sm font-medium leading-relaxed">
-                Finalizing the video for playback.
-              </p>
-            </div>
+          <div className="max-w-sm w-full text-center space-y-3">
+            <h3 className="text-lg font-semibold text-white tracking-tight font-sans">
+              {statusInfo.status === 'locked' ? 'Locked — master the previous concept first' : 'Video generation failed'}
+            </h3>
+            <p className="text-stone-400 text-sm font-medium leading-relaxed">
+              {liveStage || 'Try again later or continue with audio practice below.'}
+            </p>
           </div>
         </div>
       )}
@@ -259,8 +248,8 @@ export function VideoPlayer({
       {/* 3. HTML5 VIDEO ELEMENT */}
       <video
         ref={videoRef}
-        src={SAMPLE_VIDEO_SRC}
-        poster={SAMPLE_POSTER_SRC}
+        src={videoSrc}
+        poster={conceptData.videoUrl ? undefined : SAMPLE_POSTER_SRC}
         preload="auto"
         playsInline
         muted={isMuted}
@@ -272,8 +261,7 @@ export function VideoPlayer({
         onClick={handleTogglePlay}
         className="w-full h-full object-cover cursor-pointer bg-black"
       >
-        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-        <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm" />
+        <source src={videoSrc} type="video/mp4" />
       </video>
 
       {/* Center Play Overlay when paused and not ended - smaller icon, no rectangle, no hover animation */}

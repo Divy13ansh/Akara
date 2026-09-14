@@ -10,6 +10,7 @@ export default function HomeDashboard() {
   const [user, setUser] = useState<UserProfile | null>(authService.getCurrentUser());
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -24,7 +25,8 @@ export default function HomeDashboard() {
         const subjs = await curriculumService.getSubjects(userClass);
         setSubjects(subjs);
       } catch (err) {
-        console.error('Failed to load profile or subjects:', err);
+        const { parseError } = await import('../services/http');
+        setError(parseError(err));
       } finally {
         setLoading(false);
       }
@@ -50,6 +52,11 @@ export default function HomeDashboard() {
           <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
             Here is your curriculum for Grade {userClass}
           </p>
+          {error && (
+            <div role="alert" className="mt-3 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 max-w-2xl">
+              {error} <button type="button" onClick={() => window.location.reload()} className="ml-2 font-bold underline">Retry</button>
+            </div>
+          )}
         </div>
 
         {/* Main Content Layout: Subject Cards on the Left & home.png on the Right */}

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Logo } from './Logo';
+import { conceptMediaService } from '../services/conceptMediaService';
+import { parseError } from '../services/http';
 
 interface ChatMessage {
   id: string;
@@ -11,10 +13,11 @@ interface ChatMessage {
 
 interface DoubtsChatProps {
   topicName?: string;
+  conceptId?: string;
+  language?: string;
 }
 
-export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: DoubtsChatProps) {
-  // Hardcoded initial conversation (no timestamp display)
+export function DoubtsChat({ topicName = 'this concept', conceptId, language }: DoubtsChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-1',
@@ -22,22 +25,11 @@ export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: Doubts
       text: `Hello! If you have any doubts while watching this video on ${topicName}, ask me anytime!`,
       time: ''
     },
-    {
-      id: 'msg-2',
-      sender: 'user',
-      text: 'What is the main difference between combination and decomposition reactions?',
-      time: ''
-    },
-    {
-      id: 'msg-3',
-      sender: 'ai',
-      text: 'In a combination reaction, two or more substances combine to form a single product (A + B → AB). In decomposition, a single compound breaks down into two or more simpler substances (AB → A + B).',
-      time: ''
-    }
   ]);
 
   const [inputVal, setInputVal] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,9 +48,9 @@ export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: Doubts
     scrollToBottom('smooth');
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const question = inputVal.trim();
-    if (!question) return;
+    if (!question || isTyping) return;
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -67,39 +59,30 @@ export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: Doubts
       time: ''
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const next = [...messages, userMsg];
+    setMessages(next);
     setInputVal('');
     setIsTyping(true);
+    setError(null);
 
-    // AI doubt-solving response generator
-    setTimeout(() => {
-      let aiResponseText = `In ${topicName}, remember that atoms are conserved according to the Law of Conservation of Mass. Always check reactant and product formulas!`;
-      
-      const lowerQ = question.toLowerCase();
-      if (lowerQ.includes('displacement')) {
-        aiResponseText = 'In a displacement reaction, a more reactive element displaces a less reactive element from its salt solution (e.g., Fe + CuSO₄ → FeSO₄ + Cu).';
-      } else if (lowerQ.includes('exothermic')) {
-        aiResponseText = 'Exothermic reactions release energy in the form of heat or light. Combustion and respiration are classic examples of exothermic reactions.';
-      } else if (lowerQ.includes('endothermic')) {
-        aiResponseText = 'Endothermic reactions absorb energy from their surroundings to proceed. For example, photosynthesis and the thermal decomposition of limestone (CaCO₃ → CaO + CO₂).';
-      } else if (lowerQ.includes('redox') || lowerQ.includes('oxidation') || lowerQ.includes('rust')) {
-        aiResponseText = 'Oxidation is the gain of oxygen or loss of electrons. Reduction is the loss of oxygen or gain of electrons. Both occur simultaneously in redox reactions like rusting of iron.';
-      } else if (lowerQ.includes('double displacement') || lowerQ.includes('precipitate')) {
-        aiResponseText = 'In double displacement reactions, two compounds exchange ions to form two new compounds, often forming a solid precipitate (e.g., Na₂SO₄ + BaCl₂ → BaSO₄↓ + 2NaCl).';
-      } else if (lowerQ.includes('balance') || lowerQ.includes('equation')) {
-        aiResponseText = 'A chemical equation must be balanced so that the number of atoms of each element is equal on both sides, adhering to the Law of Conservation of Mass.';
-      }
-
-      const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        text: aiResponseText,
-        time: ''
-      };
-
-      setMessages((prev) => [...prev, aiMsg]);
+    if (!conceptId) {
+      setMessages((prev) => [...prev, { id: `ai-${Date.now()}`, sender: 'ai', text: 'Doubt chat is unavailable for this concept.', time: '' }]);
       setIsTyping(false);
-    }, 750);
+      return;
+    }
+
+    try {
+      const history = next
+        .filter((m) => m.id !== 'msg-1')
+        .slice(-10)
+        .map((m) => ({ role: (m.sender === 'ai' ? 'assistant' : 'user') as 'assistant' | 'user', content: m.text }));
+      const res = await conceptMediaService.askDoubt(conceptId, question, history, language);
+      setMessages((prev) => [...prev, { id: `ai-${Date.now()}`, sender: 'ai', text: res.answer, time: '' }]);
+    } catch (e) {
+      setError(parseError(e));
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -111,22 +94,18 @@ export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: Doubts
 
   return (
     <div className="w-full flex flex-col h-full max-h-full bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden font-sans">
-      {/* Chat Header: Akara small logo on the left, named Akara AI with bigger AI font */}
       <div className="px-5 py-4 border-b border-stone-200/80 bg-stone-50/50 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-1.5">
-          {/* Small Akara Logo */}
           <div className="scale-75 origin-left -mr-4">
             <Logo size="small" />
           </div>
-          {/* Bigger AI text */}
           <span className="text-2xl font-black text-stone-900 tracking-tight font-sans leading-none">
             AI
           </span>
         </div>
       </div>
 
-      {/* Messages Scroll Area - min-h-0 ensures container height stays constant and auto-scrolls above */}
-      <div 
+      <div
         ref={messagesContainerRef}
         className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs sm:text-sm overscroll-contain"
       >
@@ -150,17 +129,20 @@ export function DoubtsChat({ topicName = 'Types of Chemical Reactions' }: Doubts
           );
         })}
 
-        {/* Typing indicator - minimal text */}
         {isTyping && (
           <div className="text-stone-600 text-xs pl-2 italic font-medium">
             Akara AI is typing…
+          </div>
+        )}
+        {error && (
+          <div role="alert" className="text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+            {error}
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Row */}
       <div className="p-3 border-t border-stone-100 bg-white shrink-0">
         <form
           onSubmit={(e) => {

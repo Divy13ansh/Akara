@@ -1,12 +1,5 @@
-/**
- * Frontend API Service Layer
- * 
- * This file serves as the clean abstraction layer between the UI and the backend.
- * Full API specifications are documented in /backend-endpoints.md.
- * 
- * TODO: Replace mock handlers with real fetch/axios calls to backend endpoints
- * once the backend services are provisioned.
- */
+import { apiFetch, setToken, getToken } from "./http";
+import type { Subject, Chapter } from "./curriculumData";
 
 export interface UserProfile {
   id: string;
@@ -16,6 +9,8 @@ export interface UserProfile {
   class: number | null;
   default_language: string | null;
   onboarding_completed: boolean;
+  created_at?: string;
+  updated_at?: string;
   joined_date?: string;
 }
 
@@ -42,353 +37,165 @@ export interface UpdateProfilePayload {
   profile_photo?: string;
 }
 
-import { Subject, Chapter, getSubjectsForClass, CHAPTER_DATABASE } from './curriculumData';
-
 export type { Subject, Chapter };
 
-// In-memory token and mock user storage with localStorage sync
-const STORAGE_KEY_USER = 'akara_auth_user';
-const STORAGE_KEY_TOKEN = 'akara_auth_token';
-const STORAGE_KEY_LOGGED_OUT = 'akara_logged_out';
+const USER_KEY = "akara_auth_user";
+const LOGGED_OUT_KEY = "akara_logged_out";
 
-function getStoredUser(): UserProfile | null {
+function cacheUser(u: UserProfile | null) {
   try {
-    if (localStorage.getItem(STORAGE_KEY_LOGGED_OUT) === 'true') {
-      return null;
-    }
-    const raw = localStorage.getItem(STORAGE_KEY_USER);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (!parsed.joined_date) {
-        parsed.joined_date = '2026-07-01';
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(parsed));
-      }
-      return parsed;
-    }
-    
-    // Default initial student profile for preview convenience
-    const defaultUser: UserProfile = {
-      id: 'usr_student_10',
-      name: 'Poorvika',
-      email: 'poorvika@akara.edu',
-      profile_photo: null,
-      class: 10,
-      default_language: 'hi',
-      onboarding_completed: true,
-      joined_date: '2026-07-01',
-    };
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(defaultUser));
-    return defaultUser;
-  } catch {
-    return null;
-  }
-}
-
-function getStoredToken(): string | null {
-  try {
-    if (localStorage.getItem(STORAGE_KEY_LOGGED_OUT) === 'true') {
-      return null;
-    }
-    const token = localStorage.getItem(STORAGE_KEY_TOKEN);
-    return token || 'mock_jwt_token_initial';
-  } catch {
-    return null;
-  }
-}
-
-function saveStoredAuth(user: UserProfile | null, token: string | null) {
-  try {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
-      localStorage.removeItem(STORAGE_KEY_LOGGED_OUT);
+    if (u) {
+      localStorage.setItem(USER_KEY, JSON.stringify(u));
+      localStorage.removeItem(LOGGED_OUT_KEY);
     } else {
-      localStorage.removeItem(STORAGE_KEY_USER);
+      localStorage.removeItem(USER_KEY);
     }
-    if (token) {
-      localStorage.setItem(STORAGE_KEY_TOKEN, token);
-      localStorage.removeItem(STORAGE_KEY_LOGGED_OUT);
-    } else {
-      localStorage.removeItem(STORAGE_KEY_TOKEN);
-    }
-  } catch {
-    // Ignore storage quota errors
-  }
+  } catch { /* ignore */ }
 }
-
-let authToken: string | null = getStoredToken();
-let currentUser: UserProfile | null = getStoredUser();
-let draftClass: number | null = null;
-let draftLanguage: string | null = 'hi';
 
 export const authService = {
-  /**
-   * POST /api/auth/login
-   * Manual email/password login
-   */
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by POST /api/auth/login.
-    // Current implementation is a mock response; the real app should send the email/password payload
-    // to the backend and store the returned token + user profile in local state.
-    // const res = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload),
-    // });
-    // if (!res.ok) throw new Error(await res.text());
-    // const data = await res.json();
-    // authToken = data.token;
-    // return data;
-
-    // Simulated mock response:
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    currentUser = {
-      id: 'mock_usr_' + Math.random().toString(36).substring(7),
-      name: payload.email.split('@')[0] || 'Aqsara Student',
-      email: payload.email,
-      profile_photo: null,
-      class: 10,
-      default_language: 'hi',
-      onboarding_completed: true,
-    };
-    authToken = 'mock_jwt_token';
-    saveStoredAuth(currentUser, authToken);
-    return { token: authToken, user: currentUser };
+    const data = await apiFetch<AuthResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setToken(data.token);
+    cacheUser(data.user);
+    return data;
   },
 
-  /**
-   * POST /api/auth/signup
-   * Manual registration with name, email, and password
-   */
   async signup(payload: SignupPayload): Promise<AuthResponse> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by POST /api/auth/signup.
-    // Current logic is mocked and uses a hardcoded generated user profile; backend should return
-    // the auth token and onboarding state here after registration.
-    // const res = await fetch('/api/auth/signup', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload),
-    // });
-    // if (!res.ok) throw new Error(await res.text());
-    // const data = await res.json();
-    // authToken = data.token;
-    // return data;
-
-    // Simulated mock response:
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    currentUser = {
-      id: 'mock_usr_' + Math.random().toString(36).substring(7),
-      name: payload.name,
-      email: payload.email,
-      profile_photo: null,
-      class: null,
-      default_language: null,
-      onboarding_completed: false,
-    };
-    authToken = 'mock_jwt_token';
-    saveStoredAuth(currentUser, authToken);
-    return { token: authToken, user: currentUser };
+    const data = await apiFetch<AuthResponse>("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    setToken(data.token);
+    cacheUser(data.user);
+    return data;
   },
 
-  /**
-   * GET/POST /api/auth/google
-   * Unified Google OAuth sign-in/sign-up
-   */
-  async googleAuth(credential?: string): Promise<AuthResponse> {
-    // BACKEND WIRED (GIS id_token flow): exchange the Google credential for a
-    // JWT + profile. Falls back to the mock when no credential is provided.
-    if (credential) {
-      const base = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE || '';
-      const res = await fetch(`${base}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_token: credential, provider: 'google' }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      authToken = data.token;
-      currentUser = data.user;
-      saveStoredAuth(currentUser, authToken);
-      return data;
-    }
-
-    // Simulated mock response (legacy — no credential provided):
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    currentUser = {
-      id: 'mock_google_usr_' + Math.random().toString(36).substring(7),
-      name: 'Google Scholar',
-      email: 'student@example.com',
-      profile_photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
-      class: null,
-      default_language: null,
-      onboarding_completed: false,
-    };
-    authToken = 'mock_google_token';
-    saveStoredAuth(currentUser, authToken);
-    return { token: authToken, user: currentUser };
+  async googleAuth(credential: string): Promise<AuthResponse> {
+    const data = await apiFetch<AuthResponse>("/api/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ id_token: credential, provider: "google" }),
+    });
+    setToken(data.token);
+    cacheUser(data.user);
+    return data;
   },
 
-  /**
-   * GET /api/users/me/profile
-   * Fetch authenticated user's profile and class
-   */
   async getProfile(): Promise<UserProfile> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by GET /api/users/me/profile.
-    // The response currently comes from in-memory/localStorage mock data, but the real frontend
-    // should fetch the authenticated user's class, default language, and onboarding completion here.
-    // const res = await fetch('/api/users/me/profile', {
-    //   headers: { Authorization: `Bearer ${authToken}` },
-    // });
-    // if (!res.ok) throw new Error(await res.text());
-    // return await res.json();
-
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    if (!currentUser) {
-      currentUser = getStoredUser();
-    }
-    if (!currentUser) {
-      throw new Error('Unauthenticated user');
-    }
-    return currentUser;
+    const user = await apiFetch<UserProfile>("/api/users/me/profile");
+    cacheUser(user);
+    return user;
   },
 
-  isAuthenticated(): boolean {
-    return !!(currentUser || getStoredUser());
-  },
-
-  /**
-   * PATCH /api/users/me/profile
-   * Save onboarding selections (class, default_language) or profile changes
-   */
   async updateProfile(payload: UpdateProfilePayload): Promise<UserProfile> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by PATCH /api/users/me/profile.
-    // The current code mutates the local mock user immediately; backend should persist class,
-    // default_language, and onboarding completion here and return the updated profile.
-    // const res = await fetch('/api/users/me/profile', {
-    //   method: 'PATCH',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     Authorization: `Bearer ${authToken}`,
-    //   },
-    //   body: JSON.stringify(payload),
-    // });
-    // if (!res.ok) throw new Error(await res.text());
-    // return await res.json();
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    if (!currentUser) {
-      currentUser = {
-        id: 'mock_usr_guest',
-        name: 'Aqsara Student',
-        email: 'student@aqsara.org',
-        profile_photo: null,
-        class: null,
-        default_language: null,
-        onboarding_completed: false,
-      };
-    }
-
-    const updatedClass = payload.class ?? currentUser.class;
-    const updatedLang = payload.default_language ?? currentUser.default_language;
-    const isCompleted = updatedClass !== null && updatedLang !== null && updatedLang !== '';
-
-    currentUser = {
-      ...currentUser,
-      ...payload,
-      class: updatedClass,
-      default_language: updatedLang,
-      onboarding_completed: isCompleted,
-    };
-
-    saveStoredAuth(currentUser, authToken);
-    return currentUser;
+    const user = await apiFetch<UserProfile>("/api/users/me/profile", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    cacheUser(user);
+    return user;
   },
 
-  /**
-   * Sign out (client-side token cleanup)
-   */
+  async uploadPhoto(file: File): Promise<UserProfile> {
+    const { apiUpload } = await import("./http");
+    const user = await apiUpload<UserProfile>("/api/users/me/profile/photo", file);
+    cacheUser(user);
+    return user;
+  },
+
   logout() {
-    authToken = null;
-    currentUser = null;
-    saveStoredAuth(null, null);
+    setToken(null);
+    cacheUser(null);
     try {
-      localStorage.setItem(STORAGE_KEY_LOGGED_OUT, 'true');
-    } catch {
-      // ignore
-    }
+      localStorage.setItem(LOGGED_OUT_KEY, "true");
+    } catch { /* ignore */ }
   },
 
   getToken(): string | null {
-    return authToken;
+    try {
+      if (localStorage.getItem(LOGGED_OUT_KEY) === "true" && !getToken()) return null;
+    } catch { /* ignore */ }
+    return getToken();
   },
 
   getCurrentUser(): UserProfile | null {
-    return currentUser;
+    try {
+      if (localStorage.getItem(LOGGED_OUT_KEY) === "true") return null;
+      const raw = localStorage.getItem(USER_KEY);
+      return raw ? (JSON.parse(raw) as UserProfile) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
   },
 
   getDraftClass(): number | null {
-    return draftClass ?? currentUser?.class ?? null;
+    try {
+      const cached = this.getCurrentUser()?.class;
+      if (cached) return cached;
+      const raw = localStorage.getItem("akara_draft_class");
+      return raw ? Number(raw) : null;
+    } catch {
+      return this.getCurrentUser()?.class ?? null;
+    }
   },
 
   setDraftClass(cls: number | null) {
-    draftClass = cls;
+    try {
+      if (cls == null) localStorage.removeItem("akara_draft_class");
+      else localStorage.setItem("akara_draft_class", String(cls));
+    } catch { /* ignore */ }
   },
 
   getDraftLanguage(): string {
-    return draftLanguage ?? currentUser?.default_language ?? 'hi';
+    try {
+      return (
+        localStorage.getItem("akara_draft_lang") ||
+        this.getCurrentUser()?.default_language ||
+        "hi"
+      );
+    } catch {
+      return this.getCurrentUser()?.default_language ?? "hi";
+    }
   },
 
   setDraftLanguage(lang: string) {
-    draftLanguage = lang;
-  }
+    try {
+      localStorage.setItem("akara_draft_lang", lang);
+    } catch { /* ignore */ }
+  },
 };
 
 export const curriculumService = {
-  /**
-   * GET /api/curriculum/subjects?class={class}
-   * Fetch subjects appropriate to the user's class
-   * - Classes 6–10: Science, Maths
-   * - Classes 11–12: Physics, Chemistry, Biology, Maths
-   * Strict rule: Do NOT show Science for classes 11–12.
-   */
   async getSubjects(userClass: number): Promise<Subject[]> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by GET /api/curriculum/subjects?class={userClass}.
-    // The current response is hardcoded from getSubjectsForClass(userClass) in curriculumData.ts.
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    return getSubjectsForClass(userClass);
+    const data = await apiFetch<{ class: number; subjects: Subject[] }>(
+      `/api/curriculum/subjects?class=${userClass}`
+    );
+    return data.subjects ?? [];
   },
 
-  /**
-   * GET /api/curriculum/subjects/:subjectId/chapters
-   * Fetch simple vertical list of chapters for a selected subject, including mastery progress
-   * Each chapter contains: name, progress ring, mastered_concepts / total_concepts
-   */
   async getChapters(subjectId: string, userClass?: number): Promise<Chapter[]> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by GET /api/curriculum/subjects/:subjectId/chapters.
-    // The current chapter list is hardcoded from CHAPTER_DATABASE and should come from backend
-    // with mastery counts per chapter for the authenticated student.
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const list = CHAPTER_DATABASE[subjectId.toLowerCase()] || [];
-    return list;
+    const q = userClass ? `?class=${userClass}` : "";
+    const data = await apiFetch<{ chapters: Chapter[] }>(
+      `/api/curriculum/subjects/${encodeURIComponent(subjectId)}/chapters${q}`
+    );
+    return data.chapters ?? [];
   },
 
-  /**
-   * GET /api/curriculum/subjects/:subjectId/chapters/:chapterId
-   * Fetch single chapter details
-   */
   async getChapter(subjectId: string, chapterId: string): Promise<Chapter | null> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by GET /api/curriculum/subjects/:subjectId/chapters/:chapterId.
-    // The current result is pulled from the hardcoded CHAPTER_DATABASE mock; backend should return
-    // the full chapter payload, including chosen concepts and concept statuses.
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const list = CHAPTER_DATABASE[subjectId.toLowerCase()] || [];
-    return list.find((c) => c.id === chapterId) || null;
-  }
+    try {
+      const data = await apiFetch<Chapter>(
+        `/api/curriculum/subjects/${encodeURIComponent(subjectId)}/chapters/${encodeURIComponent(chapterId)}`
+      );
+      return data;
+    } catch {
+      return null;
+    }
+  },
 };
-

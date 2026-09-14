@@ -86,6 +86,7 @@ export default function Practice() {
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [conceptData, setConceptData] = useState<GeneratedConceptData | null>(null);
 
   // Determine if a specific activity is active from path params or query params
@@ -99,24 +100,21 @@ export default function Practice() {
   // Context query parameters
   const langParam = searchParams.get('lang') || '';
 
-  // Load unified shared concept data
+  // Load unified shared concept data (backend media bundle; lang omitted → profile default)
   useEffect(() => {
-    // FRONTEND BACKEND HOOK (page-level):
-    // This page consumes GET /api/users/me/profile and GET /api/concepts/:conceptId/media,
-    // which supplies the shared concept bundle used by all four practice modes.
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-
     const targetConceptId = conceptId || 'cr-02';
-    const targetLang = langParam || currentUser?.default_language || 'hi';
 
     async function load() {
       setLoading(true);
+      setError(null);
       try {
-        const data = await conceptMediaService.getGeneratedConceptData(targetConceptId, targetLang);
+        const profile = await authService.getProfile();
+        setUser(profile);
+        const data = await conceptMediaService.getGeneratedConceptData(targetConceptId, langParam || undefined);
         setConceptData(data);
       } catch (err) {
-        console.error('Failed to load practice data:', err);
+        const { parseError } = await import('../services/http');
+        setError(parseError(err));
       } finally {
         setLoading(false);
       }
@@ -183,6 +181,16 @@ export default function Practice() {
             <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
               Select an activity below to practice and master this concept.
             </p>
+            {error && (
+              <div role="alert" className="mt-3 text-xs font-medium text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 max-w-2xl">
+                {error} <button type="button" onClick={() => window.location.reload()} className="ml-2 font-bold underline">Retry</button>
+              </div>
+            )}
+            {conceptData?.quizStatus === 'generating' && (
+              <div className="mt-3 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 max-w-2xl">
+                Quiz + mind-map content still generating for this language — Listen and Concept Card work now; Quiz unlocks in ~10s (refresh).
+              </div>
+            )}
           </div>
 
           {/* 4 CARDS GRID (Using user images with bottom gradient blending into #F6F4F0) */}
@@ -277,6 +285,7 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const totalDuration = conceptData.video.durationSeconds || 150;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -304,6 +313,30 @@ function ListenRenderer({ conceptData }: { conceptData: GeneratedConceptData }) 
 
   return (
     <div className="w-full relative flex flex-col justify-between min-h-[540px] sm:min-h-[580px] lg:min-h-[620px] pt-2 pb-6 px-0 overflow-visible">
+      {conceptData.audioUrl && (
+        <div className="relative z-10 w-full mb-2 rounded-2xl bg-white/90 border border-stone-200 p-3">
+          <audio
+            ref={audioRef}
+            controls
+            preload="metadata"
+            src={conceptData.audioUrl}
+            className="w-full"
+            onTimeUpdate={(e) => {
+              const el = e.currentTarget;
+              setCurrentTime(el.currentTime);
+              if (!el.paused) setIsPlaying(true);
+            }}
+            onPause={() => setIsPlaying(false)}
+            onPlay={() => setIsPlaying(true)}
+          />
+          {conceptData.script.fullTranscript && (
+            <details className="mt-2 text-xs text-stone-600">
+              <summary className="cursor-pointer font-bold text-stone-800">Scrub captions (transcript)</summary>
+              <p className="mt-1.5 leading-relaxed whitespace-pre-line">{conceptData.script.fullTranscript}</p>
+            </details>
+          )}
+        </div>
+      )}
       {/* Purple & Blue Background Gradient with Grow/Ungrow Animation in open space - No container */}
       <GradientAudioBackground isPlaying={isPlaying} />
 
@@ -587,6 +620,19 @@ const CHEMISTRY_FLASHCARDS: ChemistryFlashcard[] = [
  * - Strictly NO numbers displayed anywhere
  */
 function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptData }) {
+  const backendCards: ChemistryFlashcard[] = (conceptData.flashcards ?? [])
+    .filter((f) => f.front || f.back)
+    .map((f, i) => ({
+      id: `backend-fc-${i}`,
+      conceptTitle: conceptData.conceptName,
+      hintQuestion: f.front,
+      answerTitle: conceptData.conceptName,
+      takeaway: f.back,
+      formula: '',
+      keyFact: conceptData.ncertCitation,
+      solidBg: ['bg-[#254CE8]', 'bg-[#C9381A]', 'bg-[#5B34C8]', 'bg-[#0B7D58]'][i % 4],
+    }));
+  const deck = backendCards.length > 0 ? backendCards : CHEMISTRY_FLASHCARDS;
   const [unrevealedIndex, setUnrevealedIndex] = useState(0);
   const [revealedCards, setRevealedCards] = useState<ChemistryFlashcard[]>([]);
   const [rightCardFlipped, setRightCardFlipped] = useState(false);
@@ -605,8 +651,8 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
   const leftStackRef = useRef<HTMLDivElement>(null);
   const rightStackRef = useRef<HTMLDivElement>(null);
 
-  const currentLeftCard = unrevealedIndex < CHEMISTRY_FLASHCARDS.length
-    ? CHEMISTRY_FLASHCARDS[unrevealedIndex]
+  const currentLeftCard = unrevealedIndex < deck.length
+    ? deck[unrevealedIndex]
     : null;
 
   const topRevealedCard = revealedCards.length > 0 ? revealedCards[0] : null;
@@ -657,7 +703,7 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
   // Double click (or 2 fast clicks) when all cards have travelled to the right: flips all cards and moves them back to the left
   const handleRightClick = () => {
     if (isAnimating || isReturningAll || !topRevealedCard) return;
-    const allCardsOnRight = unrevealedIndex >= CHEMISTRY_FLASHCARDS.length && revealedCards.length === CHEMISTRY_FLASHCARDS.length;
+    const allCardsOnRight = unrevealedIndex >= deck.length && revealedCards.length === deck.length;
 
     clickCountRef.current += 1;
 
@@ -677,7 +723,7 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
   };
 
   const handleRightDoubleClick = () => {
-    const allCardsOnRight = unrevealedIndex >= CHEMISTRY_FLASHCARDS.length && revealedCards.length === CHEMISTRY_FLASHCARDS.length;
+    const allCardsOnRight = unrevealedIndex >= deck.length && revealedCards.length === deck.length;
     if (allCardsOnRight && !isAnimating && !isReturningAll) {
       if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
       clickCountRef.current = 0;
@@ -693,12 +739,12 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
         {/* ================= LEFT SIDE: Question Stack ================= */}
         <div ref={leftStackRef} className="relative w-full min-h-[430px] sm:min-h-[450px]">
           {/* Background stack card layers peeking behind */}
-          {unrevealedIndex + 2 < CHEMISTRY_FLASHCARDS.length && (
+          {unrevealedIndex + 2 < deck.length && (
             <div 
               className="absolute inset-0 translate-y-4 scale-[0.93] rounded-3xl bg-stone-300/80 shadow-xs pointer-events-none -z-20 border border-stone-300"
             />
           )}
-          {unrevealedIndex + 1 < CHEMISTRY_FLASHCARDS.length && (
+          {unrevealedIndex + 1 < deck.length && (
             <div 
               className="absolute inset-0 translate-y-2 scale-[0.965] rounded-3xl bg-stone-400/70 shadow-sm pointer-events-none -z-10 border border-stone-300/60"
             />
@@ -1505,6 +1551,18 @@ function MindMapRenderer({ conceptData }: { conceptData: GeneratedConceptData })
           Click on a node to expand or collapse
         </span>
       </div>
+      {conceptData.sceneGraph && conceptData.sceneGraph.nodes.length > 0 ? (
+        <div className="px-6 py-3 border-b border-stone-200/70 bg-white/70">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500 mb-1.5">Live concept map ({conceptData.sceneGraph.nodes.length} nodes)</div>
+          <div className="flex flex-wrap gap-1.5">
+            {conceptData.sceneGraph.nodes.slice(0, 12).map((n) => (
+              <span key={n.id} title={n.description} className="text-[11px] font-medium text-stone-700 bg-stone-100 border border-stone-200 rounded-full px-2.5 py-1">{n.label}</span>
+            ))}
+          </div>
+        </div>
+      ) : conceptData.quizStatus === 'generating' ? (
+        <div className="px-6 py-3 border-b border-amber-200 bg-amber-50 text-[11px] font-medium text-amber-800">Mind-map content generating — showing preview layout.</div>
+      ) : null}
 
       {/* Natural Scrollable Canvas Container matching website background */}
       <div
@@ -1783,9 +1841,20 @@ const EXPLANATION_DURATION_MS = 5000; // Keep explanation for 5 seconds
  */
 function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData }) {
   const questions =
-    conceptData.quiz && conceptData.quiz.length >= 10
+    conceptData.quiz && conceptData.quiz.length > 0
       ? conceptData.quiz
       : TEN_DEFAULT_CHEMISTRY_QUESTIONS;
+  const usingFallback = !(conceptData.quiz && conceptData.quiz.length > 0);
+
+  if (conceptData.quizStatus === 'generating' && conceptData.quiz.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+        <div className="w-10 h-10 mx-auto rounded-full border-2 border-stone-300 border-t-[#6d0e00] animate-spin" />
+        <h3 className="mt-4 text-base font-bold text-stone-900">Quiz generating…</h3>
+        <p className="mt-1 text-xs text-stone-500">The quiz for this language is being created. Refresh in ~10s.</p>
+      </div>
+    );
+  }
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number | null>>({});
@@ -1917,6 +1986,7 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
       <div className="flex items-center justify-between gap-4">
         <span className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">
           Question {currentIndex + 1} of {questions.length}
+          {usingFallback && <span className="ml-2 text-[11px] font-medium text-stone-500">(sample set)</span>}
         </span>
 
         {/* Timer Badge with #6d0e00 - Hidden during explanation time, NO clock illustration */}
