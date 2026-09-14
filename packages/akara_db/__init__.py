@@ -9,8 +9,8 @@ Import models from here so Alembic and both services see identical metadata:
         DailyActivity,
     )
 
-20 tables per docs/database.md + build-plan deltas (concepts.topic_name,
-daily_activity). See docs/build-plan-db-backend.md §1.
+20 tables per docs/architecture/database.md + build-plan deltas (concepts.topic_name,
+daily_activity). See docs/architecture/build-plan-db-backend.md §1.
 """
 
 from akara_db.base import Base, get_engine, get_session, get_sessionmaker

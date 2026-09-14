@@ -1,14 +1,14 @@
 # Akara — Watch. Explain. Learn.
 
 Feynman voice loop + Manim explainer library for NCERT grades 6-12.
-Start with `docs/pending.md` (current status + what's left), then
-`docs/onboarding.md` and `docs/architecture.md`.
+Start with `docs/archive/pending.md` (current status + what's left), then
+`docs/getting-started/onboarding.md` and `docs/architecture/architecture.md`.
 
 ## Status (2026-09-14)
 
 **Backend + database are COMPLETE and running under a single
 `docker compose up`.** Frontend exists as a designed SPA still reading mocks —
-wiring it to the API is the only remaining feature work (`docs/pending.md §2`).
+wiring it to the API is the only remaining feature work (`docs/archive/pending.md §2`).
 
 ## Layout
 - `apps/web/` — React SPA + nginx (user-facing, `http://localhost`)
@@ -25,7 +25,7 @@ wiring it to the API is the only remaining feature work (`docs/pending.md §2`).
 
 ## Quickstart
 ```sh
-cp .env.example .env.local   # see docs/secrets.md for which keys to generate
+cp .env.example .env.local   # see docs/operations/secrets.md for which keys to generate
 docker compose up -d --build
 # app: http://localhost · API docs: http://localhost:8000/docs
 ```

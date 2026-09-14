@@ -1,9 +1,9 @@
 # Akara Database Design (Postgres)
 
-> Derived from: `docs/data-contracts.md` (TopicData / Transcript / Coverage),
-> `apps/web/backend-endpoints.md` (full frontend contract), `docs/video-pipeline.md`
-> (5-stage pipeline + R2 push), `docs/scoring.md` (auditable mastery),
-> `docs/auth-traces-cost.md` (cost lines). Videos live in **Cloudflare R2**;
+> Derived from: `docs/architecture/data-contracts.md` (TopicData / Transcript / Coverage),
+> `apps/web/backend-endpoints.md` (full frontend contract), `docs/pipelines/video-pipeline.md`
+> (5-stage pipeline + R2 push), `docs/pipelines/scoring.md` (auditable mastery),
+> `docs/product/auth-traces-cost.md` (cost lines). Videos live in **Cloudflare R2**;
 > the DB stores **object keys, never URLs** (see §R2).
 
 ## 0. Design rules

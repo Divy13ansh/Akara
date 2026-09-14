@@ -202,13 +202,31 @@ def run_pipeline(video_id: str, req: ExplainRequest):
 def health():
     # Manim's Tex/MathTex shell out to `latex` — report its presence so a
     # missing TeX install is diagnosable without burning a render's tokens.
+    # Same for Indic coverage: count Pango fonts for Hindi/Punjabi so tofu
+    # boxes (white squares) are caught here, not in a student's video.
     import shutil
+    import subprocess
+
+    def _font_count(lang: str) -> int:
+        try:
+            out = subprocess.run(
+                ["fc-list", f":lang={lang}", "family"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+            return len([line for line in out.stdout.splitlines() if line.strip()])
+        except Exception:
+            return -1
 
     return {
         "status": "ok",
         "service": "akara-video",
         "latex": shutil.which("latex") is not None,
         "dvisvgm": shutil.which("dvisvgm") is not None,
+        "fonts_hi": _font_count("hi"),
+        "fonts_pa": _font_count("pa"),
     }
 
 

@@ -1,7 +1,7 @@
 """Offline NCERT retrieval (chunk -> multilingual-e5 -> FAISS).
 
 Called pre-session by services/api, never in the voice hot path.
-See docs/rag-ncert.md.
+See docs/pipelines/rag-ncert.md.
 
 Current state: DB-backed with in-memory seed fallback. `fetch_topic` reads the
 `concepts` table (gold script/rubric) via packages/akara_db; when the DB is

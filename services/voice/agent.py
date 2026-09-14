@@ -3,7 +3,7 @@
 Entry point for the Feynman voice loop. Topic + session identity are injected
 via LiveKit job metadata as SessionMetadata JSON
 {topic: {topic_id, topic, script, rubric, ...}, student_id, room_name}.
-See docs/voice-loop.md for the full contract.
+See docs/pipelines/voice-loop.md for the full contract.
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ load_dotenv(".env.local")
 API_BASE = os.getenv("AKARA_API_URL", "http://localhost:8000")
 
 # ---------------------------------------------------------------------------
-# Model constructors — isolated so the open-weight swap (docs/open-weights.md)
+# Model constructors — isolated so the open-weight swap (docs/pipelines/open-weights.md)
 # touches only these three functions.
 # ---------------------------------------------------------------------------
 

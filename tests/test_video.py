@@ -19,6 +19,9 @@ def test_video_health():
     # Manim Tex/MathTex needs system latex — surfaced for diagnosability.
     assert isinstance(body["latex"], bool)
     assert isinstance(body["dvisvgm"], bool)
+    # Indic font coverage (Pango) — guards against tofu boxes in videos.
+    assert isinstance(body["fonts_hi"], int)
+    assert isinstance(body["fonts_pa"], int)
 
 
 def test_video_render_async_enqueue(monkeypatch):

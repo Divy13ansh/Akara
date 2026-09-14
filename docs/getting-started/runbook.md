@@ -15,7 +15,7 @@ docker compose --profile voice up -d      # + LiveKit voice worker (uses the `st
 - API docs: http://localhost:8000/docs · video: http://localhost:8001/health · STT: http://localhost:8091/health
 - **HF_TOKEN in .env.local is required for `stt` on a fresh VPS** — the gated
   IndicConformer model downloads on first boot into the `stt_models` volume
-  (~2.4GB, one-time). Details: docs/backend-api-mapping.md §1.
+  (~2.4GB, one-time). Details: docs/architecture/backend-api-mapping.md §1.
 - Boot does the right thing automatically: api/worker verify the schema and
   seed the FULL NCERT catalog from `packages/akara_db/syllabus.json` when the
   DB is empty (advisory-lock guarded, safe with 4 uvicorn workers + arq).
@@ -95,4 +95,4 @@ curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" 
 - [x] On-demand quiz/flashcards/scene-graph generation (render-callback + /media triggers)
 - [x] Profile photo upload to R2 · doubts chat endpoint · language propagation (profile default)
 - [x] VEXYL-STT as compose service (`stt`) + voice worker registered with LiveKit Cloud
-- [ ] Frontend rewiring off mocks — the ONLY remaining feature work (docs/pending.md §2)
+- [ ] Frontend rewiring off mocks — the ONLY remaining feature work (docs/archive/pending.md §2)

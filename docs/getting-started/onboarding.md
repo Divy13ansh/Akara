@@ -14,7 +14,7 @@ LLMs as hero/sidekick.
 
 ## What exists right now (2026-09-14)
 
-The **entire backend + database are built and running** (see `docs/pending.md`).
+The **entire backend + database are built and running** (see `docs/archive/pending.md`).
 Only frontend wiring remains:
 
 | Area | Status | Location |
@@ -44,7 +44,7 @@ No RAG tool and no Score tool inside the voice hot path. That is deliberate
 ## Setup for a new dev
 
 ```sh
-cp .env.example .env.local   # which keys to generate: docs/secrets.md
+cp .env.example .env.local   # which keys to generate: docs/operations/secrets.md
 docker compose up -d --build # web+api+worker+video+stt+postgres+redis
 # app: http://localhost · API docs: http://localhost:8000/docs
 ```

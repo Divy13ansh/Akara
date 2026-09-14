@@ -57,7 +57,7 @@ docker compose up -d stt
 docker compose logs -f stt   # one-time ~2.4GB download, then 'server ready'
 ```
 
-See docs/backend-api-mapping.md §1 for the full integration record.
+See docs/architecture/backend-api-mapping.md §1 for the full integration record.
 
 Health check: `curl http://localhost:8091/health`
 

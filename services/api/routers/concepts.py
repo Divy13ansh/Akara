@@ -373,8 +373,11 @@ async def ask_doubt(concept_id: str, payload: DoubtPayload, user: CurrentUser, s
         f"Reply in {language} (Devanagari if Hindi), max 120 words, warm and "
         f"grade-appropriate. Use short paragraphs (line breaks between ideas), "
         f"**bold** for key terms, and one step per line for math — never a "
-        f"single unbroken line. End with a tiny nudge to re-watch the relevant part "
-        f"only if useful."
+        f"single unbroken line. Wrap EVERY math expression in LaTeX delimiters "
+        f"so it renders as an equation: inline math as \\(a = bq + r\\), "
+        f"standalone equations as \\[x^2 - 4 = 0\\]. Never write bare math "
+        f"like a = bq + r without delimiters. End with a tiny nudge to re-watch "
+        f"the relevant part only if useful."
         f"\n\nSCRIPT:\n{concept.script or '(no script)'}"
     )
     messages = [{"role": "system", "content": system}]

@@ -19,7 +19,7 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
 def _estimate_voice_cost(metrics: dict) -> float:
-    """Pricing fn per docs/auth-traces-cost.md (hosted phase). Update freely —
+    """Pricing fn per docs/product/auth-traces-cost.md (hosted phase). Update freely —
     the log shape is the contract."""
     stt_s = metrics.get("stt_s", 0)
     tts_chars = metrics.get("tts_chars", 0)

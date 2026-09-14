@@ -2,7 +2,7 @@
 
 Heuristic v0: keyword-overlap per rubric point + evidence quotes.
 e5 + Qwen-DPO entailment plug in later behind `score_transcript`.
-See docs/scoring.md.
+See docs/pipelines/scoring.md.
 """
 
 from __future__ import annotations

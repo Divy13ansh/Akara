@@ -17,7 +17,7 @@ docker compose --profile voice up -d   # + LiveKit voice worker (uses `stt` serv
 - App: http://localhost (nginx SPA, `/api` proxied to the FastAPI backend)
 - API docs: http://localhost:8000/docs · STT health: http://localhost:8091/health
 - `HF_TOKEN` in `.env.local` is required on a fresh VPS (stt model download, once)
-- Full API contract: `apps/web/backend-endpoints.md` + `docs/backend-api-mapping.md`
+- Full API contract: `apps/web/backend-endpoints.md` + `docs/architecture/backend-api-mapping.md`
 
 ---
 
@@ -133,5 +133,5 @@ The agent worker **is running and registered** with LiveKit Cloud
 | `services/voice/agent.py` | LiveKit agent (metadata → language/topic) |
 | `packages/akara_db/` | models + syllabus.json catalog |
 | `alembic/versions/` | migrations (latest: `concept_quizzes.generation_status`) |
-| `docs/backend-api-mapping.md` | field-by-field contract audit (read with this file) |
-| `docs/runbook.md` | ops/troubleshooting |
+| `docs/architecture/backend-api-mapping.md` | field-by-field contract audit (read with this file) |
+| `docs/getting-started/runbook.md` | ops/troubleshooting |

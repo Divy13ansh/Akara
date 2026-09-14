@@ -5,6 +5,7 @@ __pycache__/
 .env.local
 data/raw/
 data/indices/
+docs/interview-prep
 *.mp4
 *.wav
 node_modules/

@@ -4,7 +4,7 @@ GET /token?student_id=...&topic_id=...&lang=... -> {token, room, topic}
 Does pre-session lookup via akara_rag, then mints a LiveKit token with
 SessionMetadata (TopicData + student_id + room_name) as job metadata.
 Also mounts POST /webhooks/transcript for the voice agent shutdown hook.
-See docs/auth-traces-cost.md.
+See docs/product/auth-traces-cost.md.
 """
 
 from __future__ import annotations

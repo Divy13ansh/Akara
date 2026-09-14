@@ -4,7 +4,7 @@ Applies a CoverageResult to user_concept_mastery + misconceptions:
 - SELECT ... FOR UPDATE + atomic GREATEST() so parallel scorers never lose a
   bump (plan §3b race #2)
 - status transitions + prereq unlocking (locked → available)
-- misconception upsert / auto-resolve lifecycle (docs/database.md §6)
+- misconception upsert / auto-resolve lifecycle (docs/architecture/database.md §6)
 - invalidates the per-user mastery cache
 
 Callers run this INSIDE an open AsyncSession transaction after inserting

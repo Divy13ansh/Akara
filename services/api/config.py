@@ -70,7 +70,7 @@ class Settings:
     rl_langreq_per_day: int = 5
     rl_heartbeat_per_min: int = 2
 
-    # mastery gate (docs/database.md §6)
+    # mastery gate (docs/architecture/database.md §6)
     mastery_threshold: float = 0.7
 
     # render retry budget per (concept, lang) — plan Phase 5

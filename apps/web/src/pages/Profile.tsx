@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Check,
+  Camera,
+  Loader2,
 } from 'lucide-react';
 
 const SUPPORTED_LANGUAGES = [
@@ -48,6 +50,35 @@ export default function Profile() {
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [requestStatusMsg, setRequestStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [hasUserRequestedCurrent, setHasUserRequestedCurrent] = useState(false);
+
+  // Profile photo upload state (PUT /api/users/me/profile/photo → R2)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || uploadingPhoto) return;
+    setPhotoError(null);
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Photo must be under 5 MB.');
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const updated = await authService.uploadPhoto(file);
+      setUser(updated);
+    } catch {
+      setPhotoError('Upload failed. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -194,7 +225,7 @@ export default function Profile() {
             >
               {/* User Identity: Name and Email */}
               <div className="flex items-center gap-4 sm:gap-5 pb-6">
-                <div className="shrink-0">
+                <div className="shrink-0 relative">
                   {user?.profile_photo ? (
                     <img
                       src={user.profile_photo}
@@ -210,6 +241,25 @@ export default function Profile() {
                       {(user?.name?.trim() ? user.name.trim()[0] : 'P').toUpperCase()}
                     </div>
                   )}
+                  {/* Photo upload: camera badge over the avatar */}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoSelected}
+                    aria-label="Upload profile photo"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    title={user?.profile_photo ? 'Change profile photo' : 'Add profile photo'}
+                    aria-label={user?.profile_photo ? 'Change profile photo' : 'Add profile photo'}
+                    className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#6d0e00] hover:bg-[#540b00] disabled:opacity-60 text-white flex items-center justify-center shadow-md border-2 border-white transition-all active:scale-95 cursor-pointer"
+                  >
+                    {uploadingPhoto ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                  </button>
                 </div>
 
                 <div>
@@ -222,6 +272,9 @@ export default function Profile() {
                   <p className="text-stone-500 text-xs sm:text-sm mt-0.5">
                     {user?.email || 'poorvika@akara.edu'}
                   </p>
+                  {photoError && (
+                    <p role="alert" className="text-xs font-medium text-red-700 mt-1">{photoError}</p>
+                  )}
                 </div>
               </div>
 

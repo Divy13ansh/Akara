@@ -24,7 +24,7 @@ ASYNC_DATABASE_URL=postgresql+asyncpg://akara:akara@localhost:5432/akara
 REDIS_URL=redis://localhost:6379/0
 ```
 
-Full features (see `docs/secrets.md`): `LIVEKIT_URL/KEY/SECRET`, R2
+Full features (see `docs/operations/secrets.md`): `LIVEKIT_URL/KEY/SECRET`, R2
 (`R2_ENDPOINT/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET/MEDIA_CDN_BASE`),
 Azure OpenAI (`AZURE_OPENAI_ENDPOINT/AZURE_API_KEY/AZURE_OPENAI_DEPLOYMENT`),
 Azure Speech (`AZURE_SPEECH_KEY/AZURE_SPEECH_REGION`), `GOOGLE_CLIENT_ID`.

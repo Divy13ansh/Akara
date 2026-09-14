@@ -5,6 +5,10 @@ WORKDIR /app
 # Manim's Tex/MathTex compile step shells out to `latex`/`dvisvgm`. Without a
 # TeX install EVERY render using math text fails deterministically, and each
 # retry burns Azure tokens — so a minimal TeX is baked into the image.
+# Indic fonts: Manim Text renders non-English labels (Hindi, Punjabi, Bengali,
+# …) through Pango system fonts. The slim base image only ships DejaVu, so
+# Gurmukhi/Devanagari render as white tofu boxes. fonts-indic (all Lohit
+# Indian-script fonts) + fonts-noto-core cover every supported language.
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     build-essential \
@@ -22,6 +26,9 @@ RUN apt-get update && apt-get install -y \
     texlive-latex-recommended \
     dvisvgm \
     cm-super \
+    fonts-indic \
+    fonts-noto-core \
+    fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

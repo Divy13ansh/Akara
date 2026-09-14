@@ -186,7 +186,7 @@ class InterestsPut(BaseModel):
 
 @router.put("/interests")
 async def put_interests(payload: InterestsPut, user: CurrentUser, session: DbSession):
-    """Set-replace (docs/database.md §7)."""
+    """Set-replace (docs/architecture/database.md §7)."""
     cleaned = [i.strip() for i in payload.interests if i.strip()][:30]
     await session.execute(delete(UserInterest).where(UserInterest.user_id == user.id))
     for interest in dict.fromkeys(cleaned):  # dedupe preserving order

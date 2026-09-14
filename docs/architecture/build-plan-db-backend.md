@@ -19,7 +19,7 @@
 | D-6 | Render trigger | **Auto-trigger, but prerequisite-gated.** `generation-status` may only trigger a render when the student has *unlocked* the concept (prereq chain completed). Locked concepts get a `locked` response — matching the frontend, which never opens the popup for locked nodes. |
 | D-7 | Quiz / mind-map / mentor-prompt authoring | **LLM backfill script** per (concept, lang) derived from `concepts.script`, writing `concept_quizzes` rows; runnable independently of video renders. |
 | D-8 | Activity tracking | **New `daily_activity` table** + `POST /api/activity/heartbeat`; `/progress/summary` and the profile calendar read from it. |
-| D-9 | "Mark as Mastered" | **New gated endpoint** — succeeds only when a real coverage record ≥ threshold exists for that user+concept (server-verified, per `docs/database.md`). |
+| D-9 | "Mark as Mastered" | **New gated endpoint** — succeeds only when a real coverage record ≥ threshold exists for that user+concept (server-verified, per `docs/architecture/database.md`). |
 | D-10 | Google OAuth | **Wire it for real.** Verify Google `id_token` server-side (`google-auth`); user provides `GOOGLE_CLIENT_ID`. |
 | D-11 | Phase scope | **Backend only.** No frontend service rewiring this phase. |
 | D-12 | Language demand board | **Starts at zero.** Counts grow only from real `POST /api/languages/request`. |
@@ -31,7 +31,7 @@
 | D-14 | Redis | **Docker Redis 7** (`redis:7-alpine`) in docker-compose, same code path as future managed Redis (redis-py). Powers caches, render lock, rate limits, job queue. |
 | D-15 | Scoring queue | **arq** (async Redis task queue): webhook returns `202` after persisting the immutable transcript; a separate worker process runs Azure scoring with a concurrency cap + retries. Survives API restarts. |
 | D-16 | Render concurrency | **1 concurrent Manim render**; everything else queues as `pending` with queue position surfaced via generation-status. |
-| D-17 | Video URLs | **Public CDN URLs** (`MEDIA_CDN_BASE + key`, public-read bucket) per `docs/database.md`. |
+| D-17 | Video URLs | **Public CDN URLs** (`MEDIA_CDN_BASE + key`, public-read bucket) per `docs/architecture/database.md`. |
 | D-18 | Scale target | **One classroom pilot**: ~30–60 concurrent students, few hundred total users. Pool sizes, rate limits, and caches tuned to this. |
 | D-19 | Deployment | **Single VPS** eventually (API + Postgres + Redis; render box stays the homelab). Everything kept in docker-compose so `compose up` ≈ the deployment. |
 
@@ -57,9 +57,9 @@ Maths (chemical-reactions, real-numbers). Class 11 → Physics/Chem/Bio/Maths
 
 ---
 
-## 1. Schema: 20 tables (19 from `docs/database.md` + 1 addition)
+## 1. Schema: 20 tables (19 from `docs/architecture/database.md` + 1 addition)
 
-Follow `docs/database.md` as written, with these deltas:
+Follow `docs/architecture/database.md` as written, with these deltas:
 
 1. **`concepts.topic_name TEXT NOT NULL`** — the topic-group label the frontend
    constellation and library need (e.g. `"Chemical Equations & Balancing"`).
@@ -73,7 +73,7 @@ Follow `docs/database.md` as written, with these deltas:
    (`.date()` at the API layer). No new column.
 4. **`language_requests` seeds empty** (D-12). `UNIQUE (user_id, language, month)`
    gives the `alreadyRequested` dedup; demand counts = `GROUP BY language`.
-5. Everything else exactly per `docs/database.md`: users, user_preferences,
+5. Everything else exactly per `docs/architecture/database.md`: users, user_preferences,
    subjects, chapters, concepts, concept_media, video_render_jobs,
    concept_quizzes, sessions, transcripts, transcript_turns, rubric_points,
    coverage_points, user_concept_mastery, misconceptions, user_interests,
@@ -149,7 +149,7 @@ MEDIA_CDN_BASE=            # e.g. https://cdn.akara.example (custom domain or pu
 | (new) | `phy11-*` ×7 more | laws-of-motion (9 concepts, matching frontend `total_concepts`) |
 
 The seed script emits the **complete** mapping (all ~40 ported concepts across all
-chapters/subjects) to `docs/id-map.md` so future frontend rewiring is mechanical.
+chapters/subjects) to `docs/architecture/id-map.md` so future frontend rewiring is mechanical.
 
 ### 2.2 Seed scripts
 
@@ -279,7 +279,7 @@ New `services/api/security.py` + `deps.py` + `routers/auth.py`:
   `GOOGLE_CLIENT_ID`), upsert by `google_id`/email, auto-create on first login,
   return profile + `onboarding_completed` for routing. 501 if `GOOGLE_CLIENT_ID`
   unset.
-- JWT access tokens (pyjwt, 7d expiry, no refresh table per `docs/database.md` §10).
+- JWT access tokens (pyjwt, 7d expiry, no refresh table per `docs/architecture/database.md` §10).
 - `get_current_user` dependency; CORS allow-list from env (`WEB_ORIGIN`).
 - `GET/PATCH /api/users/me/profile` — onboarding rule: `class` ∈ 6–12 and
   `default_language` present ⇒ `onboarding_completed = true`.
@@ -324,7 +324,7 @@ second identical request is served from Redis (verify with `MONITOR` or hit coun
      per-turn latencies)
    - enqueue arq scoring job (id = session id); **no LLM call in the request**
    - `provider_costs` row written at enqueue time (metrics JSONB + `est_usd`
-     from the pricing fn per `docs/auth-traces-cost.md`; extend the voice agent
+     from the pricing fn per `docs/product/auth-traces-cost.md`; extend the voice agent
      payload with usage metrics — it already sends per-turn latencies)
    - JSONL files stay as a debug side-channel for now.
 2. **`services/worker/main.py`** — arq worker process (docker-compose service,
@@ -424,8 +424,8 @@ appears → video renders → R2 object exists → callback flips media to compl
   (locked / instant / processing / trigger), webhook → mastery → misconception
   pipeline, evaluate-explanation, mark-mastered gating (allow + deny),
   language-request dedup, offline downloads, heartbeat.
-- Update `docs/database.md` (deltas from §1: topic_name, daily_activity, joined
-  date note), `docs/runbook.md` (docker compose / alembic / seed / backfill
+- Update `docs/architecture/database.md` (deltas from §1: topic_name, daily_activity, joined
+  date note), `docs/getting-started/runbook.md` (docker compose / alembic / seed / backfill
   commands), `.env.example`.
 - `ruff check .` + `pytest -q` green; legacy tests updated for D-13 rename.
 

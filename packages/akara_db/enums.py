@@ -1,6 +1,6 @@
 """Status enums used across akara_db models and API logic.
 
-Stored as plain TEXT columns (docs/database.md design rule 3) — the values here
+Stored as plain TEXT columns (docs/architecture/database.md design rule 3) — the values here
 are the single source of truth for what can appear in each column.
 """
 
@@ -17,7 +17,7 @@ class MediaStatus(StrEnum):
 
 
 class VideoStage(StrEnum):
-    """The 5 pipeline stages from docs/video-pipeline.md."""
+    """The 5 pipeline stages from docs/pipelines/video-pipeline.md."""
 
     QUEUED = "queued"
     SCENE_PLANNING = "scene_planning"

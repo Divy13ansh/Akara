@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { Logo } from './Logo';
 import { conceptMediaService } from '../services/conceptMediaService';
 import { parseError } from '../services/http';
@@ -27,15 +29,42 @@ function greetingFor(topicName: string, language?: string): string {
 
 /** Minimal readable renderer: paragraphs, **bold**, `code`, and line lists. */
 function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      return <strong key={`${keyPrefix}-b${i}`} className="font-bold">{part.slice(2, -2)}</strong>;
+  // Math first: \(...\), \[...\], $$...$$ segments become KaTeX equations
+  // (ChatGPT-style). Everything else keeps the bold/code treatment.
+  const segments = text.split(/(\\\(.+?\\\)|\\\[.+?\\\]|\$\$.+?\$\$)/gs);
+  return segments.map((seg, i) => {
+    const math = seg.match(/^(\\\((.+?)\\\)|\\\[(.+?)\\\]|\$\$(.+?)\$\$)$/s);
+    if (math) {
+      const display = seg.startsWith('\\[') || seg.startsWith('$$');
+      const tex = math[2] ?? math[3] ?? math[4] ?? '';
+      let html = '';
+      try {
+        html = katex.renderToString(tex, { displayMode: display, throwOnError: false });
+      } catch {
+        return <React.Fragment key={`${keyPrefix}-m${i}`}>{seg}</React.Fragment>;
+      }
+      return (
+        <span
+          key={`${keyPrefix}-m${i}`}
+          className={display ? 'block max-w-full overflow-x-auto py-1' : 'inline-block max-w-full overflow-x-auto align-middle px-0.5'}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
     }
-    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
-      return <code key={`${keyPrefix}-c${i}`} className="font-mono text-[11px] sm:text-xs bg-black/5 px-1 py-0.5 rounded">{part.slice(1, -1)}</code>;
-    }
-    return <React.Fragment key={`${keyPrefix}-t${i}`}>{part}</React.Fragment>;
+    const parts = seg.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+    return (
+      <React.Fragment key={`${keyPrefix}-s${i}`}>
+        {parts.map((part, j) => {
+          if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+            return <strong key={`${keyPrefix}-b${i}-${j}`} className="font-bold">{part.slice(2, -2)}</strong>;
+          }
+          if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+            return <code key={`${keyPrefix}-c${i}-${j}`} className="font-mono text-[11px] sm:text-xs bg-black/5 px-1 py-0.5 rounded">{part.slice(1, -1)}</code>;
+          }
+          return <React.Fragment key={`${keyPrefix}-t${i}-${j}`}>{part}</React.Fragment>;
+        })}
+      </React.Fragment>
+    );
   });
 }
 

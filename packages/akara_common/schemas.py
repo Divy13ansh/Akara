@@ -1,7 +1,7 @@
 """Shared schemas, enums, and TopicData contract (single source of truth).
 
 TopicData = {topic_id, topic, script, rubric, grade, subject, lang}
-See docs/data-contracts.md.
+See docs/architecture/data-contracts.md.
 """
 
 from __future__ import annotations

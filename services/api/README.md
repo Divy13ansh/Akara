@@ -1,7 +1,7 @@
 # API service
 
 HTTP boundary for web + voice (FastAPI, 4 uvicorn workers in compose).
-See `docs/architecture.md` and `docs/backend-api-mapping.md`.
+See `docs/architecture/architecture.md` and `docs/architecture/backend-api-mapping.md`.
 
 - `main.py` — app assembly + boot init (schema check + seed-if-empty)
 - `boot.py` — advisory-lock-guarded migrate-verify + catalog seed

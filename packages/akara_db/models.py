@@ -1,7 +1,7 @@
 """All ORM models. Import * from this module in Alembic env.py so every
 table is registered on Base.metadata.
 
-Design rules (docs/database.md §0): TEXT app-generated PKs, created_at on every
+Design rules (docs/architecture/database.md §0): TEXT app-generated PKs, created_at on every
 table, updated_at on mutable tables, JSONB for write-once-read-whole blobs.
 """
 
