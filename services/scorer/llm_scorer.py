@@ -24,11 +24,17 @@ from openai import AzureOpenAI
 
 try:
     from akara_common.schemas import (
-        CoveragePoint, CoverageResult, TopicData, Transcript,
+        CoveragePoint,
+        CoverageResult,
+        TopicData,
+        Transcript,
     )
 except ImportError:
     from packages.akara_common.schemas import (  # type: ignore
-        CoveragePoint, CoverageResult, TopicData, Transcript,
+        CoveragePoint,
+        CoverageResult,
+        TopicData,
+        Transcript,
     )
 
 from .prompts import SCORER_SYSTEM_PROMPT, build_scorer_user_prompt

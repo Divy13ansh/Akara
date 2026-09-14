@@ -11,5 +11,3 @@ dependencies = [
   "websockets>=13.0",
 ]
 
-[tool.ruff]
-line-length = 100

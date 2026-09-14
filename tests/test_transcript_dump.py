@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "packages"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "voice"))
 
-from akara_common.schemas import TopicData, Transcript, TranscriptTurn
+from akara_common.schemas import TopicData, Transcript
 from voice.agent import dump_transcript
 
 
@@ -18,7 +18,7 @@ def test_dump_creates_valid_json(tmp_path):
     # Simulate a 2-turn session by writing directly
     transcript = Transcript(
         room_name="test-room-1",
-        topic_id="phy9-newton3",
+        topic_id="phy11-newton3",
         student_id="stu_test",
         lang="en",
         turns=[
@@ -47,7 +47,7 @@ def test_dump_transcript_function(tmp_path, monkeypatch):
     session.chat_ctx.items = [mock_msg1, mock_msg2]
 
     topic = TopicData(
-        topic_id="phy9-newton3",
+        topic_id="phy11-newton3",
         topic="Newton's Third Law",
         script="...",
         rubric="1. pairs",

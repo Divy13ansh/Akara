@@ -5,5 +5,3 @@ description = "Akara offline NCERT retrieval"
 requires-python = ">=3.11"
 dependencies = []
 
-[tool.ruff]
-line-length = 100

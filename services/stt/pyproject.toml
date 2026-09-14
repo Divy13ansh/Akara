@@ -1,0 +1,11 @@
+[project]
+name = "akara-stt"
+version = "0.1.0"
+description = "VEXYL-STT server (vendored) — WebSocket wrapper around ai4bharat/indic-conformer-600m-multilingual. Runs as its own docker image; not installed into the root venv (see services/stt/requirements.txt + Dockerfile)."
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+# Never build/install this member into the root venv — the STT server runs in
+# its own container with CPU-only torch (services/stt/Dockerfile).
+package = false

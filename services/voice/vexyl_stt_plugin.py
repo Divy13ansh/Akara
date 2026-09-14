@@ -11,7 +11,6 @@ import asyncio
 import json
 import logging
 import os
-from typing import Optional
 
 import websockets
 from livekit import rtc
@@ -45,8 +44,8 @@ class VexylSTT(stt.STT):
         self,
         *,
         language: str = "hi-IN",
-        host: Optional[str] = None,
-        port: Optional[int] = None,
+        host: str | None = None,
+        port: int | None = None,
     ):
         super().__init__(
             capabilities=stt.STTCapabilities(
@@ -61,14 +60,14 @@ class VexylSTT(stt.STT):
         self._ws_url = f"ws://{self._host}:{self._port}"
 
         # Track the last detected language from responses
-        self._last_detected_language: Optional[str] = None
+        self._last_detected_language: str | None = None
 
         logger.info(
             f"VexylSTT initialized: {self._ws_url}, language={self._language}"
         )
 
     @property
-    def last_detected_language(self) -> Optional[str]:
+    def last_detected_language(self) -> str | None:
         """
         Get the language code from the most recent final transcript.
         Useful for dynamic TTS language switching.
@@ -151,7 +150,7 @@ class VexylSTTStream(stt.SpeechStream):
         self._session_id = f"livekit_{utils.shortuuid()}"
 
         # WebSocket state
-        self._ws: Optional[websockets.WebSocketClientProtocol] = None
+        self._ws: websockets.WebSocketClientProtocol | None = None
         self._speaking = False
 
         logger.info(f"VexylSTTStream created | session_id={self._session_id}")
@@ -195,7 +194,7 @@ class VexylSTTStream(stt.SpeechStream):
 
             return ws
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise APIConnectionError(
                 f"Connection timeout: {self._ws_url}"
             ) from e

@@ -8,11 +8,11 @@ from akara_rag.retrieve import fetch_topic, list_topics
 
 
 def test_metadata_roundtrip():
-    t = fetch_topic("phy9-newton3", lang="hi")
+    t = fetch_topic("phy11-newton3", lang="hi")
     assert t is not None
     raw = t.to_metadata_json()
     back = TopicData.from_metadata_json(raw)
-    assert back is not None and back.topic_id == "phy9-newton3" and back.lang == "hi"
+    assert back is not None and back.topic_id == "phy11-newton3" and back.lang == "hi"
 
 
 def test_legacy_metadata_shape():

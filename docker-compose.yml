@@ -1,0 +1,147 @@
+# Akara — single-command stack (docs/build-plan-db-backend.md §3c)
+#   docker compose up -d            → web + api + worker + video + stt + postgres + redis
+#   docker compose --profile voice up -d → adds the LiveKit voice worker (on top of stt)
+# Secrets come from .env.local at the repo root (compose `env_file`).
+# HF_TOKEN in .env.local is REQUIRED for stt on a fresh VPS — it downloads the
+# gated ai4bharat/indic-conformer-600m-multilingual model on first boot (docs/vexyl-stt.md).
+name: akara
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: akara
+      POSTGRES_PASSWORD: akara
+      POSTGRES_DB: akara
+    ports:
+      - "5432:5432" # dev tooling only — do NOT publish on the VPS
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U akara -d akara"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379" # dev tooling only — do NOT publish on the VPS
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file: .env.local
+    environment:
+      # Inside the compose network the DB/redis/video hosts are service names.
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:akara@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:akara@postgres:5432/akara
+      REDIS_URL: redis://redis:6379/0
+      VIDEO_SERVICE_URL: http://video:8001
+    ports:
+      - "8000:8000" # debug/docs — users go through web:80
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    command: ["arq", "services.worker.main.WorkerSettings"]
+    env_file: .env.local
+    environment:
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:akara@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:akara@postgres:5432/akara
+      REDIS_URL: redis://redis:6379/0
+      VIDEO_SERVICE_URL: http://video:8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  video:
+    build:
+      context: ./services/video
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      AKARA_API_URL: http://api:8000
+      # stage4_tts reads AZURE_SPEECH_REGION; default to the endpoint's region
+      # so a lowercase `region=` in .env.local can't silently break TTS.
+      AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION:-eastus}
+    ports:
+      - "8001:8001"
+    volumes:
+      - video_outputs:/app/outputs
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "80:80" # THE user-facing URL: http://localhost
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # VEXYL-STT: self-hosted STT (AI4Bharat IndicConformer) the voice agent
+  # transcribes with. Vendored at services/stt/ (Apache-2.0). The gated ~2.4GB
+  # model downloads on FIRST boot into the stt_models volume (HF_TOKEN from
+  # .env.local); later boots are cache hits. Watch `docker compose logs stt`.
+  stt:
+    build:
+      context: ./services/stt
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      # .env.local sets VEXYL_STT_HOST=127.0.0.1 (for host-run agents); inside
+      # the container we must bind all interfaces or `voice` can't connect.
+      VEXYL_STT_HOST: 0.0.0.0
+      PORT: 8091
+      VEXYL_STT_DEVICE: ${VEXYL_STT_DEVICE:-cpu} # set cuda on a GPU VPS
+    volumes:
+      - stt_models:/models/hf # model cache survives container rebuilds
+    ports:
+      - "8091:8091" # dev tooling only — voice talks over the internal net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8091/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 900s # first boot downloads ~2.4GB
+    restart: unless-stopped
+
+  voice:
+    build:
+      context: .
+      dockerfile: services/voice/Dockerfile
+    profiles: ["voice"]
+    env_file: .env.local
+    environment:
+      AKARA_API_URL: http://api:8000
+      VEXYL_STT_HOST: stt # VEXYL-STT runs as the `stt` service
+      VEXYL_STT_PORT: 8091
+    depends_on:
+      api:
+        condition: service_started
+      stt:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  video_outputs:
+  stt_models:

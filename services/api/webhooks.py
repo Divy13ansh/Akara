@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT / "services"))
 try:
     from akara_common.schemas import TopicData, Transcript, TranscriptTurn
     from akara_rag.retrieve import fetch_topic
+
     from api.progress import save_coverage
 except ImportError:
     from packages.akara_common.schemas import TopicData, Transcript, TranscriptTurn  # type: ignore

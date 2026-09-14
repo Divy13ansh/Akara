@@ -1,13 +1,12 @@
 import json
-import subprocess
-from pathlib import Path
 import re
 import shutil
+import subprocess
+from pathlib import Path
 
+from utils.json_safe import _strip_code_fences, extract_json
 from utils.llm import call_llm
-from utils.json_safe import extract_json
 from utils.timestamps_extractor import extract_timestamps
-from utils.json_safe import _strip_code_fences
 
 # ============================================================
 # PATHS (ABSOLUTE, SINGLE SOURCE OF TRUTH)

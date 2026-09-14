@@ -10,7 +10,7 @@ from voice.scorer import score_transcript
 
 
 def test_scorer_covered_and_missed():
-    topic = fetch_topic("phy9-newton3")
+    topic = fetch_topic("phy11-newton3")
     assert topic is not None
     tr = Transcript(room_name="r1", topic_id=topic.topic_id,
                     student_id="s1", lang="en", turns=[
@@ -23,7 +23,7 @@ def test_scorer_covered_and_missed():
 
 
 def test_scorer_misconception_cancel():
-    topic = fetch_topic("phy9-newton3")
+    topic = fetch_topic("phy11-newton3")
     assert topic is not None
     tr = Transcript(room_name="r2", topic_id=topic.topic_id,
                     student_id="s1", lang="en", turns=[

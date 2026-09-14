@@ -1,0 +1,6 @@
+Migrations are generated with:
+
+    DATABASE_URL=postgresql+psycopg://akara:akara@localhost:5432/akara \
+      uv run alembic revision --autogenerate -m "initial"
+
+and applied with `alembic upgrade head` (the api container runs this on boot).

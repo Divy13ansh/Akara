@@ -1,7 +1,9 @@
 import json
-from utils.llm import call_llm
-from utils.json_safe import extract_json
 from pathlib import Path
+
+from utils.json_safe import extract_json
+from utils.llm import call_llm
+
 
 def generate_scenes(topic: str, level: str = "school", rag_context: str | None = None, language: str = "english", topic_id: str | None = None):
     BASE_DIR = Path(__file__).resolve().parent.parent

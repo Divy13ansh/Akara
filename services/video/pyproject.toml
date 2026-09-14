@@ -19,5 +19,3 @@ dependencies = [
   "azure-cognitiveservices-speech",
 ]
 
-[tool.ruff]
-line-length = 100

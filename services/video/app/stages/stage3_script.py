@@ -1,8 +1,9 @@
 import json
-from utils.llm import call_llm
+
+from paths import OUTPUTS_DIR, PROMPTS_DIR
 from utils.json_safe import extract_json
-from pathlib import Path
-from paths import PROMPTS_DIR, OUTPUTS_DIR
+from utils.llm import call_llm
+
 
 def generate_script(
     scenes,

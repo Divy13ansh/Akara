@@ -1,0 +1,3665 @@
+[
+  {
+    "class": 6,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "knowing-our-numbers",
+            "name": "Knowing Our Numbers",
+            "topics": [
+              "Indian and universal systems of numeration",
+              "Estimation of large numbers",
+              "Roman numerals",
+              "Comparing numbers",
+              "Large numbers in practice"
+            ]
+          },
+          {
+            "id": "whole-numbers",
+            "name": "Whole Numbers",
+            "topics": [
+              "Whole Numbers",
+              "The Number Line",
+              "Properties of Whole Numbers",
+              "Patterns in Whole Numbers",
+              "Predecessor and successor of a natural number"
+            ]
+          },
+          {
+            "id": "playing-with-numbers",
+            "name": "Playing with Numbers",
+            "topics": [
+              "Students will be introduced to the concepts of the highest common factor (HCF) and lowest common multiple (LCM) along with perfect numbers, primes, composites, and co-primes.",
+              "Factors and Multiples",
+              "Prime and Compromise Numbers",
+              "Test for Divisibility of Numbers",
+              "Common Factors and Common Multiples",
+              "Some More Divisibility Rules",
+              "Prime Factorisation",
+              "Highest Common Factor (HCF)",
+              "Lowest Common Multiple (LCM)",
+              "Some Problems with HCF and LCM"
+            ]
+          },
+          {
+            "id": "basic-geometrical-ideas",
+            "name": "Basic Geometrical Ideas",
+            "topics": [
+              "Points",
+              "A Line Segment",
+              "A Line",
+              "Interesting Lines",
+              "Parallel Lines",
+              "Ray",
+              "Curves",
+              "Polygons",
+              "Angles",
+              "Triangles",
+              "Quadrilaterals",
+              "Circles"
+            ]
+          },
+          {
+            "id": "understanding-elementary-shapes",
+            "name": "Understanding Elementary Shapes",
+            "topics": [
+              "This chapter is a continuation of geometrical concepts in Maths. Students will get to know about various geometrical shapes and curves in this chapter.",
+              "Measuring Line Segments",
+              "Angles – ‘Right’ and ‘Straight’",
+              "Angles – ‘Acute’, ‘Obtuse’, and ‘Reflex’",
+              "Measuring Angles",
+              "Perpendicular Lines",
+              "Classification of Triangles",
+              "Quadrilaterals",
+              "Polygons",
+              "Three Dimensional Shapes"
+            ]
+          },
+          {
+            "id": "integers",
+            "name": "Integers",
+            "topics": [
+              "Addition of Integers",
+              "Subtraction of Integers with the help of a Number Line"
+            ]
+          },
+          {
+            "id": "fractions",
+            "name": "Fractions",
+            "topics": [
+              "This chapter of Class 6 Maths will majorly deal with fractions of numbers.",
+              "A Fraction",
+              "Fraction on the Number Line",
+              "Proper Fractions",
+              "Improper and Mixed fractions",
+              "Equivalent Fractions",
+              "Simplest Form of a Fraction",
+              "Like Fractions",
+              "Comparing Fractions",
+              "Addition and Subtraction of Fractions"
+            ]
+          },
+          {
+            "id": "decimals",
+            "name": "Decimals",
+            "topics": [
+              "Students will have a clear concept of the basics of decimal numbers after completing this chapter.",
+              "Tenths",
+              "Hundredths",
+              "Comparing Decimals",
+              "Using Decimals",
+              "Addition of Numbers with Decimals",
+              "Subtraction of Decimals"
+            ]
+          },
+          {
+            "id": "data-handling",
+            "name": "Data Handling",
+            "topics": [
+              "In this chapter, the Class 6 students will be introduced to data handling concepts, including pictographs.",
+              "Recording Data",
+              "Organisation of Data",
+              "Pictograph",
+              "Interpretation of a Pictograph",
+              "Drawing a Pictograph",
+              "A Bar Graph"
+            ]
+          },
+          {
+            "id": "mensuration",
+            "name": "Mensuration",
+            "topics": [
+              "Perimeter of plane shapes",
+              "Area of rectangle and square"
+            ]
+          },
+          {
+            "id": "algebra",
+            "name": "Algebra",
+            "topics": [
+              "Algebra, one of the most important parts of Maths, will be introduced to students in this chapter. Algebra is very important for students to score well in higher studies. If students understand algebra well at this stage, then they won’t fear Maths, in fact, they would be fascinated by it.",
+              "Matchstick Pattern",
+              "The Idea of a Variable",
+              "More Matchstick Patterns",
+              "More Examples of variables",
+              "Use of Variables in Common Rules",
+              "Expressions with Variables",
+              "Using Expressions Practically",
+              "Using Expression with Variables",
+              "What is an Equation?",
+              "Solution of an Equation"
+            ]
+          },
+          {
+            "id": "ratio-and-proportion",
+            "name": "Ratio and Proportion",
+            "topics": [
+              "Ratio",
+              "Proportion",
+              "Unitary Method"
+            ]
+          },
+          {
+            "id": "symmetry",
+            "name": "Symmetry",
+            "topics": [
+              "Making Symmetric Figures: Ink-blot Devils",
+              "Figures with Two Lines of Symmetry",
+              "Figures with Multiple Lines of Symmetry",
+              "Reflection and Symmetry"
+            ]
+          },
+          {
+            "id": "practical-geometry",
+            "name": "Practical Geometry",
+            "topics": [
+              "The Circle",
+              "Line Segment",
+              "Perpendiculars",
+              "Angles"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "the-wonderful-world-of-science",
+            "name": "The Wonderful World of Science",
+            "topics": [
+              "The Wonderful World of Science"
+            ]
+          },
+          {
+            "id": "diversity-in-the-living-world",
+            "name": "Diversity in the Living World",
+            "topics": [
+              "Diversity in Plants and Animals Around Us",
+              "How to Group Plants and Animals?",
+              "Plants and Animals in Different Surroundings"
+            ]
+          },
+          {
+            "id": "mindful-eating-a-path-to-a-healthy-body",
+            "name": "Mindful Eating: A Path to a Healthy Body",
+            "topics": [
+              "What Do We Eat?",
+              "What are the Components of Food?",
+              "How to Test Different Components of Food?",
+              "Balanced Diet",
+              "Millets: Nutrition-rich Cereals",
+              "Food Miles: From Farm to Our Plate"
+            ]
+          },
+          {
+            "id": "exploring-magnets",
+            "name": "Exploring Magnets",
+            "topics": [
+              "Magnetic and Non-magnetic Materials",
+              "Poles of a Magnet",
+              "Finding Directions",
+              "Attraction and Repulsion between Magnets",
+              "Fun with Magnets"
+            ]
+          },
+          {
+            "id": "measurement-of-length-and-motion",
+            "name": "Measurement of Length and Motion",
+            "topics": [
+              "How do we Measure?",
+              "Standard Units",
+              "Correct Way of Measuring Length",
+              "Measuring the Length of a Curved Line",
+              "Describing Position",
+              "Moving Things",
+              "Types of Motion"
+            ]
+          },
+          {
+            "id": "materials-around-us",
+            "name": "Materials Around Us",
+            "topics": [
+              "Materials Around Us"
+            ]
+          },
+          {
+            "id": "temperature-and-its-measurement",
+            "name": "Temperature and its Measurement",
+            "topics": [
+              "Hot or Cold?",
+              "Temperature",
+              "Measuring Temperature"
+            ]
+          },
+          {
+            "id": "a-journey-through-the-states-of-water",
+            "name": "A Journey through the States of Water",
+            "topics": [
+              "Investigating Water's Disappearing Act",
+              "Another Mystery",
+              "What are the Different States of Water?",
+              "How can We Change the States of Water?",
+              "How can Water be Evaporated Faster or Slower?",
+              "Cooling Effect"
+            ]
+          },
+          {
+            "id": "methods-of-separation-in-everyday-life",
+            "name": "Methods of Separation in Everyday Life",
+            "topics": [
+              "Methods of Separation in Everyday Life"
+            ]
+          },
+          {
+            "id": "living-creatures-exploring-their-characteristics",
+            "name": "Living Creatures: Exploring their Characteristics",
+            "topics": [
+              "What Sets the Living Apart from the Non-living?",
+              "Essential Conditions for Germination of a Seed",
+              "Growth and Movement in Plants",
+              "Life Cycle of a Plant",
+              "Life Cycle of Animals"
+            ]
+          },
+          {
+            "id": "natures-treasures",
+            "name": "Nature's Treasures",
+            "topics": [
+              "Air",
+              "Water",
+              "Energy from the Sun",
+              "Forests",
+              "Soil, Rocks and Minerals",
+              "Fossil Fuels",
+              "Natural Resources: Renewable and Non-renewable"
+            ]
+          },
+          {
+            "id": "beyond-earth",
+            "name": "Beyond Earth",
+            "topics": [
+              "Stars and Constellations",
+              "Night Sky Watching",
+              "Our Solar System",
+              "The Milky Way Galaxy",
+              "The Universe"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "class": 7,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "integers",
+            "name": "Integers",
+            "topics": [
+              "Recall From The Past Lessons",
+              "Properties of Addition and Subtraction of Integers",
+              "Multiplication of Integers",
+              "Properties of Multiplication of Integers",
+              "Division of Integers",
+              "Properties of Division of Integers"
+            ]
+          },
+          {
+            "id": "fractions-and-decimals",
+            "name": "Fractions and Decimals",
+            "topics": [
+              "How Well Have You Learnt About Fractions?",
+              "Multiplication of Fractions",
+              "Division of Fractions",
+              "How Well Have You Learnt About Decimal Numbers?",
+              "Multiplication of Decimal Numbers",
+              "Division of Decimal Numbers"
+            ]
+          },
+          {
+            "id": "data-handling",
+            "name": "Data Handling",
+            "topics": [
+              "Collecting Data",
+              "Organisation of Data",
+              "Representative Values",
+              "Arithmetic Mean",
+              "Mode",
+              "Median",
+              "Use of Bar Graphs With a Different Purpose",
+              "Chance and Probability"
+            ]
+          },
+          {
+            "id": "simple-equations",
+            "name": "Simple Equations",
+            "topics": [
+              "Setting up of an Equation",
+              "Review of What We Know",
+              "What Is the Equation?",
+              "More Equations",
+              "From Solution to Equation",
+              "Application of Simple Equations to Practical Situations"
+            ]
+          },
+          {
+            "id": "lines-and-angles",
+            "name": "Lines and Angles",
+            "topics": [
+              "Related Angles",
+              "Pair of Lines",
+              "Checking For Parallel Lines"
+            ]
+          },
+          {
+            "id": "the-triangle-and-its-properties",
+            "name": "The Triangle and Its Properties",
+            "topics": [
+              "Means of a Triangle",
+              "Altitudes of a Triangle",
+              "Exterior Angle of a Triangle and Its Property",
+              "Angle Sum Property of a Triangle",
+              "Two Special Triangles: Equilateral and Isosceles",
+              "The Sum of The Length of Two Sides of a Triangle",
+              "Right-Angled Triangles and Pythagoras Property"
+            ]
+          },
+          {
+            "id": "congruence-of-triangles",
+            "name": "Congruence of Triangles",
+            "topics": [
+              "Congruence of Plane Figures",
+              "Congruence Among Line Segments",
+              "Congruence of Angles",
+              "Congruence of Triangles",
+              "Criteria For Congruence of Triangles"
+            ]
+          },
+          {
+            "id": "comparing-quantities",
+            "name": "Comparing Quantities",
+            "topics": [
+              "Equivalent Ratios",
+              "Percentage - Another Way of Comparing Quantities",
+              "Use of Percentages",
+              "Prices Related to an Item or Buying and Selling",
+              "Charge Given on Borrowed Money or Simple Interest"
+            ]
+          },
+          {
+            "id": "rational-numbers",
+            "name": "Rational Numbers",
+            "topics": [
+              "Need For Rational Numbers",
+              "What are Rational Numbers?",
+              "Positive and Negative Rational Numbers",
+              "Rational Numbers on a Number Line",
+              "Rational Numbers in Standard Form",
+              "Comparison of Rational Numbers",
+              "Rational Numbers Between Two Rational Numbers",
+              "Operations on Rational Numbers"
+            ]
+          },
+          {
+            "id": "practical-geometry",
+            "name": "Practical Geometry",
+            "topics": [
+              "Construction of a Line Parallel to a Given Line, Through a Point Not on The Line",
+              "Construction of Triangles",
+              "Constructing a Triangle When Lengths of Its Three Sides are Known (SSS Criterion)",
+              "Constructing a Triangle When The Lengths of Two Sides and The Measure of The Angle Between Them are Known (SAS Criterion)",
+              "Constructing a Triangle When The Measure of Two of Its Angles and The Length of The Side Included Between Them Is given (ASA Criterion)",
+              "Constricting a Right-Angle Triangle When The Length of One Leg and Its Hypotenuse are Given (RHS Criterion)"
+            ]
+          },
+          {
+            "id": "perimeter-and-area",
+            "name": "Perimeter and Area",
+            "topics": [
+              "Squares and Rectangles",
+              "Area of Parallelogram",
+              "Area of Triangles",
+              "Circles",
+              "Conversion of Units",
+              "Applications"
+            ]
+          },
+          {
+            "id": "algebraic-expressions",
+            "name": "Algebraic Expressions",
+            "topics": [
+              "How are Expressions Formed?",
+              "Terms of an Expression",
+              "Like and Unlike Terms",
+              "Monomials, Binomials, Trinomials, and Polynomials",
+              "Addition and Subtraction of Algebraic Expressions",
+              "Finding The Value of an Expression",
+              "Using Algebraic Expressions - Formulas and Rules"
+            ]
+          },
+          {
+            "id": "exponents-and-powers",
+            "name": "Exponents and Powers",
+            "topics": [
+              "Exponents",
+              "Laws of Exponents",
+              "Miscellaneous Examples Using The Laws of Exponents",
+              "Decimal Number System",
+              "Expressing Large Numbers in The Standard Form"
+            ]
+          },
+          {
+            "id": "symmetry",
+            "name": "Symmetry",
+            "topics": [
+              "Lines of Symmetry For Regular Polygons",
+              "Rotational Symmetry",
+              "Line Symmetry and Rotational Symmetry"
+            ]
+          },
+          {
+            "id": "visualising-solid-shapes",
+            "name": "Visualising Solid Shapes",
+            "topics": [
+              "Introduction: Plane Figures and Solid Shapes",
+              "Faces, Edges, and Vertices",
+              "Nets For Building 3-D Shapes",
+              "Drawing Solids on a Flat Surface",
+              "Viewing Different Sections of a Solid"
+            ]
+          }
+        ]
+      },
+      "science": {
+  "chapters": [
+    {
+      "id": "the-ever-evolving-world-of-science",
+      "name": "The Ever-Evolving World of Science",
+      "topics": [
+        "Happy Exploring"
+      ]
+    },
+    {
+      "id": "exploring-substances-acidic-basic-neutral",
+      "name": "Exploring Substances: Acidic, Basic, Neutral",
+      "topics": [
+        "Nature - Our Science Laboratory",
+        "Litmus as an indicator",
+        "Red rose as an indicator",
+        "Turmeric as an indicator",
+        "What Happens When Acidic Substances Mix with Basic Substances?",
+        "Neutralisation in Daily Life"
+      ]
+    },
+    {
+      "id": "electricity-circuits-and-their-components",
+      "name": "Electricity: Circuits and Their Components",
+      "topics": [
+        "A Torchlight",
+        "A Simple Electrical Circuit",
+        "Electric Cell",
+        "Battery",
+        "Electric Lamp",
+        "Making an electric lamp glow using an electric cell or battery",
+        "An electrical circuit",
+        "Electric switch",
+        "Circuit Diagrams",
+        "Electrical Conductors and Insulators"
+      ]
+    },
+    {
+      "id": "the-world-of-metals-and-non-metals",
+      "name": "The World of Metals and Non-metals",
+      "topics": [
+        "Properties of Materials",
+        "Malleability",
+        "Ductility",
+        "Sonority",
+        "Conduction of heat",
+        "Conduction of electricity",
+        "Effect of Air and Water on Metals: Iron",
+        "Effect of Air and Water on Other Metals",
+        "Substances that Behave Differently from Metals in Air and Water",
+        "Are Non-Metals Essential in Everyday Life?"
+      ]
+    },
+    {
+      "id": "changes-around-us-physical-and-chemical",
+      "name": "Changes Around Us: Physical and Chemical",
+      "topics": [
+        "A Substance May Change in Appearance but Remain the Same!",
+        "A Substance May Change in Appearance but Not Remain the Same!",
+        "Some Other Processes Involving Chemical Changes",
+        "Rusting",
+        "Combustion",
+        "Can Physical and Chemical Changes Occur in the Same Process?",
+        "Are Changes Permanent?",
+        "Are All Changes Desirable?",
+        "Some Slow Natural Changes",
+        "Weathering of rocks",
+        "Erosion"
+      ]
+    },
+    {
+      "id": "adolescence-a-stage-of-growth-and-change",
+      "name": "Adolescence: A Stage of Growth and Change",
+      "topics": [
+        "Growing With Age: The Teenage Years",
+        "Changes that Indicate Reproductive Capability",
+        "Emotional and Behavioural Changes in Adolescents",
+        "Making Adolescence a Joyful Experience",
+        "Meeting nutritional needs",
+        "Personal hygiene",
+        "Physical Activities",
+        "Balanced Social Life",
+        "Avoiding harmful substances - learn to say No",
+        "The ‘WHY’ Question for Adolescence"
+      ]
+    },
+    {
+      "id": "heat-transfer-in-nature",
+      "name": "Heat Transfer in Nature",
+      "topics": [
+        "Conduction of Heat",
+        "Convection",
+        "Land and Sea Breeze",
+        "Radiation",
+        "Water Cycle",
+        "Seepage of water beneath the Earth"
+      ]
+    },
+    {
+      "id": "measurement-of-time-and-motion",
+      "name": "Measurement of Time and Motion",
+      "topics": [
+        "Measurement of Time",
+        "A simple pendulum",
+        "SI Unit of time",
+        "Slow or Fast",
+        "Speed",
+        "Relationship between speed, distance, and time",
+        "Uniform and Non-uniform Linear Motion"
+      ]
+    },
+    {
+      "id": "life-processes-in-animals",
+      "name": "Life Processes in Animals",
+      "topics": [
+        "Nutrition in Animals",
+        "Digestion in human beings",
+        "Do all animals digest food the same way as humans do?",
+        "Respiration in Animals",
+        "Respiration in humans",
+        "Do other animals breathe the same way as humans do?"
+      ]
+    },
+    {
+      "id": "life-processes-in-plants",
+      "name": "Life Processes in Plants",
+      "topics": [
+        "How Do Plants Grow?",
+        "How do Plants Get Food for Their Growth?",
+        "Leaves: the ‘food factories’ of plants",
+        "Role of air in the preparation of food",
+        "Photosynthesis: In a nutshell",
+        "How do leaves exchange gases during photosynthesis?",
+        "Transport in Plants",
+        "Transport of water and minerals",
+        "Transport of food",
+        "Do Plants Respire?"
+      ]
+    },
+    {
+      "id": "light-shadows-and-reflections",
+      "name": "Light: Shadows and Reflections",
+      "topics": [
+        "Sources of Light",
+        "Does Light Travel in a Straight Line?",
+        "Light through Transparent, Translucent, and Opaque Materials",
+        "Shadow Formation",
+        "Reflection of Light",
+        "Images Formed in a Plane Mirror",
+        "Pinhole Camera",
+        "Making Some Useful Items",
+        "Periscope",
+        "Kaleidoscope"
+      ]
+    },
+    {
+      "id": "earth-moon-and-the-sun",
+      "name": "Earth, Moon, and the Sun",
+      "topics": [
+        "Rotation of the Earth",
+        "Revolution of the Earth",
+        "Changing view of the night sky from the Earth",
+        "Seasons on the Earth",
+        "Eclipses",
+        "Solar Eclipse",
+        "Lunar Eclipse"
+      ]
+    }
+  ]
+      }
+    }
+  },
+  {
+    "class": 8,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "part-1-chapter-1-a-square-and-a-cube",
+            "name": "Part 1 Chapter 1: A Square and A Cube",
+            "topics": [
+              "Square numbers",
+              "cube numbers",
+              "patterns",
+              "visualisation"
+            ]
+          },
+          {
+            "id": "part-1-chapter-2-power-play",
+            "name": "Part 1 Chapter 2: Power Play",
+            "topics": [
+              "Exponents",
+              "powers",
+              "large numbers",
+              "compact notation"
+            ]
+          },
+          {
+            "id": "part-1-chapter-3-a-story-of-numbers",
+            "name": "Part 1 Chapter 3: A Story of Numbers",
+            "topics": [
+              "Number representation",
+              "history of numbers",
+              "place value"
+            ]
+          },
+          {
+            "id": "part-1-chapter-4-quadrilaterals",
+            "name": "Part 1 Chapter 4: Quadrilaterals",
+            "topics": [
+              "Four-sided figures",
+              "properties",
+              "classification"
+            ]
+          },
+          {
+            "id": "part-1-chapter-5-number-play",
+            "name": "Part 1 Chapter 5: Number Play",
+            "topics": [
+              "Number properties",
+              "patterns",
+              "reasoning"
+            ]
+          },
+          {
+            "id": "part-1-chapter-6-we-distribute-yet-things-multiply",
+            "name": "Part 1 Chapter 6: We Distribute, Yet Things Multiply",
+            "topics": [
+              "Algebra",
+              "distributive law",
+              "expressions"
+            ]
+          },
+          {
+            "id": "part-1-chapter-7-proportional-reasoning-1",
+            "name": "Part 1 Chapter 7: Proportional Reasoning-1",
+            "topics": [
+              "Ratio",
+              "comparison",
+              "proportional thinking"
+            ]
+          },
+          {
+            "id": "part-2-chapter-1-fractions-in-disguise",
+            "name": "Part 2 Chapter 1: Fractions in Disguise",
+            "topics": [
+              "Percentages",
+              "applications of percentages"
+            ]
+          },
+          {
+            "id": "part-2-chapter-2-the-baudhayana-pythagoras-theorem",
+            "name": "Part 2 Chapter 2: The Baudhayana-Pythagoras Theorem",
+            "topics": [
+              "Right triangles",
+              "side-length relation",
+              "proof-based thinking"
+            ]
+          },
+          {
+            "id": "part-2-chapter-3-proportional-reasoning-2",
+            "name": "Part 2 Chapter 3: Proportional Reasoning-2",
+            "topics": [
+              "Pie charts",
+              "inverse proportion"
+            ]
+          },
+          {
+            "id": "part-2-chapter-4-exploring-some-geometrical-themes",
+            "name": "Part 2 Chapter 4: Exploring Some Geometrical Themes",
+            "topics": [
+              "3D geometry",
+              "visualisation",
+              "fractals"
+            ]
+          },
+          {
+            "id": "part-2-chapter-5-tales-by-dots-and-lines",
+            "name": "Part 2 Chapter 5: Tales by Dots and Lines",
+            "topics": [
+              "Arithmetic mean",
+              "line graphs",
+              "data interpretation"
+            ]
+          },
+          {
+            "id": "part-2-chapter-6-algebra-play",
+            "name": "Part 2 Chapter 6: Algebra Play",
+            "topics": [
+              "Algebraic modelling",
+              "expressions",
+              "scenarios"
+            ]
+          },
+          {
+            "id": "part-2-chapter-7-area",
+            "name": "Part 2 Chapter 7: Area",
+            "topics": [
+              "Area of triangles",
+              "area of quadrilaterals"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "exploring-the-investigative-world-of-science",
+            "name": "Exploring the Investigative World of Science",
+            "topics": [
+              "Exploring the Investigative World of Science"
+            ]
+          },
+          {
+            "id": "the-invisible-living-world-beyond-ournaked-eye",
+            "name": "The Invisible living world: Beyond ournaked Eye",
+            "topics": [
+              "What is a Cell?",
+              "What Are the Levels of Organisation in the Body of a Living Organism?",
+              "What Are Microorganisms?",
+              "How Are We Connected to Microbes?",
+              "Why Is Cell Considered to Be a Basic Unit of Life?"
+            ]
+          },
+          {
+            "id": "health-the-ultimate-treasure",
+            "name": "Health: The ultimate treasure",
+            "topics": [
+              "Health: Is It More Than Not Falling Sick?",
+              "How Can We Stay Healthy?",
+              "How Do We Know That We Are Unwell?",
+              "Diseases: What Are the Causes and Types?",
+              "How to Prevent and Control Diseases?"
+            ]
+          },
+          {
+            "id": "electricity-magnetic-and-heating-effect",
+            "name": "Electricity: Magnetic and Heating Effect",
+            "topics": [
+              "Does an Electric Current Have a Magnetic Effect?",
+              "Does a Current Carrying Wire Get Hot?",
+              "How Does a Battery Generate Electricity?"
+            ]
+          },
+          {
+            "id": "exploring-forces",
+            "name": "Exploring Forces",
+            "topics": [
+              "What Is a Force?",
+              "What Can a Force Do to the Bodies on Which It Is Applied?",
+              "Are Forces an Interaction Between Two or More Objects?",
+              "What Are the Different Types of Forces?",
+              "Weight and Its Measurement",
+              "Floating and Sinking"
+            ]
+          },
+          {
+            "id": "pressure-winds-storms-and-cyclones",
+            "name": "Pressure, Winds, Storms, and Cyclones",
+            "topics": [
+              "Pressure",
+              "Pressure Exerted by Air",
+              "Formation of wind",
+              "High-Speed Winds Result in Lowering of Air Pressure",
+              "Storms, Thunderstorms, and Lightning",
+              "Cyclones"
+            ]
+          },
+          {
+            "id": "particulate-nature-of-matter",
+            "name": "Particulate Nature of Matter",
+            "topics": [
+              "What Is Matter Composed of?",
+              "What Decides Different States of Matter?",
+              "How Does the Interparticle Spacing Differ in the Three States of Matter?",
+              "How Particles Move in Different States of Matter?"
+            ]
+          },
+          {
+            "id": "nature-of-matter-elements-compounds-andmixtures",
+            "name": "Nature of Matter: Elements, Compounds andMixtures",
+            "topics": [
+              "What Are Mixtures?",
+              "What Are Pure Substances?",
+              "What Are the Types of Pure Substances?",
+              "How Do We Use Elements, Compounds, and Mixtures?",
+              "What Are Minerals?"
+            ]
+          },
+          {
+            "id": "the-amazing-world-of-solutes-solventsand-solutions",
+            "name": "The Amazing world of Solutes, Solventsand Solutions",
+            "topics": [
+              "What Are Solute, Solvent, and Solution?",
+              "How Much Solute Can a Fixed Amount of Solvent Dissolve?",
+              "Solubility of Gases",
+              "Why Do Objects Float or Sink in Water?",
+              "What Is Density"
+            ]
+          },
+          {
+            "id": "light-mirrors-and-lenses",
+            "name": "Light: Mirrors and Lenses",
+            "topics": [
+              "What Are Spherical Mirrors?",
+              "What Are the Characteristics of Images Formed by Spherical Mirrors?",
+              "What Are the Laws of Reflection?",
+              "What Is a Lens?"
+            ]
+          },
+          {
+            "id": "keeping-time-with-the-skies",
+            "name": "Keeping Time with the Skies",
+            "topics": [
+              "How Does the Moon’s Appearance Change and Why?",
+              "How Did Calendars Come into Existence?",
+              "Are Festivals Related to Astronomical Phenomena?",
+              "Why Do We Launch Artificial Satellites in Space?"
+            ]
+          },
+          {
+            "id": "how-nature-work-in-harmony",
+            "name": "How nature work in Harmony",
+            "topics": [
+              "How Do We Experience and Interpret Our Surroundings?",
+              "Who All Live Together in Nature?",
+              "Does Every Organism in a Community Matter?",
+              "What Are the Different Types of Interactions Among Organisms and their",
+              "Who Eats Whom?",
+              "What Happens to Waste in Nature?",
+              "How Does One Change Lead to Another?",
+              "How Do Interactions Maintain Balance in Ecosystems?",
+              "What Are the Benefits of an Ecosystem?"
+            ]
+          },
+          {
+            "id": "our-home-earth-a-unique-life-sustainingplanet",
+            "name": "Our Home: Earth, a unique Life SustainingPlanet",
+            "topics": [
+              "Why Is Earth a Unique Planet?",
+              "What Do the Planets of Our Solar System Look Like?",
+              "What Makes the Earth Suitable for Life to Exist?",
+              "What Allows Life to Be Sustained on Earth?",
+              "What Keeps Life from Disappearing?",
+              "What Are the Threats to Life on Earth?"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "class": 9,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "orienting-yourself",
+            "name": "Orienting Yourself",
+            "topics": [
+              "Axes",
+              "origin",
+              "quadrants",
+              "ordered pairs",
+              "Plotting points",
+              "reading coordinates",
+              "Distance between two points on the Cartesian plane",
+              "Midpoint of a line segment",
+              "Graph paper",
+              "grids",
+              "geometric relationships"
+            ]
+          },
+          {
+            "id": "introduction-to-linear-polynomials",
+            "name": "Introduction to Linear Polynomials",
+            "topics": [
+              "Variables",
+              "constants",
+              "terms",
+              "Linear form",
+              "value of a polynomial",
+              "Writing rules from numerical",
+              "visual patterns",
+              "Graphical representation of linear relationships",
+              "Algebraic",
+              "graphical views of the same relation"
+            ]
+          },
+          {
+            "id": "the-world-of-numbers",
+            "name": "The World of Numbers",
+            "topics": [
+              "Fractions",
+              "decimals",
+              "number line placement",
+              "Non-terminating",
+              "non-repeating numbers",
+              "Rational numbers between two rational numbers",
+              "Irrationality proofs",
+              "Square root spiral",
+              "geometric construction"
+            ]
+          },
+          {
+            "id": "exploring-algebraic-identities",
+            "name": "Exploring Algebraic Identities",
+            "topics": [
+              "Standard algebraic identities",
+              "Expanding expressions using identities",
+              "Factorising expressions through identities",
+              "Geometric interpretation of identities",
+              "Reducing expressions using known forms"
+            ]
+          },
+          {
+            "id": "im-up-and-down-and-round-and-round",
+            "name": "I’m Up and Down, and Round and Round",
+            "topics": [
+              "Centre",
+              "radius",
+              "chord",
+              "arc",
+              "circumference",
+              "Relationships between equal chords",
+              "arcs",
+              "Angles formed by chords",
+              "Points",
+              "figures related to circles",
+              "Diagram-based proof",
+              "geometric argument"
+            ]
+          },
+          {
+            "id": "measuring-space-perimeter-and-area",
+            "name": "Measuring Space: Perimeter and Area",
+            "topics": [
+              "Boundary length of plane figures",
+              "Surface covered by plane figures",
+              "Circumference",
+              "area of circles",
+              "Visual",
+              "historical ways of deriving formulas",
+              "Measurement problems from real situations"
+            ]
+          },
+          {
+            "id": "the-mathematics-of-maybe",
+            "name": "The Mathematics of Maybe",
+            "topics": [
+              "Chance events",
+              "uncertain outcomes",
+              "Listing",
+              "organising possible results",
+              "Probability based on experiments",
+              "Probability based on equally likely outcomes",
+              "Outcome tables",
+              "tree diagrams"
+            ]
+          },
+          {
+            "id": "predicting-what-comes-next",
+            "name": "Predicting What Comes Next",
+            "topics": [
+              "Pattern recognition",
+              "term listing",
+              "Constant difference between consecutive terms",
+              "Constant ratio between consecutive terms",
+              "Rules based on previous terms",
+              "Fractals",
+              "model-based sequence thinking"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "matter-in-our-surroundings",
+            "name": "Matter in Our Surroundings",
+            "topics": [
+              "Definition of matter",
+              "Particulate Nature of Matter",
+              "States of Matter: solid, liquid and gas and their characteristics",
+              "change of state- melting (absorption of heat)",
+              "freezing",
+              "evaporation (cooling by evaporation)",
+              "condensation",
+              "sublimation"
+            ]
+          },
+          {
+            "id": "is-matter-around-us-pure",
+            "name": "Is Matter Around Us Pure",
+            "topics": [
+              "Elements, compounds and mixtures",
+              "Heterogeneous and homogenous mixtures, colloids and suspensions",
+              "Physical and chemical changes",
+              "Pure and Impure substances"
+            ]
+          },
+          {
+            "id": "atoms-and-molecules",
+            "name": "Atoms and Molecules",
+            "topics": [
+              "Atoms and molecules",
+              "Law of Chemical Combination",
+              "Chemical formula of common compounds",
+              "Atomic and molecular masses"
+            ]
+          },
+          {
+            "id": "structure-of-the-atom",
+            "name": "Structure of the Atom",
+            "topics": [
+              "Sub-atomic particles: Electrons, protons and neutrons",
+              "Models of atom",
+              "Valency",
+              "Atomic Number and Mass Number",
+              "Isotopes and Isobars"
+            ]
+          },
+          {
+            "id": "cell-basic-unit-of-life",
+            "name": "Cell - Basic Unit of life",
+            "topics": [
+              "Cell as a basic unit of life",
+              "prokaryotic and eukaryotic cells",
+              "multicellular organisms",
+              "cell membrane and cell wall",
+              "cell organelles and cell inclusions",
+              "chloroplast, mitochondria, vacuoles, endoplasmic reticulum, Golgi apparatus",
+              "nucleus",
+              "chromosomes - basic structure, number"
+            ]
+          },
+          {
+            "id": "tissues-organs-organ-system-organism",
+            "name": "Tissues, Organs, Organ System, Organism",
+            "topics": [
+              "Structure and functions of animal and plant tissues",
+              "only four types of tissues in animals",
+              "Meristematic and Permanent tissues in plants"
+            ]
+          },
+          {
+            "id": "health-and-diseases",
+            "name": "Health and Diseases",
+            "topics": [
+              "Health and its failure",
+              "Infectious and Non-infectious diseases, their causes and manifestation",
+              "Diseases caused by microbes (Virus, Bacteria and Protozoans) and their prevention",
+              "Principles of treatment and prevention",
+              "Pulse Polio programmes"
+            ]
+          },
+          {
+            "id": "motion",
+            "name": "Motion",
+            "topics": [
+              "Distance and displacement",
+              "velocity",
+              "uniform and non-uniform motion along a straight line",
+              "acceleration",
+              "distance-time and velocity-time graphs for uniform motion and uniformly accelerated motion",
+              "elementary idea of uniform circular motion"
+            ]
+          },
+          {
+            "id": "force-and-newtons-laws",
+            "name": "Force and Newton’s laws",
+            "topics": [
+              "Force and Motion",
+              "Newton’s Laws of Motion",
+              "Action and Reaction forces",
+              "Inertia of a body",
+              "Inertia and mass",
+              "Momentum",
+              "Force and Acceleration",
+              "Elementary idea of conservation of Momentum"
+            ]
+          },
+          {
+            "id": "gravitation",
+            "name": "Gravitation",
+            "topics": [
+              "Gravitation",
+              "Universal Law of Gravitation",
+              "Force of Gravitation of the earth (gravity)",
+              "Acceleration due to Gravity",
+              "Mass and Weight",
+              "Free fall"
+            ]
+          },
+          {
+            "id": "floatation",
+            "name": "Floatation",
+            "topics": [
+              "Thrust and Pressure",
+              "Archimedes’ Principle",
+              "Buoyancy"
+            ]
+          },
+          {
+            "id": "work-energy-and-power",
+            "name": "Work, Energy and Power",
+            "topics": [
+              "Work done by a Force",
+              "Energy",
+              "power",
+              "Kinetic and Potential energy",
+              "Law of conservation of energy"
+            ]
+          },
+          {
+            "id": "sound",
+            "name": "Sound",
+            "topics": [
+              "Nature of sound and its propagation in various media",
+              "speed of sound",
+              "range of hearing in humans",
+              "ultrasound",
+              "reflection of sound",
+              "echo"
+            ]
+          },
+          {
+            "id": "food-production",
+            "name": "Food Production",
+            "topics": [
+              "Plant and animal breeding and selection for quality improvement and management",
+              "Use of fertilizers and manures",
+              "Protection from pests and diseases",
+              "Organic farming"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "class": 10,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "real-numbers",
+            "name": "Real Numbers",
+            "topics": [
+              "Euclid's division lemma",
+              "Fundamental Theorem of Arithmetic",
+              "Proofs of irrationality of √2, √3, √5",
+              "Decimal representation of rational numbers"
+            ]
+          },
+          {
+            "id": "polynomials",
+            "name": "Polynomials",
+            "topics": [
+              "Zeros of a polynomial",
+              "Relationship between zeros and coefficients of quadratic polynomials",
+              "Division algorithm for polynomials with real coefficients"
+            ]
+          },
+          {
+            "id": "pair-of-linear-equations-in-two-variables",
+            "name": "Pair of Linear Equations in Two Variables",
+            "topics": [
+              "Graphical method of their solution and consistency/inconsistency",
+              "Algebraic conditions for number of solutions",
+              "Substitution method",
+              "Elimination method",
+              "Cross-multiplication method",
+              "Simple situational problems"
+            ]
+          },
+          {
+            "id": "quadratic-equations",
+            "name": "Quadratic Equations",
+            "topics": [
+              "Standard form of a quadratic equation ax² + bx + c = 0",
+              "Solutions of quadratic equations (only real roots) by factorization and by quadratic formula",
+              "Relationship between discriminant and nature of roots",
+              "Situational problems based on quadratic equations"
+            ]
+          },
+          {
+            "id": "arithmetic-progressions",
+            "name": "Arithmetic Progressions",
+            "topics": [
+              "Motivation for studying Arithmetic Progression",
+              "Derivation of the nth term",
+              "Sum of first n terms of A.P.",
+              "Applications in solving daily life problems"
+            ]
+          },
+          {
+            "id": "coordinate-geometry",
+            "name": "Coordinate Geometry",
+            "topics": [
+              "Graphs of linear equations",
+              "Distance formula",
+              "Section formula (internal division)",
+              "Area of a triangle"
+            ]
+          },
+          {
+            "id": "triangles",
+            "name": "Triangles",
+            "topics": [
+              "Definitions, examples, counter examples of similar triangles",
+              "Proof: If a line is drawn parallel to one side of a triangle to intersect the other two sides in distinct points, the other two sides are divided in the same ratio",
+              "Proof: If a line divides any two sides of a triangle in the same ratio, the line is parallel to the third side",
+              "Proof: If in two triangles, corresponding angles are equal, their corresponding sides are proportional and the triangles are similar",
+              "Proof: If the corresponding sides of two triangles are proportional, their corresponding angles are equal and the two triangles are similar",
+              "Proof: If one angle of a triangle is equal to one angle of another triangle and the sides including these angles are proportional, the two triangles are similar",
+              "Proof: If a perpendicular is drawn from the vertex of the right angle of a right triangle to the hypotenuse, the triangles on each side of the perpendicular are similar to the whole triangle and to each other",
+              "Proof: The ratio of the areas of two similar triangles is equal to the ratio of the squares of their corresponding sides",
+              "Proof: In a right triangle, the square on the hypotenuse is equal to the sum of the squares on the other two sides",
+              "Proof: In a triangle, if the square on one side is equal to sum of the squares on the other two sides, the angles opposite to the first side is a right angle"
+            ]
+          },
+          {
+            "id": "circles",
+            "name": "Circles",
+            "topics": [
+              "Tangent to a circle at point of contact",
+              "Proof: The tangent at any point of a circle is perpendicular to the radius through the point of contact",
+              "Proof: The lengths of tangents drawn from an external point to a circle are equal"
+            ]
+          },
+          {
+            "id": "constructions",
+            "name": "Constructions",
+            "topics": [
+              "Division of a line segment in a given ratio (internally)",
+              "Tangents to a circle from a point outside it",
+              "Construction of a triangle similar to a given triangle"
+            ]
+          },
+          {
+            "id": "introduction-to-trigonometry",
+            "name": "Introduction to Trigonometry",
+            "topics": [
+              "Trigonometric ratios of an acute angle of a right-angled triangle",
+              "Values of the trigonometric ratios of 30°, 45° and 60°",
+              "Relationships between the ratios"
+            ]
+          },
+          {
+            "id": "trigonometric-identities",
+            "name": "Trigonometric Identities",
+            "topics": [
+              "Proof and applications of the identity sin²A + cos²A = 1",
+              "Trigonometric ratios of complementary angles"
+            ]
+          },
+          {
+            "id": "heights-and-distances",
+            "name": "Heights and Distances",
+            "topics": [
+              "Angle of elevation",
+              "Angle of depression",
+              "Simple problems on heights and distances (not more than two right triangles, angles should be 30°, 45°, 60°)"
+            ]
+          },
+          {
+            "id": "areas-related-to-circles",
+            "name": "Areas Related to Circles",
+            "topics": [
+              "Motivate the area of a circle",
+              "Area of sectors and segments of a circle",
+              "Problems based on areas and perimeter / circumference of plane figures"
+            ]
+          },
+          {
+            "id": "surface-areas-and-volumes",
+            "name": "Surface Areas and Volumes",
+            "topics": [
+              "Surface areas and volumes of combinations of cubes, cuboids, spheres, hemispheres and right circular cylinders/cones",
+              "Frustum of a cone",
+              "Problems involving converting one type of metallic solid into another"
+            ]
+          },
+          {
+            "id": "statistics",
+            "name": "Statistics",
+            "topics": [
+              "Mean, median and mode of grouped data (bimodal situation to be avoided)",
+              "Cumulative frequency graph"
+            ]
+          },
+          {
+            "id": "probability",
+            "name": "Probability",
+            "topics": [
+              "Classical definition of probability",
+              "Simple problems on finding the probability of an event"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "chemical-reactions-and-equations",
+            "name": "Chemical Reactions and Equations",
+            "topics": [
+              "Chemical reactions",
+              "Chemical equation",
+              "Balanced chemical equation",
+              "types of chemical reactions: combination, decomposition, displacement, double displacement, precipitation, endothermic exothermic reactions, oxidation and reduction"
+            ]
+          },
+          {
+            "id": "acids-bases-and-salts",
+            "name": "Acids, Bases and Salts",
+            "topics": [
+              "Acids and Bases – definitions in terms of furnishing of H+ and OH– ions",
+              "identification using indicators",
+              "chemical properties, examples and uses",
+              "neutralization",
+              "concept of pH scale",
+              "importance of pH in everyday life",
+              "preparation and uses of Sodium Hydroxide, Bleaching powder, Baking soda, Washing soda and Plaster of Paris"
+            ]
+          },
+          {
+            "id": "metals-and-non-metals",
+            "name": "Metals and Non-metals",
+            "topics": [
+              "Properties of metals and non-metals",
+              "Reactivity series",
+              "Formation and properties of ionic compounds",
+              "Basic metallurgical processes",
+              "Corrosion and its prevention"
+            ]
+          },
+          {
+            "id": "carbon-and-its-compounds",
+            "name": "Carbon and its Compounds",
+            "topics": [
+              "Covalent bonds – formation and properties of covalent compounds",
+              "Versatile nature of carbon",
+              "Hydrocarbons – saturated and unsaturated Homologous series",
+              "Nomenclature of alkanes, alkenes, alkyne and carbon compounds containing functional groups (halogens, alcohol, ketones, aldehydes)",
+              "Chemical properties of carbon compounds (combustion, oxidation, addition and substitution reaction)",
+              "Ethanol and Ethanoic acid (only properties and uses)",
+              "soaps and detergents"
+            ]
+          },
+          {
+            "id": "life-processes",
+            "name": "Life processes",
+            "topics": [
+              "Living Being",
+              "Basic concept of nutrition, respiration, transport and excretion in plants and animals"
+            ]
+          },
+          {
+            "id": "control-and-co-ordination",
+            "name": "Control and co-ordination in animals and plants",
+            "topics": [
+              "Tropic movements in plants",
+              "Introduction of plant hormones",
+              "Control and co-ordination in animals: Nervous system",
+              "Voluntary, involuntary and reflex action",
+              "Chemical co-ordination: animal hormones"
+            ]
+          },
+          {
+            "id": "reproduction",
+            "name": "Reproduction",
+            "topics": [
+              "Reproduction in animals and plants (asexual and sexual)",
+              "reproductive health - need and methods of family planning",
+              "Safe sex vs HIV/AIDS",
+              "Child bearing and women’s health"
+            ]
+          },
+          {
+            "id": "heredity-and-evolution",
+            "name": "Heredity and Evolution",
+            "topics": [
+              "Heredity",
+              "Mendel’s contribution- Laws for inheritance of traits",
+              "Sex determination: brief introduction"
+            ]
+          },
+          {
+            "id": "reflection-of-light",
+            "name": "Reflection of Light by Curved Surfaces",
+            "topics": [
+              "Reflection of light by curved surfaces",
+              "Images formed by spherical mirrors",
+              "centre of curvature",
+              "principal axis",
+              "principal focus",
+              "focal length",
+              "mirror formula (Derivation not required)",
+              "magnification"
+            ]
+          },
+          {
+            "id": "refraction",
+            "name": "Refraction",
+            "topics": [
+              "Refraction",
+              "Laws of refraction",
+              "refractive index"
+            ]
+          },
+          {
+            "id": "refraction-by-spherical-lens",
+            "name": "Refraction of Light by Spherical Lens",
+            "topics": [
+              "Refraction of light by spherical lens",
+              "Image formed by spherical lenses",
+              "Lens formula (Derivation not required)",
+              "Magnification",
+              "Power of a lens"
+            ]
+          },
+          {
+            "id": "human-eye",
+            "name": "Functioning of a Lens in Human Eye",
+            "topics": [
+              "Functioning of a lens in human eye",
+              "defects of vision and their corrections",
+              "applications of spherical mirrors and lenses"
+            ]
+          },
+          {
+            "id": "light-prism",
+            "name": "Refraction of Light through a Prism",
+            "topics": [
+              "Refraction of light through a prism",
+              "dispersion of light",
+              "scattering of light",
+              "applications in daily life"
+            ]
+          },
+          {
+            "id": "electricity",
+            "name": "Electricity",
+            "topics": [
+              "Electric current",
+              "potential difference and electric current",
+              "Ohm’s law",
+              "Resistance",
+              "Resistivity",
+              "Factors on which the resistance of a conductor depends",
+              "Series combination of resistors",
+              "parallel combination of resistors and its applications in daily life",
+              "Heating effect of electric current and its applications in daily life",
+              "Electric power",
+              "Interrelation between P, V, I and R"
+            ]
+          },
+          {
+            "id": "magnetic-effects",
+            "name": "Magnetic Effects of Current",
+            "topics": [
+              "Magnetic field",
+              "field lines",
+              "field due to a current carrying conductor",
+              "field due to current carrying coil or solenoid",
+              "Force on current carrying conductor",
+              "Fleming’s Left Hand Rule",
+              "Direct current",
+              "Alternating current: frequency of AC",
+              "Advantage of AC over DC",
+              "Domestic electric circuits"
+            ]
+          },
+          {
+            "id": "our-environment",
+            "name": "Our Environment",
+            "topics": [
+              "Our environment",
+              "Eco-system",
+              "Environmental problems",
+              "Ozone depletion",
+              "waste production and their solutions",
+              "Biodegradable and non-biodegradable substances"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "class": 11,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "sets",
+            "name": "Sets",
+            "topics": [
+              "Sets and their representations",
+              "Empty set",
+              "Finite and Infinite sets",
+              "Equal sets",
+              "Subsets",
+              "Subsets of a set of real numbers",
+              "Intervals (with notations)",
+              "Universal set",
+              "Venn diagrams",
+              "Union and Intersection of sets",
+              "Difference of sets",
+              "Complement of a set",
+              "Properties of complement"
+            ]
+          },
+          {
+            "id": "relations-functions",
+            "name": "Relations & Functions",
+            "topics": [
+              "Ordered pairs",
+              "Cartesian product of sets",
+              "Number of elements in the Cartesian product of two finite sets",
+              "Cartesian product of the set of reals with itself (up to R x R x R)",
+              "Definition of relation, pictorial diagrams, domain, co-domain and range of a relation",
+              "Function as a special type of relation",
+              "Pictorial representation of a function, domain, co-domain and range of a function",
+              "Real valued functions, domain and range",
+              "Constant, identity, polynomial, rational, modulus, signum, exponential, logarithmic and greatest integer functions (with their graphs)",
+              "Sum, difference, product and quotients of functions"
+            ]
+          },
+          {
+            "id": "trigonometric-functions",
+            "name": "Trigonometric Functions",
+            "topics": [
+              "Positive and negative angles",
+              "Measuring angles in radians and in degrees",
+              "Conversion from one measure to another",
+              "Definition of trigonometric functions with the help of unit circle",
+              "Truth of the identity sin²x + cos²x = 1",
+              "Signs of trigonometric functions",
+              "Domain and range of trigonometric functions and their graphs",
+              "Expressing sin(x±y) and cos(x±y) in terms of sinx, siny, cosx & cosy",
+              "Simple applications of trigonometric functions"
+            ]
+          },
+          {
+            "id": "complex-numbers-and-quadratic-equations",
+            "name": "Complex Numbers and Quadratic Equations",
+            "topics": [
+              "Need for complex numbers",
+              "Algebraic properties of complex numbers",
+              "Argand plane"
+            ]
+          },
+          {
+            "id": "linear-inequalities",
+            "name": "Linear Inequalities",
+            "topics": [
+              "Linear inequalities",
+              "Algebraic solutions of linear inequalities in one variable and representation on number line",
+              "Graphical solution of linear inequalities in two variables",
+              "Graphical method of finding solution of system of linear inequalities in two variables"
+            ]
+          },
+          {
+            "id": "permutations-and-combinations",
+            "name": "Permutations and Combinations",
+            "topics": [
+              "Fundamental principle of counting",
+              "Factorial n (n!)",
+              "Permutations and combinations",
+              "Derivation of formula for nPr and nCr",
+              "Simple applications"
+            ]
+          },
+          {
+            "id": "sequence-and-series",
+            "name": "Sequence and Series",
+            "topics": [
+              "Sequence and Series",
+              "Arithmetic Mean (A.M.)",
+              "Geometric Progression (G.P.)",
+              "General term of a G.P.",
+              "Sum of n terms of a G.P.",
+              "Infinite G.P. and its sum",
+              "Geometric mean (G.M.)",
+              "Relation between A.M. and G.M."
+            ]
+          },
+          {
+            "id": "straight-lines",
+            "name": "Straight Lines",
+            "topics": [
+              "Brief recall of two dimensional geometry",
+              "Slope of a line and angle between two lines",
+              "Various forms of equations of a line (parallel to axis, point-slope, slope-intercept, two-point, intercept form)",
+              "Distance of a point from a line"
+            ]
+          },
+          {
+            "id": "conic-sections",
+            "name": "Conic Sections",
+            "topics": [
+              "Sections of a cone (circles, ellipse, parabola, hyperbola)",
+              "Standard equations and simple properties of parabola, ellipse and hyperbola",
+              "Standard equation of a circle"
+            ]
+          },
+          {
+            "id": "introduction-to-three-dimensional-geometry",
+            "name": "Introduction to Three-Dimensional Geometry",
+            "topics": [
+              "Coordinate axes and coordinate planes in three dimensions",
+              "Coordinates of a point",
+              "Distance between two points"
+            ]
+          },
+          {
+            "id": "limits-and-derivatives",
+            "name": "Limits and Derivatives",
+            "topics": [
+              "Derivative introduced as rate of change",
+              "Intuitive idea of limit",
+              "Limits of polynomials and rational functions",
+              "Trigonometric, exponential and logarithmic functions",
+              "Definition of derivative",
+              "Scope of tangent of the curve",
+              "Derivative of sum, difference, product and quotient of functions",
+              "Derivatives of polynomial and trigonometric functions"
+            ]
+          },
+          {
+            "id": "statistics",
+            "name": "Statistics",
+            "topics": [
+              "Measures of Dispersion: Range, Mean deviation, variance and standard deviation of ungrouped/grouped data"
+            ]
+          },
+          {
+            "id": "probability",
+            "name": "Probability",
+            "topics": [
+              "Events; occurrence of events, 'not', 'and' and 'or' events",
+              "Exhaustive events",
+              "Mutually exclusive events",
+              "Axiomatic (set theoretic) probability",
+              "Probability of an event",
+              "Probability of 'not', 'and' and 'or' events"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "biology-chapter-1-the-living-world",
+            "name": "Biology Chapter 1: The Living World",
+            "topics": [
+              "Biodiversity",
+              "Need for classification",
+              "three domains of life",
+              "taxonomy and systematics",
+              "concept of species and taxonomical hierarchy",
+              "binomial nomenclature"
+            ]
+          },
+          {
+            "id": "biology-chapter-2-biological-classification",
+            "name": "Biology Chapter 2: Biological Classification",
+            "topics": [
+              "Five kingdom classification",
+              "Salient features and classification of Monera",
+              "Protista and Fungi",
+              "into major groups",
+              "Lichens",
+              "Viruses and Viroids."
+            ]
+          },
+          {
+            "id": "biology-chapter-3-plant-kingdom",
+            "name": "Biology Chapter 3: Plant Kingdom",
+            "topics": [
+              "Classification of plants into major groups",
+              "Salient and distinguishing features and a few",
+              "examples of Algae",
+              "Bryophyta",
+              "Pteridophyta",
+              "Gymnospermae and Angiosperms."
+            ]
+          },
+          {
+            "id": "biology-chapter-4-animal-kingdom",
+            "name": "Biology Chapter 4: Animal Kingdom",
+            "topics": [
+              "Salient features and classification of animals",
+              "non-chordates up to phyla level and chordates",
+              "upto class level (salient features and at a few examples of each category).",
+              "(No live animals or specimen should be displayed.)"
+            ]
+          },
+          {
+            "id": "biology-chapter-5-morphology-of-flowering-plants",
+            "name": "Biology Chapter 5: Morphology of Flowering Plants",
+            "topics": [
+              "Morphology of different parts of flowering plants: root",
+              "stem",
+              "leaf",
+              "inflorescence",
+              "flower",
+              "fruit and seed. Description of family Solanaceae"
+            ]
+          },
+          {
+            "id": "biology-chapter-6-anatomy-of-flowering-plants",
+            "name": "Biology Chapter 6: Anatomy of Flowering Plants",
+            "topics": [
+              "Anatomy and functions of tissue systems in dicots and monocots."
+            ]
+          },
+          {
+            "id": "biology-chapter-7-structural-organisation-in-animals",
+            "name": "Biology Chapter 7: Structural Organisation in Animals",
+            "topics": [
+              "Morphology",
+              "Anatomy and functions of different systems (digestive",
+              "circulatory",
+              "respiratory",
+              "nervous and reproductive) of frog."
+            ]
+          },
+          {
+            "id": "biology-chapter-8-cell-the-unit-of-life",
+            "name": "Biology Chapter 8: Cell-The Unit of Life",
+            "topics": [
+              "Cell theory and cell as the basic unit of life",
+              "structure of prokaryotic and eukaryotic cells",
+              "Plant cell and animal cell",
+              "cell envelope",
+              "cell membrane",
+              "cell wall",
+              "cell organelles - structure",
+              "and function",
+              "endomembrane system",
+              "endoplasmic reticulum",
+              "golgi bodies",
+              "lysosomes",
+              "vacuoles",
+              "mitochondria",
+              "ribosomes",
+              "plastids",
+              "microbodies",
+              "cytoskeleton",
+              "cilia",
+              "flagella",
+              "centrioles (ultrastructure and function)",
+              "nucleus."
+            ]
+          },
+          {
+            "id": "biology-chapter-9-biomolecules",
+            "name": "Biology Chapter 9: Biomolecules",
+            "topics": [
+              "Chemical constituents of living cells: biomolecules",
+              "structure and function of proteins",
+              "carbohydrates",
+              "lipids",
+              "and nucleic acids",
+              "Enzyme - types",
+              "properties",
+              "enzyme action. (Topics",
+              "excluded: Nature of Bond Linking Monomers in a Polymer",
+              "Dynamic State of Body",
+              "Constituents Concept of Metabolism",
+              "Metabolic Basis of Living",
+              "The Living State)"
+            ]
+          },
+          {
+            "id": "biology-chapter-10-cell-cycle-and-cell-division",
+            "name": "Biology Chapter 10: Cell Cycle and Cell Division",
+            "topics": [
+              "Cell cycle",
+              "mitosis",
+              "meiosis and their significance"
+            ]
+          },
+          {
+            "id": "biology-chapter-11-photosynthesis-in-higher-plants",
+            "name": "Biology Chapter 11: Photosynthesis in Higher Plants",
+            "topics": [
+              "Photosynthesis as a means of autotrophic nutrition",
+              "site of photosynthesis",
+              "pigments",
+              "involved in photosynthesis (elementary idea)",
+              "photochemical and biosynthetic phases of",
+              "photosynthesis",
+              "cyclic and non-cyclic photophosphorylation",
+              "chemiosmotic hypothesis",
+              "photorespiration",
+              "C3 and C4 pathways",
+              "factors affecting photosynthesis."
+            ]
+          },
+          {
+            "id": "biology-chapter-12-respiration-in-plants",
+            "name": "Biology Chapter 12: Respiration in Plants",
+            "topics": [
+              "Exchange of gases",
+              "cellular respiration - glycolysis",
+              "fermentation (anaerobic)",
+              "TCA cycle and",
+              "electron transport system (aerobic)",
+              "energy relations - number of ATP molecules generated",
+              "amphibolic pathways",
+              "respiratory quotient."
+            ]
+          },
+          {
+            "id": "biology-chapter-13-plant-growth-and-development",
+            "name": "Biology Chapter 13: Plant - Growth and Development",
+            "topics": [
+              "Seed germination",
+              "phases of plant growth and plant growth rate",
+              "conditions of growth",
+              "differentiation",
+              "dedifferentiation and redifferentiation",
+              "sequence of developmental processes",
+              "in a plant cell",
+              "plant growth regulators - auxin",
+              "gibberellin",
+              "cytokinin",
+              "ethylene",
+              "ABA."
+            ]
+          },
+          {
+            "id": "biology-chapter-14-breathing-and-exchange-of-gases",
+            "name": "Biology Chapter 14: Breathing and Exchange of Gases",
+            "topics": [
+              "Respiratory organs in animals (recall only)",
+              "Respiratory system in humans",
+              "mechanism of",
+              "breathing and its regulation in humans - exchange of gases",
+              "transport of gases and",
+              "regulation of respiration",
+              "respiratory volume",
+              "disorders related to respiration - asthma",
+              "emphysema",
+              "occupational respiratory disorders."
+            ]
+          },
+          {
+            "id": "biology-chapter-15-body-fluids-and-circulation",
+            "name": "Biology Chapter 15: Body Fluids and Circulation",
+            "topics": [
+              "Composition of blood",
+              "blood groups",
+              "coagulation of blood",
+              "composition of lymph and its",
+              "function",
+              "human circulatory system - Structure of human heart and blood vessels",
+              "cardiac",
+              "cycle",
+              "cardiac output",
+              "double circulation",
+              "regulation of cardiac activity",
+              "disorders of",
+              "circulatory system - hypertension",
+              "coronary artery disease",
+              "angina pectoris",
+              "heart failure."
+            ]
+          },
+          {
+            "id": "biology-chapter-16-excretory-products-and-their-elimination",
+            "name": "Biology Chapter 16: Excretory Products and their Elimination",
+            "topics": [
+              "Modes of excretion - ammonotelism",
+              "ureotelism",
+              "uricotelism",
+              "human excretory system –",
+              "structure and function",
+              "urine formation",
+              "osmoregulation",
+              "regulation of kidney function - renin",
+              "- angiotensin",
+              "atrial natriuretic factor",
+              "ADH and diabetes insipidus",
+              "role of other organs in",
+              "excretion",
+              "disorders - uremia",
+              "renal failure",
+              "renal calculi",
+              "nephritis",
+              "dialysis and artificial",
+              "kidney",
+              "kidney transplant."
+            ]
+          },
+          {
+            "id": "biology-chapter-17-locomotion-and-movement",
+            "name": "Biology Chapter 17: Locomotion and Movement",
+            "topics": [
+              "Types of movement - ciliary",
+              "flagellar",
+              "muscular",
+              "skeletal muscle",
+              "contractile proteins and",
+              "muscle contraction",
+              "skeletal system and its functions",
+              "joints",
+              "disorders of muscular and",
+              "skeletal systems - myasthenia gravis",
+              "tetany",
+              "muscular dystrophy",
+              "arthritis",
+              "osteoporosis",
+              "gout."
+            ]
+          },
+          {
+            "id": "biology-chapter-18-neural-control-and-coordination",
+            "name": "Biology Chapter 18: Neural Control and Coordination",
+            "topics": [
+              "Neuron and nerves",
+              "Nervous system in humans - central nervous system",
+              "peripheral",
+              "nervous system and visceral nervous system",
+              "generation and conduction of nerve impulse"
+            ]
+          },
+          {
+            "id": "biology-chapter-19-chemical-coordination-and-integration",
+            "name": "Biology Chapter 19: Chemical Coordination and Integration",
+            "topics": [
+              "Endocrine glands and hormones",
+              "human endocrine system - hypothalamus",
+              "pituitary",
+              "pineal",
+              "thyroid",
+              "parathyroid",
+              "adrenal",
+              "pancreas",
+              "gonads",
+              "mechanism of hormone action (elementary",
+              "idea)",
+              "role of hormones as messengers and regulators",
+              "hypo - and hyperactivity and related",
+              "disorders",
+              "dwarfism",
+              "acromegaly",
+              "cretinism",
+              "goiter",
+              "exophthalmic goitre",
+              "diabetes",
+              "Addison's",
+              "disease.",
+              "The following topics are included in the syllabus but will be assessed only formatively to",
+              "reinforce understanding without adding to summative assessments. The reduces",
+              "academic stress while ensuring meaningful learning. Schools can integrate these with",
+              "existing chapters as they align well. Relevant NCERT textual material is enclosed for",
+              "reference.",
+              "Digestion and Absorption (Please Refer to CBSE Reading Material)",
+              "Alimentary canal and digestive glands",
+              "role of digestive enzymes and gastrointestinal",
+              "hormones",
+              "Peristalsis",
+              "digestion",
+              "absorption and assimilation of proteins",
+              "carbohydrates and",
+              "fats",
+              "calorific values of proteins",
+              "carbohydrates and fats",
+              "egestion",
+              "nutritional and digestive",
+              "disorders - PEM",
+              "indigestion",
+              "constipation",
+              "vomiting",
+              "jaundice",
+              "diarrhoea.",
+              "PRACTICALS",
+              "Time: 03 Hours                                                                                         Max. Marks: 30",
+              "Evaluation Scheme",
+              "Marks",
+              "One Major Experiment Part A (Experiment No- 1",
+              "5 Marks",
+              "One Minor Experiment Part A (Experiment No- 6",
+              "4 Marks",
+              "Slide Preparation Part A (Experiment No- 2",
+              "Spotting Part B",
+              "7 Marks"
+            ]
+          },
+          {
+            "id": "chemistry-unit-1-some-basic-concepts-of-chemistry",
+            "name": "Chemistry Unit 1: Some Basic Concepts of Chemistry",
+            "topics": [
+              "General Introduction: Importance and scope of Chemistry",
+              "Nature of matter",
+              "laws of",
+              "chemical combination",
+              "Dalton's atomic theory: concept of elements",
+              "atoms and",
+              "molecules",
+              "atomic and molecular masses",
+              "mole concept and molar mass",
+              "percentage",
+              "composition",
+              "empirical and molecular formula",
+              "chemical reactions",
+              "stoichiometry and",
+              "calculations based on stoichiometry."
+            ]
+          },
+          {
+            "id": "chemistry-unit-2-structure-of-atom",
+            "name": "Chemistry Unit 2: Structure of Atom",
+            "topics": [
+              "Discovery of Electron",
+              "Proton and Neutron",
+              "atomic number",
+              "isotopes and isobars.",
+              "Thomson's model and its limitations. Rutherford's model and its limitations",
+              "Bohr's model",
+              "and its limitations",
+              "concept of shells and subshells",
+              "dual nature of matter and light",
+              "Broglie's relationship",
+              "Heisenberg uncertainty principle",
+              "concept of orbitals",
+              "quantum",
+              "numbers",
+              "shapes of s",
+              "p and d orbitals",
+              "rules for filling electrons in orbitals - Aufbau",
+              "principle",
+              "Pauli's exclusion principle and Hund's rule",
+              "electronic configuration of atoms",
+              "stability of half-filled and completely filled orbitals."
+            ]
+          },
+          {
+            "id": "chemistry-unit-3-classification-of-elements-and-periodicity-in-properties",
+            "name": "Chemistry Unit 3: Classification of Elements and Periodicity in Properties",
+            "topics": [
+              "Significance of classification",
+              "brief history of the development of periodic table",
+              "modern",
+              "periodic law and the present form of periodic table",
+              "periodic trends in properties of",
+              "elements -atomic radii",
+              "ionic radii",
+              "inert gas radii",
+              "Ionization enthalpy",
+              "electron gain",
+              "enthalpy",
+              "electronegativity",
+              "valiancy",
+              "Nomenclature of elements with atomic number",
+              "greater than 100."
+            ]
+          },
+          {
+            "id": "chemistry-unit-4-chemical-bonding-and-molecular-structure",
+            "name": "Chemistry Unit 4: Chemical Bonding and Molecular Structure",
+            "topics": [
+              "Valence electrons",
+              "ionic bond",
+              "covalent bond",
+              "bond parameters",
+              "Lewis structure",
+              "polar",
+              "character of covalent bond",
+              "covalent character of ionic bond",
+              "valence bond theory",
+              "resonance",
+              "geometry of covalent molecules",
+              "VSEPR theory",
+              "concept of hybridization",
+              "involving s",
+              "p and d orbitals and shapes of some simple molecules",
+              "molecular orbital",
+              "theory of homonuclear diatomic molecules (qualitative idea only)",
+              "Hydrogen bond."
+            ]
+          },
+          {
+            "id": "chemistry-unit-5-chemical-thermodynamics",
+            "name": "Chemistry Unit 5: Chemical Thermodynamics",
+            "topics": [
+              "Concepts of System and types of systems",
+              "surroundings",
+              "work",
+              "heat",
+              "energy",
+              "extensive",
+              "and intensive properties",
+              "state functions.",
+              "First law of thermodynamics -internal energy and enthalpy",
+              "heat capacity and specific",
+              "measurement of ∆U and ∆H",
+              "Hess's law of constant heat summation",
+              "enthalpy of",
+              "bond dissociation",
+              "combustion",
+              "formation",
+              "atomization",
+              "sublimation",
+              "phase transition",
+              "ionization",
+              "solution and dilution. Second law of Thermodynamics (brief introduction)",
+              "Introduction of entropy as a state function",
+              "Gibb's energy change for spontaneous and",
+              "non- spontaneous processes",
+              "criteria for equilibrium",
+              "Third law of thermodynamics (brief",
+              "introduction)."
+            ]
+          },
+          {
+            "id": "chemistry-unit-6-equilibrium",
+            "name": "Chemistry Unit 6: Equilibrium",
+            "topics": [
+              "Equilibrium in physical and chemical processes",
+              "dynamic nature of equilibrium",
+              "law of",
+              "mass action",
+              "equilibrium constant",
+              "factors affecting equilibrium – Le Chatelier's principle",
+              "ionic equilibrium- ionization of acids and bases",
+              "strong and weak electrolytes",
+              "degree of",
+              "ionization",
+              "ionization of poly basic acids",
+              "acid strength",
+              "concept of pH",
+              "hydrolysis of salts",
+              "(elementary idea)",
+              "buffer solution",
+              "Henderson Equation",
+              "solubility product",
+              "common ion",
+              "effect (with illustrative examples)."
+            ]
+          },
+          {
+            "id": "chemistry-unit-7-redox-reactions",
+            "name": "Chemistry Unit 7: Redox Reactions",
+            "topics": [
+              "Concept of oxidation and reduction",
+              "redox reactions",
+              "oxidation number",
+              "balancing redox",
+              "reactions",
+              "in terms of loss and gain of electrons and change in oxidation number",
+              "applications of redox reactions."
+            ]
+          },
+          {
+            "id": "chemistry-unit-8-organic-chemistry-some-basic-principles-and-techniques",
+            "name": "Chemistry Unit 8: Organic Chemistry – Some Basic Principles and Techniques",
+            "topics": [
+              "General introduction",
+              "methods of purification",
+              "qualitative and quantitative analysis",
+              "classification and IUPAC nomenclature of organic compounds. Electronic displacements",
+              "in a covalent bond: inductive effect",
+              "electrometric effect",
+              "resonance and hyper",
+              "conjugation. Homolytic and heterolytic fission of a covalent bond: free radicals",
+              "carbocations",
+              "carbanions",
+              "electrophiles and nucleophiles",
+              "types of organic reactions."
+            ]
+          },
+          {
+            "id": "chemistry-unit-9-hydrocarbons",
+            "name": "Chemistry Unit 9: Hydrocarbons",
+            "topics": [
+              "Aliphatic Hydrocarbons",
+              "Alkanes - Nomenclature",
+              "isomerism",
+              "conformation (ethane only)",
+              "physical properties",
+              "chemical reactions including free radical mechanism of halogenation",
+              "combustion and",
+              "pyrolysis.",
+              "Alkenes - Nomenclature",
+              "structure of double bond (ethene)",
+              "geometrical isomerism",
+              "methods of preparation",
+              "chemical reactions: addition of hydrogen",
+              "halogen",
+              "water",
+              "hydrogen halides (Markovnikov's addition and peroxide effect)",
+              "ozonolysis",
+              "oxidation",
+              "mechanism of electrophilic addition.",
+              "Alkynes - Nomenclature",
+              "structure of triple bond (ethyne)",
+              "methods",
+              "of preparation",
+              "chemical reactions: acidic character of alkynes",
+              "addition reaction of -",
+              "hydrogen",
+              "halogens",
+              "hydrogen halides and water.",
+              "Aromatic Hydrocarbons",
+              "Introduction",
+              "IUPAC nomenclature",
+              "benzene: resonance",
+              "aromaticity",
+              "chemical",
+              "properties: mechanism of electrophilic substitution. Nitration",
+              "sulphonation",
+              "halogenation",
+              "Friedel Craft's alkylation and acylation",
+              "directive influence of functional group in mono",
+              "substituted benzene",
+              "carcinogenicity and toxicity",
+              "Note: The following topics are included in the syllabus but will be assessed only",
+              "formatively to reinforce understanding without adding to summative assessments. This",
+              "reduces academic stress while ensuring meaningful learning. Schools can integrate",
+              "these with existing chapters as they align well. Relevant NCERT textual material is",
+              "enclosed for reference.",
+              "1. s & p Block Elements",
+              "Electronic configuration",
+              "atomic & Ionic radii",
+              "Ionization Enthalpy",
+              "Hydration",
+              "Enthalpy and general trends in physical and chemical properties of s and p",
+              "block elements across the periods and down the groups",
+              "unique behavior of the",
+              "first element in each group.",
+              "2. The Gaseous State",
+              "Qualitative treatment of Gas laws",
+              "Ideal gas equation and deviations from it.",
+              "PRACTICAL",
+              "PRACTICAL SYLLABUS",
+              "Micro-chemical methods are available for several of the practical experiments",
+              "wherever possible such techniques should be used.",
+              "A. Basic Laboratory Techniques",
+              "1. Cutting glass tube and glass rod",
+              "2. Bending a glass tube",
+              "3. Drawing out a glass jet",
+              "4. Boring a cork",
+              "B. Characterization and Purification of Chemical Substances",
+              "1. Determination of melting point of an organic compound.",
+              "2. Determination of boiling point of an organic compound.",
+              "3. Crystallization of impure sample of any one of the following: Alum",
+              "Copper",
+              "Sulphate",
+              "Benzoic Acid.",
+              "C. Experiments based on pH",
+              "1. Any one of the following experiments:",
+              " Determination of pH of some solutions obtained from fruit juices",
+              "solution of known and varied concentrations of acids",
+              "bases and salts",
+              "using pH paper or universal indicator.",
+              " Comparing the pH of solutions of strong and weak acids of same",
+              "concentration.",
+              " Study the pH change in the titration of a strong base using a universal",
+              "indicator.",
+              "2. Study the pH change by common-ion in case of weak acids and weak bases.",
+              "Evaluation Scheme for Examination",
+              "Marks",
+              "Volumetric Analysis",
+              "Salt Analysis",
+              "Content Based Experiment",
+              "Project Work",
+              "Class record and viva",
+              "Total",
+              "D. Chemical Equilibrium",
+              "Any one of the following experiments:",
+              " Study the shift in equilibrium between ferric ions and thiocyanate ions by",
+              "increasing/decreasing the concentration of either of the ions.",
+              " Study the shift in equilibrium between [Co(H2O)6]2+ and chloride ions by",
+              "changing the concentration of either of the ions.",
+              "E. Quantitative Estimation",
+              "1. Using a mechanical balance/electronic balance.",
+              "2.  Preparation of standard solution of Oxalic acid.",
+              "3.  Determination of strength of a given solution of Sodium hydroxide by titrating it",
+              "against standard solution of Oxalic acid.",
+              "4. Preparation of standard solution of Sodium carbonate.",
+              "5. Determination of strength of a given solution of hydrochloric acid by titrating it",
+              "against standard Sodium Carbonate solution.",
+              "F. Qualitative Analysis",
+              "1. Determination of one anion and one cation in a given salt",
+              "Cations:  𝑷𝒃𝟐+",
+              "𝑪𝒖𝟐+",
+              "𝑨𝒍𝟑+",
+              "𝑭𝒆𝟑+",
+              "𝑴𝒏𝟐+",
+              "𝑵𝒊𝟐+",
+              "𝒁𝒏𝟐+",
+              "𝑪𝒐𝟐+",
+              "𝑪𝒂𝟐+",
+              "𝑺𝒓𝟐+",
+              "𝑩𝒂𝟐+",
+              "𝑴𝒈𝟐+",
+              "Anions: 𝑪𝑶𝟑",
+              "𝐂𝐇𝟑𝐂𝐎𝐎−",
+              "(Note: Insoluble salts excluded)",
+              "2. Detection of -Nitrogen",
+              "Sulphur",
+              "Chlorine in organic compounds.",
+              "PROJECTS",
+              "Scientific investigations involving laboratory testing and collecting information from other",
+              "sources.",
+              "A few suggested Projects",
+              "a) Checking the bacterial contamination in drinking water by testing sulphide ion",
+              "b) Study of the methods of purification of water",
+              "c) Testing the hardness",
+              "presence of Iron",
+              "Fluoride",
+              "Chloride",
+              "etc.",
+              "depending upon",
+              "the regional variation in drinking water and study of causes of presence of these",
+              "ions above permissible limit (if any).",
+              "d) Investigation of the foaming capacity of different washing soaps and the effect of",
+              "addition of Sodium carbonate on it",
+              "e) Study the acidity of different samples of tea leaves.",
+              "f) Determination of the rate of evaporation of different liquids",
+              "g) Study the effect of acids and bases on the tensile strength of fibers.",
+              "h) Study of acidity of fruit and vegetable juices.",
+              "Note: Any other investigatory project",
+              "which involves about 10 periods of work",
+              "can be",
+              "chosen with the approval of the teacher."
+            ]
+          },
+          {
+            "id": "physics-chapter-1-units-and-measurements",
+            "name": "Physics Chapter 1: Units and Measurements",
+            "topics": [
+              "Need for measurement: Units of measurement",
+              "systems of units",
+              "SI units",
+              "fundamental and",
+              "derived units. significant figures",
+              "Determining the uncertainty in result. Dimensions of",
+              "physical quantities",
+              "dimensional analysis and its applications."
+            ]
+          },
+          {
+            "id": "physics-chapter-2-motion-in-a-straight-line",
+            "name": "Physics Chapter 2: Motion in a Straight Line",
+            "topics": [
+              "Frame of reference",
+              "Motion in a straight line",
+              "Elementary concepts of differentiation and",
+              "integration for describing motion",
+              "uniform and non- uniform motion",
+              "average speed and",
+              "average velocity and instantaneous velocity",
+              "uniformly accelerated motion",
+              "velocity - time",
+              "and position-time graphs. Relations for uniformly accelerated motion (graphical and calculus",
+              "treatment)."
+            ]
+          },
+          {
+            "id": "physics-chapter-3-motion-in-a-plane",
+            "name": "Physics Chapter 3: Motion in a Plane",
+            "topics": [
+              "Scalar and vector quantities",
+              "position and displacement vectors",
+              "general vectors and their",
+              "notations",
+              "equality of vectors",
+              "multiplication of vectors by a real number",
+              "addition and",
+              "subtraction of vectors",
+              "Unit vector",
+              "resolution of a vector in a plane",
+              "rectangular components",
+              "Scalar and Vector product of vectors.",
+              "Motion in a plane",
+              "cases of uniform velocity and uniform acceleration- projectile motion",
+              "uniform circular motion."
+            ]
+          },
+          {
+            "id": "physics-chapter-4-laws-of-motion",
+            "name": "Physics Chapter 4: Laws of Motion",
+            "topics": [
+              "Intuitive concept of force",
+              "Inertia",
+              "Newton's first law of motion",
+              "momentum and Newton's",
+              "second law of motion",
+              "impulse",
+              "Newton's third law of motion.",
+              "Law of conservation of linear momentum and its applications.",
+              "Equilibrium of concurrent forces",
+              "Static and kinetic friction",
+              "laws of friction",
+              "rolling friction",
+              "lubrication.",
+              "Dynamics of uniform circular motion: Centripetal force",
+              "examples of circular motion",
+              "(vehicle on a level circular road",
+              "vehicle on a banked road)."
+            ]
+          },
+          {
+            "id": "physics-chapter-5-work-energy-and-power",
+            "name": "Physics Chapter 5: Work, Energy and Power",
+            "topics": [
+              "Work done by a constant force and a variable force",
+              "kinetic energy",
+              "work- energy theorem",
+              "power.",
+              "Notion of potential energy",
+              "potential energy of a spring",
+              "conservative forces: non-conservative",
+              "forces",
+              "motion in a vertical circle",
+              "elastic and inelastic collisions in one and two dimensions."
+            ]
+          },
+          {
+            "id": "physics-chapter-6-system-of-particles-and-rotational-motion",
+            "name": "Physics Chapter 6: System of Particles and Rotational Motion",
+            "topics": [
+              "Centre of mass of a two-particle system",
+              "momentum conservation and Centre of mass motion.",
+              "Centre of mass of a rigid body",
+              "centre of mass of a uniform rod. Moment of a force",
+              "torque",
+              "angular momentum",
+              "law of conservation of angular momentum and its applications.",
+              "Equilibrium of rigid bodies",
+              "rigid body rotation and equations of rotational motion",
+              "comparison",
+              "of linear and rotational motions.",
+              "Moment of inertia",
+              "radius of gyration",
+              "values of moments of inertia for simple geometrical",
+              "objects (no derivation)."
+            ]
+          },
+          {
+            "id": "physics-chapter-7-gravitation",
+            "name": "Physics Chapter 7: Gravitation",
+            "topics": [
+              "Kepler's laws of planetary motion",
+              "universal law of gravitation. Acceleration due to gravity and",
+              "its variation with altitude and depth.",
+              "Gravitational potential energy and gravitational potential",
+              "escape speed",
+              "orbital velocity of a",
+              "satellite",
+              "energy of an orbiting satellite."
+            ]
+          },
+          {
+            "id": "physics-chapter-8-mechanical-properties-of-solids",
+            "name": "Physics Chapter 8: Mechanical Properties of Solids",
+            "topics": [
+              "Elasticity",
+              "Stress-strain relationship",
+              "Hooke's law",
+              "Young’s modulus",
+              "bulk modulus",
+              "shear",
+              "modulus of rigidity (qualitative idea only)",
+              "Poisson's ratio",
+              "elastic energy. Application of elastic",
+              "behavior of materials (qualitative idea only)."
+            ]
+          },
+          {
+            "id": "physics-chapter-9-mechanical-properties-of-fluids",
+            "name": "Physics Chapter 9: Mechanical Properties of Fluids",
+            "topics": [
+              "Pressure due to a fluid column",
+              "Pascal's law and its applications (hydraulic lift and hydraulic",
+              "brakes)",
+              "effect of gravity on fluid pressure.",
+              "Viscosity",
+              "Stokes' law",
+              "terminal velocity",
+              "streamline and turbulent flow",
+              "critical velocity",
+              "Bernoulli's theorem and its simple applications (Torricelli's law and Dynamic lift).",
+              "Surface energy and surface tension",
+              "angle of contact",
+              "excess of pressure across a curved",
+              "surface",
+              "application of surface tension ideas to drops",
+              "bubbles and capillary rise."
+            ]
+          },
+          {
+            "id": "physics-chapter-10-thermal-properties-of-matter",
+            "name": "Physics Chapter 10: Thermal Properties of Matter",
+            "topics": [
+              "Heat",
+              "temperature",
+              "thermal expansion",
+              "thermal expansion of solids",
+              "liquids and gases",
+              "anomalous expansion of water",
+              "specific heat capacity",
+              "Cv - calorimetry",
+              "change of state",
+              "- latent heat capacity.",
+              "Heat transfer-conduction",
+              "convection and radiation",
+              "thermal conductivity",
+              "qualitative ideas of",
+              "Blackbody radiation",
+              "Wein's displacement Law",
+              "Stefan's law."
+            ]
+          },
+          {
+            "id": "physics-chapter-11-thermodynamics",
+            "name": "Physics Chapter 11: Thermodynamics",
+            "topics": [
+              "Thermal equilibrium and definition of temperature",
+              "zeroth law of thermodynamics",
+              "heat",
+              "work",
+              "and internal energy. First law of thermodynamics",
+              "Second law of thermodynamics:",
+              "Thermodynamic state variable and equation of state. Change of condition of gaseous state -",
+              "isothermal",
+              "adiabatic",
+              "reversible",
+              "irreversible",
+              "and cyclic processes."
+            ]
+          },
+          {
+            "id": "physics-chapter-12-kinetic-theory",
+            "name": "Physics Chapter 12: Kinetic Theory",
+            "topics": [
+              "Equation of state of a perfect gas",
+              "work done in compressing a gas.",
+              "Kinetic theory of gases - assumptions",
+              "concept of pressure. Kinetic interpretation of",
+              "temperature",
+              "rms speed of gas molecules",
+              "degrees of freedom",
+              "law of equi-partition of energy",
+              "(statement only) and application to specific heat capacities of gases",
+              "concept of mean free",
+              "path",
+              "Avogadro's number."
+            ]
+          },
+          {
+            "id": "physics-chapter-13-oscillations",
+            "name": "Physics Chapter 13: Oscillations",
+            "topics": [
+              "Periodic motion - time period",
+              "frequency",
+              "displacement as a function of time",
+              "periodic functions",
+              "and their applications.",
+              "Simple harmonic motion (S.H.M)",
+              "uniform circular motion and its equations of motion",
+              "phase",
+              "oscillations of a loaded spring- restoring force and force constant",
+              "energy in S.H.M.",
+              "Kinetic and potential energies",
+              "simple pendulum derivation of expression for its time period."
+            ]
+          },
+          {
+            "id": "physics-chapter-14-waves",
+            "name": "Physics Chapter 14: Waves",
+            "topics": [
+              "Wave motion: Transverse and longitudinal waves",
+              "speed of travelling wave",
+              "displacement",
+              "relation for a progressive wave",
+              "principle of superposition of waves",
+              "reflection of waves",
+              "standing waves in strings and organ pipes",
+              "fundamental mode and harmonics",
+              "Beats."
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "class": 12,
+    "subjects": {
+      "mathematics": {
+        "chapters": [
+          {
+            "id": "relations-and-functions",
+            "name": "Relations and Functions",
+            "topics": [
+              "Types of relations: reflexive, symmetric, transitive and equivalence relations",
+              "One to one and onto functions"
+            ]
+          },
+          {
+            "id": "inverse-trigonometric-functions",
+            "name": "Inverse Trigonometric Functions",
+            "topics": [
+              "Definition, range, domain, principal value branch",
+              "Graphs of inverse trigonometric functions"
+            ]
+          },
+          {
+            "id": "matrices",
+            "name": "Matrices",
+            "topics": [
+              "Concept, notation, order, equality, types of matrices, zero and identity matrix",
+              "Transpose of a matrix, symmetric and skew symmetric matrices",
+              "Operations on matrices: Addition and multiplication and multiplication with a scalar",
+              "Simple properties of addition, multiplication and scalar multiplication",
+              "Non-commutativity of multiplication of matrices",
+              "Existence of non-zero matrices whose product is the zero matrix",
+              "Invertible matrices and proof of uniqueness of inverse"
+            ]
+          },
+          {
+            "id": "determinants",
+            "name": "Determinants",
+            "topics": [
+              "Determinant of a square matrix (up to 3 x 3 matrices), minors, co-factors",
+              "Applications of determinants in finding the area of a triangle",
+              "Adjoint and inverse of a square matrix",
+              "Consistency, inconsistency and number of solutions of system of linear equations",
+              "Solving system of linear equations in two or three variables using inverse of a matrix"
+            ]
+          },
+          {
+            "id": "continuity-and-differentiability",
+            "name": "Continuity and Differentiability",
+            "topics": [
+              "Continuity and differentiability",
+              "Chain rule",
+              "Derivative of composite functions",
+              "Derivatives of inverse trigonometric functions (sin-1 x, cos-1 x, tan-1 x)",
+              "Derivative of implicit functions",
+              "Concept of exponential and logarithmic functions",
+              "Derivatives of logarithmic and exponential functions",
+              "Logarithmic differentiation",
+              "Derivative of functions expressed in parametric forms",
+              "Second order derivatives"
+            ]
+          },
+          {
+            "id": "applications-of-derivatives",
+            "name": "Applications of Derivatives",
+            "topics": [
+              "Rate of change of quantities",
+              "Increasing/decreasing functions",
+              "Maxima and minima (first derivative test motivated geometrically, second derivative test as a tool)",
+              "Simple problems illustrating basic principles and real-life situations"
+            ]
+          },
+          {
+            "id": "integrals",
+            "name": "Integrals",
+            "topics": [
+              "Integration as inverse process of differentiation",
+              "Integration by substitution, by partial fractions and by parts",
+              "Evaluation of simple integrals of standard types",
+              "Fundamental Theorem of Calculus (without proof)",
+              "Basic properties of definite integrals and evaluation of definite integrals"
+            ]
+          },
+          {
+            "id": "application-of-the-integrals",
+            "name": "Application of the Integrals",
+            "topics": [
+              "Finding the area under simple curves, especially lines, circles/parabolas/ellipses (in standard form only)"
+            ]
+          },
+          {
+            "id": "differential-equations",
+            "name": "Differential Equations",
+            "topics": [
+              "Definition, order and degree, general and particular solutions of a differential equation",
+              "Solution of differential equations by method of separation of variables",
+              "Solutions of homogeneous differential equations of first order and first degree",
+              "Solutions of linear differential equations of standard types"
+            ]
+          },
+          {
+            "id": "vectors",
+            "name": "Vectors",
+            "topics": [
+              "Vectors and scalars, magnitude and direction of a vector",
+              "Direction cosines and direction ratios of a vector",
+              "Types of vectors (equal, unit, zero, parallel and collinear vectors)",
+              "Position vector of a point, negative of a vector, components of a vector",
+              "Addition of vectors, multiplication of a vector by a scalar",
+              "Position vector of a point dividing a line segment in a given ratio",
+              "Definition, Geometrical Interpretation, properties and application of scalar (dot) and vector (cross) product of vectors"
+            ]
+          },
+          {
+            "id": "three-dimensional-geometry",
+            "name": "Three-dimensional Geometry",
+            "topics": [
+              "Direction cosines and direction ratios of a line joining two points",
+              "Cartesian equation and vector equation of a line",
+              "Skew lines, shortest distance between two lines",
+              "Angle between two lines"
+            ]
+          },
+          {
+            "id": "linear-programming",
+            "name": "Linear Programming",
+            "topics": [
+              "Introduction, related terminology (constraints, objective function, optimization)",
+              "Graphical method of solution for problems in two variables",
+              "Feasible and infeasible regions (bounded or unbounded)",
+              "Feasible and infeasible solutions",
+              "Optimal feasible solutions"
+            ]
+          },
+          {
+            "id": "probability",
+            "name": "Probability",
+            "topics": [
+              "Conditional probability",
+              "Multiplication theorem on probability",
+              "Independent events",
+              "Total probability",
+              "Bayes' theorem",
+              "Random variable and its probability distribution"
+            ]
+          }
+        ]
+      },
+      "science": {
+        "chapters": [
+          {
+            "id": "biology-chapter-1-sexual-reproduction-in-flowering-plants",
+            "name": "Biology Chapter 1: Sexual Reproduction in Flowering Plants",
+            "topics": [
+              "Flower structure",
+              "development of male and female gametophytes",
+              "pollination - types",
+              "agencies",
+              "and examples",
+              "out breeding devices",
+              "pollen-pistil interaction",
+              "double fertilization",
+              "post",
+              "fertilization events - development of endosperm and embryo",
+              "development of seed and",
+              "formation of fruit",
+              "special modes- apomixis",
+              "parthenocarpy",
+              "polyembryony",
+              "Significance of",
+              "seed dispersal and fruit formation."
+            ]
+          },
+          {
+            "id": "biology-chapter-2-human-reproduction",
+            "name": "Biology Chapter 2: Human Reproduction",
+            "topics": [
+              "Male and female reproductive systems",
+              "microscopic anatomy of testis and ovary",
+              "gametogenesis -spermatogenesis and oogenesis",
+              "menstrual cycle",
+              "fertilisation",
+              "embryo",
+              "development upto blastocyst formation",
+              "implantation",
+              "pregnancy and placenta formation",
+              "(elementary idea)",
+              "parturition (elementary idea)",
+              "lactation (elementary idea)."
+            ]
+          },
+          {
+            "id": "biology-chapter-3-reproductive-health",
+            "name": "Biology Chapter 3: Reproductive Health",
+            "topics": [
+              "Need for reproductive health and prevention of Sexually Transmitted Diseases (STDs)",
+              "birth",
+              "control - need and methods",
+              "contraception and medical termination of pregnancy (MTP)",
+              "amniocentesis",
+              "infertility and assisted reproductive technologies - IVF",
+              "ZIFT",
+              "GIFT",
+              "(elementary idea for general awareness)."
+            ]
+          },
+          {
+            "id": "biology-chapter-4-principles-of-inheritance-and-variation",
+            "name": "Biology Chapter 4: Principles of Inheritance and Variation",
+            "topics": [
+              "Heredity and variation: Mendelian inheritance",
+              "deviations from Mendelism – incomplete",
+              "dominance",
+              "co-dominance",
+              "multiple alleles and inheritance of blood groups",
+              "pleiotropy",
+              "elementary idea of polygenic inheritance",
+              "chromosome theory of inheritance",
+              "chromosomes",
+              "and genes",
+              "Sex determination - in humans",
+              "birds and honey bee",
+              "linkage and crossing over",
+              "sex linked inheritance - haemophilia",
+              "colour blindness",
+              "Mendelian disorders in humans -",
+              "thalassemia",
+              "chromosomal disorders in humans",
+              "Down's syndrome",
+              "Turner's and Klinefelter's",
+              "syndromes."
+            ]
+          },
+          {
+            "id": "biology-chapter-5-molecular-basis-of-inheritance",
+            "name": "Biology Chapter 5: Molecular Basis of Inheritance",
+            "topics": [
+              "Search for genetic material and DNA as genetic material",
+              "Structure of DNA and RNA",
+              "packaging",
+              "DNA replication",
+              "Central Dogma",
+              "transcription",
+              "genetic code",
+              "translation",
+              "gene",
+              "expression and regulation - lac operon",
+              "Genome",
+              "Human and rice genome projects",
+              "fingerprinting."
+            ]
+          },
+          {
+            "id": "biology-chapter-6-evolution",
+            "name": "Biology Chapter 6: Evolution",
+            "topics": [
+              "Origin of life",
+              "biological evolution and evidences for biological evolution (paleontology",
+              "comparative anatomy",
+              "embryology and molecular evidences)",
+              "Darwin's contribution",
+              "modern",
+              "synthetic theory of evolution",
+              "mechanism of evolution - variation (mutation and recombination)",
+              "and natural selection with examples",
+              "types of natural selection",
+              "Gene flow and genetic drift",
+              "Hardy- Weinberg's principle",
+              "adaptive radiation",
+              "human evolution."
+            ]
+          },
+          {
+            "id": "biology-chapter-7-human-health-and-diseases",
+            "name": "Biology Chapter 7: Human Health and Diseases",
+            "topics": [
+              "Pathogens",
+              "parasites causing human diseases (malaria",
+              "dengue",
+              "chikungunya",
+              "filariasis",
+              "ascariasis",
+              "typhoid",
+              "pneumonia",
+              "common cold",
+              "amoebiasis",
+              "ring worm) and their control",
+              "Basic",
+              "concepts of immunology - vaccines",
+              "cancer",
+              "HIV and AIDS",
+              "Adolescence - drug and alcohol",
+              "abuse."
+            ]
+          },
+          {
+            "id": "biology-chapter-8-microbes-in-human-welfare",
+            "name": "Biology Chapter 8: Microbes in Human Welfare",
+            "topics": [
+              "Microbes in food processing",
+              "industrial production",
+              "sewage treatment",
+              "energy generation and",
+              "microbes as bio-control agents and bio-fertilizers. Antibiotics",
+              "production and judicious use."
+            ]
+          },
+          {
+            "id": "biology-chapter-9-biotechnology-principles-and-processes",
+            "name": "Biology Chapter 9: Biotechnology - Principles and Processes",
+            "topics": [
+              "Genetic Engineering (Recombinant DNA Technology)."
+            ]
+          },
+          {
+            "id": "biology-chapter-10-biotechnology-and-its-applications",
+            "name": "Biology Chapter 10: Biotechnology and its Applications",
+            "topics": [
+              "Application of biotechnology in health and agriculture: Human insulin and vaccine production",
+              "stem cell technology",
+              "gene therapy",
+              "genetically modified organisms - Bt crops",
+              "transgenic",
+              "animals",
+              "biosafety issues",
+              "biopiracy and patents."
+            ]
+          },
+          {
+            "id": "biology-chapter-11-organisms-and-populations",
+            "name": "Biology Chapter 11: Organisms and Populations",
+            "topics": [
+              "Population interactions - mutualism",
+              "competition",
+              "predation",
+              "parasitism",
+              "population attributes",
+              "- growth",
+              "birth rate and death rate",
+              "age distribution."
+            ]
+          },
+          {
+            "id": "biology-chapter-12-ecosystem",
+            "name": "Biology Chapter 12: Ecosystem",
+            "topics": [
+              "Ecosystems: Patterns",
+              "components",
+              "productivity and decomposition",
+              "energy flow",
+              "pyramids",
+              "of number",
+              "biomass",
+              "energy."
+            ]
+          },
+          {
+            "id": "biology-chapter-13-biodiversity-and-its-conservation",
+            "name": "Biology Chapter 13: Biodiversity and its Conservation",
+            "topics": [
+              "Biodiversity-Concept",
+              "patterns",
+              "importance",
+              "loss of biodiversity",
+              "biodiversity conservation",
+              "hotspots",
+              "endangered organisms",
+              "extinction",
+              "Red Data Book",
+              "Sacred Groves",
+              "biosphere",
+              "reserves",
+              "national parks",
+              "wildlife",
+              "sanctuaries and Ramsar sites.",
+              "PRACTICALS",
+              "Time allowed: 3 Hours",
+              "Max. Marks: 30",
+              "Evaluation Scheme",
+              "Marks",
+              "One Major Experiment                            5",
+              "One Minor Experiment",
+              "2 & 3",
+              "Slide Preparation                               1 & 4",
+              "Spotting"
+            ]
+          },
+          {
+            "id": "chemistry-unit-1-solutions",
+            "name": "Chemistry Unit 1: Solutions",
+            "topics": [
+              "Types of solutions",
+              "expression of concentration of solutions of solids in liquids",
+              "solubility",
+              "of gases in liquids",
+              "solid solutions",
+              "Raoult’s law",
+              "colligative properties - relative lowering",
+              "of vapor pressure",
+              "elevation of boiling point",
+              "depression of freezing point",
+              "osmotic",
+              "pressure",
+              "determination of molecular masses using colligative properties",
+              "abnormal",
+              "molecular mass",
+              "Van't Hoff factor"
+            ]
+          },
+          {
+            "id": "chemistry-unit-2-electrochemistry",
+            "name": "Chemistry Unit 2: Electrochemistry",
+            "topics": [
+              "Redox reactions",
+              "EMF of a cell",
+              "standard electrode potential",
+              "Nernst equation and its",
+              "application to chemical cells",
+              "Relation between Gibbs energy change and EMF of a cell",
+              "conductance in electrolytic solutions",
+              "specific and molar conductivity",
+              "variations of",
+              "conductivity with concentration",
+              "Kohlrausch's Law",
+              "electrolysis and law of electrolysis",
+              "(elementary idea)",
+              "dry cell-electrolytic cells and Galvanic cells",
+              "lead accumulator",
+              "fuel",
+              "cells",
+              "corrosion."
+            ]
+          },
+          {
+            "id": "chemistry-unit-3-chemical-kinetics",
+            "name": "Chemistry Unit 3: Chemical Kinetics",
+            "topics": [
+              "Rate of a reaction (Average and instantaneous)",
+              "factors affecting rate of reaction:",
+              "concentration",
+              "temperature",
+              "catalyst",
+              "order and molecularity of a reaction",
+              "rate law and",
+              "specific rate constant",
+              "integrated rate equations and half-life (only for zero and first order",
+              "reactions)",
+              "concept of collision theory (elementary idea",
+              "no mathematical treatment)",
+              "activation energy",
+              "Arrhenius equation."
+            ]
+          },
+          {
+            "id": "chemistry-unit-4-d-and-f-block-elements",
+            "name": "Chemistry Unit 4: d and f Block Elements",
+            "topics": [
+              "General introduction",
+              "electronic configuration",
+              "occurrence and characteristics of",
+              "transition metals",
+              "general trends in properties of the first row transition metals – metallic",
+              "character",
+              "ionization enthalpy",
+              "oxidation states",
+              "ionic radii",
+              "colour",
+              "catalytic property",
+              "magnetic properties",
+              "interstitial compounds",
+              "alloy formation",
+              "preparation and properties",
+              "of K2Cr2O7 and KMnO4.",
+              "Lanthanides - Electronic configuration",
+              "chemical reactivity and",
+              "lanthanide contraction and its consequences.",
+              "Actinides - Electronic configuration",
+              "oxidation states and comparison with lanthanides"
+            ]
+          },
+          {
+            "id": "chemistry-unit-5-coordination-compounds",
+            "name": "Chemistry Unit 5: Coordination Compounds",
+            "topics": [
+              "Coordination compounds - Introduction",
+              "ligands",
+              "coordination number",
+              "colour",
+              "magnetic",
+              "properties and shapes",
+              "IUPAC nomenclature of mononuclear coordination compounds.",
+              "Bonding",
+              "Werner's theory",
+              "and CFT",
+              "structure and stereoisomerism",
+              "importance",
+              "of coordination compounds (in qualitative analysis",
+              "extraction of metals and biological",
+              "system)."
+            ]
+          },
+          {
+            "id": "chemistry-unit-6-haloalkanes-and-haloarenes",
+            "name": "Chemistry Unit 6: Haloalkanes and Haloarenes",
+            "topics": [
+              "Haloalkanes: Nomenclature",
+              "nature of C–X bond",
+              "physical and chemical properties",
+              "optical rotation mechanism of substitution reactions.",
+              "Haloarenes: Nature of C–X bond",
+              "substitution reactions (Directive influence of halogen",
+              "in monosubstituted compounds only).",
+              "Uses",
+              "environmental",
+              "effects",
+              "dichloromethane",
+              "trichloromethane",
+              "tetrachloromethane",
+              "iodoform",
+              "freons",
+              "DDT."
+            ]
+          },
+          {
+            "id": "chemistry-unit-7-alcohols-phenols-and-ethers",
+            "name": "Chemistry Unit 7: Alcohols, Phenols and Ethers",
+            "topics": [
+              "Alcohols: Nomenclature",
+              "methods of preparation",
+              "physical and chemical properties (of",
+              "primary alcohols only)",
+              "identification of primary",
+              "secondary and tertiary alcohols",
+              "mechanism of dehydration",
+              "uses with special reference to methanol and ethanol.",
+              "Phenols: Nomenclature",
+              "physical and chemical properties",
+              "acidic nature of phenol",
+              "electrophilic substitution reactions",
+              "uses of phenols.",
+              "Ethers: Nomenclature",
+              "uses"
+            ]
+          },
+          {
+            "id": "chemistry-unit-8-aldehydes-ketones-and-carboxylic-acids",
+            "name": "Chemistry Unit 8: Aldehydes, Ketones and Carboxylic Acids",
+            "topics": [
+              "Aldehydes and Ketones: Nomenclature",
+              "nature of carbonyl group",
+              "methods of",
+              "preparation",
+              "physical and chemical properties",
+              "mechanism of nucleophilic addition",
+              "reactivity of alpha hydrogen in aldehydes",
+              "uses.",
+              "Carboxylic Acids: Nomenclature",
+              "acidic nature",
+              "methods of preparation",
+              "physical and",
+              "chemical properties"
+            ]
+          },
+          {
+            "id": "chemistry-unit-9-amines",
+            "name": "Chemistry Unit 9: Amines",
+            "topics": [
+              "Amines: Nomenclature",
+              "classification",
+              "structure",
+              "methods of preparation",
+              "physical and",
+              "chemical properties",
+              "uses",
+              "identification of primary",
+              "secondary and tertiary amines.",
+              "Diazonium salts: Preparation",
+              "chemical reactions and importance in synthetic organic",
+              "chemistry."
+            ]
+          },
+          {
+            "id": "chemistry-unit-10-biomolecules",
+            "name": "Chemistry Unit 10: Biomolecules",
+            "topics": [
+              "Carbohydrates - Classification (aldoses and ketoses)",
+              "monosaccahrides (glucose and",
+              "fructose)",
+              "configuration",
+              "oligosaccharides",
+              "(sucrose",
+              "lactose",
+              "maltose)",
+              "polysaccharides (starch",
+              "cellulose",
+              "glycogen)",
+              "Importance of carbohydrates.",
+              "Proteins -Elementary idea of - amino acids",
+              "peptide bond",
+              "polypeptides",
+              "proteins",
+              "structure of proteins - primary",
+              "secondary",
+              "tertiary structure and quaternary structures",
+              "(qualitative idea only)",
+              "denaturation of proteins",
+              "enzymes. Hormones - Elementary idea",
+              "excluding structure.",
+              "Vitamins - Classification and functions.",
+              "Nucleic Acids: DNA and RNA.",
+              "PRACTICAL",
+              "Evaluation Scheme for Examination",
+              "Marks",
+              "Volumetric Analysis",
+              "Salt Analysis",
+              "Content Based Experiment",
+              "Project Work",
+              "Class record and viva",
+              "Total",
+              "PRACTICAL SYLLABUS",
+              "Micro-chemical methods are available for several of the practical experiments",
+              "wherever possible such techniques should be used.",
+              "A. Surface Chemistry",
+              "1. Preparation of one lyophilic and one lyophobic sol",
+              "Lyophilic sol - starch",
+              "egg albumin and gum",
+              "Lyophobic sol – aluminum hydroxide",
+              "ferric hydroxide",
+              "arsenous sulphide.",
+              "2. Dialysis of sol-prepared in (a) above.",
+              "3. Study of the role of emulsifying agents in stabilizing the emulsion of different oils.",
+              "B. Chemical Kinetics",
+              "1. Effect of concentration and temperature on the rate of reaction between Sodium",
+              "Thiosulphate and Hydrochloric acid.",
+              "2. Study of reaction rates of any one of the following:",
+              " Reaction of Iodide ion with Hydrogen Peroxide at room temperature",
+              "using different concentration of Iodide ions.",
+              " Reaction between Potassium Iodate",
+              "(KIO3) and Sodium Sulphate:",
+              "(Na2SO3) using starch solution as indicator (clock reaction).",
+              "C. Thermochemistry",
+              "Any one of the following experiments",
+              " Enthalpy of dissolution of Copper Sulphate or Potassium Nitrate.",
+              " Enthalpy of neutralization of strong acid (HCI) and strong base (NaOH).",
+              " Determination of enthalpy change during interaction (Hydrogen bond",
+              "formation) between Acetone and Chloroform.",
+              "D. Electrochemistry",
+              "Variation of cell potential in Zn/Zn2+|| Cu2+/Cu with change in concentration of electrolytes",
+              "(CuSO4 or ZnSO4) at room temperature.",
+              "E. Chromatography",
+              "1. Separation of pigments from extracts of leaves and flowers by paper",
+              "chromatography and determination of Rf values.",
+              "2. Separation of constituents present in an inorganic mixture containing two cations",
+              "only (constituents having large difference in Rf values to be provided).",
+              "F. Preparation of Inorganic Compounds",
+              "1. Preparation of double salt of Ferrous Ammonium Sulphate or Potash Alum.",
+              "2.  Preparation of Potassium Ferric Oxalate.",
+              "G. Preparation of Organic Compounds",
+              "Preparation of any one of the following compounds",
+              "1. Acetanilide",
+              "2.  Di -benzalAcetone",
+              "3.  p-Nitroacetanilide",
+              "4. Aniline yellow or 2 - Naphthol Aniline dye.",
+              "H. Tests for the functional groups present in organic compounds",
+              "Unsaturation",
+              "alcoholic",
+              "phenolic",
+              "aldehydic",
+              "ketonic",
+              "carboxylic and amino (Primary)",
+              "groups.",
+              "I. Characteristic tests of carbohydrates",
+              "fats and proteins in pure samples and",
+              "their detection in given foodstuffs.",
+              "J. Determination of concentration/ molarity of KMnO4 solution by titrating it",
+              "against a standard solution of:",
+              "1. Oxalic acid",
+              "2. Ferrous Ammonium Sulphate",
+              "(Students will be required to prepare standard solutions by weighing themselves).",
+              "K. Qualitative analysis",
+              "Determination of one anion and one cation in a given salt",
+              "Cations:  𝑷𝒃𝟐+",
+              "𝑪𝒖𝟐+",
+              "𝑨𝒍𝟑+",
+              "𝑭𝒆𝟑+",
+              "𝑴𝒏𝟐+",
+              "𝑵𝒊𝟐+  𝒁𝒏𝟐+ 𝑪𝒐𝟐+ 𝑪𝒂𝟐+𝑺𝒓𝟐+ 𝑩𝒂𝟐+ 𝑴𝒈𝟐+",
+              "Anions: 𝑪𝑶𝟑",
+              "𝐂𝐇𝟑𝐂𝐎𝐎−",
+              "C2O42-",
+              "(Note: Insoluble salts excluded)",
+              "PROJECTS",
+              "Scientific investigations involving laboratory testing and collecting information from other",
+              "sources.",
+              "A few suggested Projects",
+              "a) Study of the presence of oxalate ions in guava fruit at different stages of ripening.",
+              "b) Study of quantity of casein present in different samples of milk.",
+              "c) Preparation of soybean milk and its comparison with the natural milk with respect",
+              "to curd formation",
+              "effect of temperature",
+              "etc.",
+              "d) Study of the effect of Potassium Bisulphate as food preservative under various",
+              "conditions (temperature",
+              "concentration",
+              "time",
+              "etc.)",
+              "e) Study of digestion of starch by salivary amylase and effect of pH and temperature",
+              "on it.",
+              "f) Comparative study of the rate of fermentation of following materials: wheat flour",
+              "gram flour",
+              "potato juice",
+              "carrot juice",
+              "g) Extraction of essential oils present in Saunf (aniseed)",
+              "Ajwain (carom)",
+              "Illaichi",
+              "(cardamom).",
+              "h) Study of common food adulterants in fat",
+              "butter",
+              "sugar",
+              "turmeric power",
+              "chili",
+              "powder and pepper.",
+              "Note: Any other investigatory project",
+              "which involves about 10 periods of work",
+              "can be chosen with the approval of the teacher."
+            ]
+          },
+          {
+            "id": "physics-chapter-1-electric-charges-and-fields",
+            "name": "Physics Chapter 1: Electric Charges and Fields",
+            "topics": [
+              "Electric charges",
+              "Conservation of charge",
+              "Coulomb's law-force between two- point charges",
+              "forces between multiple charges",
+              "superposition principle and continuous charge distribution.",
+              "Electric field",
+              "electric field due to a point charge",
+              "electric field lines",
+              "electric dipole",
+              "electric",
+              "field due to a dipole",
+              "torque on a dipole in uniform electric field.",
+              "Electric flux",
+              "statement of Gauss's theorem and its applications to find field due to infinitely",
+              "long straight wire",
+              "uniformly charged infinite plane sheet and uniformly charged thin spherical",
+              "shell (field inside and outside)."
+            ]
+          },
+          {
+            "id": "physics-chapter-2-electrostatic-potential-and-capacitance",
+            "name": "Physics Chapter 2: Electrostatic Potential and Capacitance",
+            "topics": [
+              "Electric potential",
+              "potential difference",
+              "electric potential due to a point charge",
+              "a dipole and",
+              "system of charges",
+              "equipotential surfaces",
+              "electrical potential energy of a system of two-point",
+              "charges and of electric dipole in an electrostatic field.",
+              "Conductors and insulators",
+              "free charges and bound charges inside a conductor. Dielectrics",
+              "and electric polarization",
+              "capacitors and capacitance",
+              "combination of capacitors in series and",
+              "in parallel",
+              "capacitance of a parallel plate capacitor with and without dielectric medium",
+              "between the plates",
+              "energy stored in a capacitor (no derivation",
+              "formulae only)."
+            ]
+          },
+          {
+            "id": "physics-chapter-3-current-electricity",
+            "name": "Physics Chapter 3: Current Electricity",
+            "topics": [
+              "Electric current",
+              "flow of electric charges in a metallic conductor",
+              "drift velocity",
+              "mobility and",
+              "their relation with electric current",
+              "Ohm's law",
+              "V-I characteristics (linear and non-linear)",
+              "electrical energy and power",
+              "electrical resistivity and conductivity",
+              "temperature dependence",
+              "of resistance",
+              "Internal resistance of a cell",
+              "potential difference and emf of a cell",
+              "combination",
+              "of cells in series and in parallel",
+              "Kirchhoff's rules",
+              "Wheatstone bridge."
+            ]
+          },
+          {
+            "id": "physics-chapter-4-moving-charges-and-magnetism",
+            "name": "Physics Chapter 4: Moving Charges and Magnetism",
+            "topics": [
+              "Concept of magnetic field",
+              "Oersted's experiment.",
+              "Biot - Savart law and its application to current carrying circular loop.",
+              "Ampere's law and its applications to infinitely long straight wire. Straight solenoid (only",
+              "qualitative treatment)",
+              "force on a moving charge in uniform magnetic and electric fields.",
+              "Force on a current-carrying conductor in a uniform magnetic field",
+              "force between two parallel",
+              "current-carrying conductors-definition of ampere",
+              "torque experienced by a current loop in",
+              "uniform magnetic field",
+              "Current loop as a magnetic dipole and its magnetic dipole moment",
+              "moving coil galvanometer- its current sensitivity and conversion to ammeter and voltmeter."
+            ]
+          },
+          {
+            "id": "physics-chapter-5-magnetism-and-matter",
+            "name": "Physics Chapter 5: Magnetism and Matter",
+            "topics": [
+              "Bar magnet",
+              "bar magnet as an equivalent solenoid (qualitative treatment only)",
+              "magnetic field",
+              "intensity due to a magnetic dipole (bar magnet) along its axis and perpendicular to its axis",
+              "(qualitative treatment only)",
+              "torque on a magnetic dipole (bar magnet) in a uniform magnetic",
+              "field (qualitative treatment only)",
+              "magnetic field lines.",
+              "Magnetic properties of materials- Para-",
+              "dia- and ferro – magnetic substances with examples",
+              "Magnetization of materials",
+              "effect of temperature on magnetic properties."
+            ]
+          },
+          {
+            "id": "physics-chapter-6-electromagnetic-induction",
+            "name": "Physics Chapter 6: Electromagnetic Induction",
+            "topics": [
+              "Electromagnetic induction",
+              "Faraday's laws",
+              "induced EMF and current",
+              "Lenz's Law",
+              "Self and",
+              "mutual induction."
+            ]
+          },
+          {
+            "id": "physics-chapter-7-alternating-current",
+            "name": "Physics Chapter 7: Alternating Current",
+            "topics": [
+              "Alternating currents",
+              "peak and RMS value of alternating current/voltage",
+              "reactance and",
+              "impedance",
+              "LCR series circuit (phasors only)",
+              "resonance",
+              "power in AC circuits",
+              "power factor",
+              "wattless current. AC generator",
+              "Transformer."
+            ]
+          },
+          {
+            "id": "physics-chapter-8-electromagnetic-waves",
+            "name": "Physics Chapter 8: Electromagnetic Waves",
+            "topics": [
+              "Basic idea of displacement current",
+              "Electromagnetic waves",
+              "their characteristics",
+              "their",
+              "transverse nature (qualitative idea only).",
+              "Electromagnetic spectrum (radio waves",
+              "microwaves",
+              "infrared",
+              "visible",
+              "ultraviolet",
+              "X-rays",
+              "gamma rays) including elementary facts about their uses."
+            ]
+          },
+          {
+            "id": "physics-chapter-9-ray-optics-and-optical-instruments",
+            "name": "Physics Chapter 9: Ray Optics and Optical Instruments",
+            "topics": [
+              "Ray Optics: Reflection of light",
+              "spherical mirrors",
+              "mirror formula",
+              "refraction of light",
+              "total",
+              "internal reflection and optical fibers",
+              "refraction at spherical surfaces",
+              "lenses",
+              "thin lens formula",
+              "lens maker’s formula",
+              "magnification",
+              "power of a lens",
+              "combination of thin lenses in contact",
+              "refraction of light through a prism.",
+              "Optical instruments: Microscopes and astronomical telescopes (reflecting and refracting)",
+              "and their magnifying powers."
+            ]
+          },
+          {
+            "id": "physics-chapter-10-wave-optics",
+            "name": "Physics Chapter 10: Wave Optics",
+            "topics": [
+              "Wave optics: Wave front and Huygen’s principle",
+              "reflection and refraction of plane wave at",
+              "a plane surface using wave fronts. Proof of laws of reflection and refraction using Huygen’s",
+              "principle. Interference",
+              "Young's double slit experiment and expression for fringe width (No",
+              "derivation final expression only)",
+              "coherent sources and sustained interference of light",
+              "diffraction due to a single slit",
+              "width of central maxima (qualitative treatment only)."
+            ]
+          },
+          {
+            "id": "physics-chapter-11-dual-nature-of-radiation-and-matter",
+            "name": "Physics Chapter 11: Dual Nature of Radiation and Matter",
+            "topics": [
+              "Dual nature of radiation",
+              "Photoelectric effect",
+              "Hertz and Lenard's observations",
+              "Einstein's",
+              "photoelectric equation-particle nature of light.",
+              "Experimental study of photoelectric effect",
+              "Matter waves-wave nature of particles",
+              "de-Broglie relation."
+            ]
+          },
+          {
+            "id": "physics-chapter-12-atoms",
+            "name": "Physics Chapter 12: Atoms",
+            "topics": [
+              "Alpha-particle scattering experiment",
+              "Rutherford's model of atom",
+              "Bohr model of hydrogen",
+              "atom",
+              "Expression for radius of nth possible orbit",
+              "velocity and energy of electron in nth orbit",
+              "hydrogen line spectra (qualitative treatment only)."
+            ]
+          },
+          {
+            "id": "physics-chapter-13-nuclei",
+            "name": "Physics Chapter 13: Nuclei",
+            "topics": [
+              "Composition and size of nucleus",
+              "nuclear force",
+              "Mass-energy relation",
+              "mass defect",
+              "binding energy per nucleon and its variation with mass",
+              "number",
+              "nuclear fission",
+              "nuclear fusion."
+            ]
+          },
+          {
+            "id": "physics-chapter-14-semiconductor-electronics-materials-devices-and-simple-circuits",
+            "name": "Physics Chapter 14: Semiconductor Electronics: Materials, Devices and Simple Circuits",
+            "topics": [
+              "Energy bands in conductors",
+              "semiconductors and insulators (qualitative ideas only) Intrinsic",
+              "and extrinsic semiconductors- p and n type",
+              "p-n junction",
+              "Semiconductor diode - I-V characteristics in forward and reverse bias",
+              "application of junction",
+              "diode -diode as a rectifier."
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

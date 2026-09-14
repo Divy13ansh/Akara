@@ -196,21 +196,24 @@ export const authService = {
    * Unified Google OAuth sign-in/sign-up
    */
   async googleAuth(credential?: string): Promise<AuthResponse> {
-    // FRONTEND BACKEND HOOK:
-    // This is the exact frontend call site that will be replaced by POST /api/auth/google.
-    // The Google sign-in/signup flow currently uses a hardcoded mock user and should instead
-    // exchange the Google credential with the backend, then receive the authenticated user profile.
-    // const res = await fetch('/api/auth/google', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ id_token: credential, provider: 'google' }),
-    // });
-    // if (!res.ok) throw new Error(await res.text());
-    // const data = await res.json();
-    // authToken = data.token;
-    // return data;
+    // BACKEND WIRED (GIS id_token flow): exchange the Google credential for a
+    // JWT + profile. Falls back to the mock when no credential is provided.
+    if (credential) {
+      const base = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE || '';
+      const res = await fetch(`${base}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_token: credential, provider: 'google' }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      authToken = data.token;
+      currentUser = data.user;
+      saveStoredAuth(currentUser, authToken);
+      return data;
+    }
 
-    // Simulated mock response:
+    // Simulated mock response (legacy — no credential provided):
     await new Promise((resolve) => setTimeout(resolve, 300));
     currentUser = {
       id: 'mock_google_usr_' + Math.random().toString(36).substring(7),

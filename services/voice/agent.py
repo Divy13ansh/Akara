@@ -161,7 +161,7 @@ def _grade_to_age_range(grade: str) -> str:
 
 # Fallback for local `lk agent console` (no job metadata) or bad metadata.
 DEFAULT_TOPIC_DATA = TopicData(
-    topic_id="phy9-newton3",
+    topic_id="phy11-newton3",
     topic="Newton's Third Law of Motion",
     script=(
         "Every action has an equal and opposite reaction. When object A "

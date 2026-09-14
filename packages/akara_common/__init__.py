@@ -12,12 +12,12 @@ from .schemas import (
 )
 
 __all__ = [
-    "TopicData",
-    "SessionMetadata",
-    "Transcript",
-    "TranscriptTurn",
     "CoveragePoint",
     "CoverageResult",
     "RubricLevel",
     "RubricPoint",
+    "SessionMetadata",
+    "TopicData",
+    "Transcript",
+    "TranscriptTurn",
 ]

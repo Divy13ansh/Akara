@@ -3,7 +3,6 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,17 +40,18 @@ app.add_middleware(
 
 
 class ExplainRequest(BaseModel):
-    topic_id: Optional[str] = None
-    topic: Optional[str] = None
+    topic_id: str | None = None
+    topic: str | None = None
     level: str = "school"
     persona: str = "teacher"
     face_enabled: bool = False
-    rag_context: Optional[str] = None
+    rag_context: str | None = None
     language: str = "english"
     sync: bool = False
+    video_id: str | None = None  # caller-supplied job id (akara-api render job); generated when absent
 
 
-def update_job_status(video_id: str, status: str, stage: str, detail: Optional[dict] = None):
+def update_job_status(video_id: str, status: str, stage: str, detail: dict | None = None):
     job_dir = VIDEOS_DIR / video_id
     job_dir.mkdir(parents=True, exist_ok=True)
     status_file = job_dir / "status.json"
@@ -154,6 +154,27 @@ def run_pipeline(video_id: str, req: ExplainRequest):
         if sadtalker_job_id:
             result["sadtalker_job_id"] = sadtalker_job_id
 
+        # R2 publish + API callback (plan Phase 5): only when the render came
+        # from the concept pipeline (has a topic_id + ISO lang code).
+        if req.topic_id and len(req.language) == 2:
+            try:
+                from utils.r2_upload import publish_render_result
+
+                stage_timings = {
+                    name: round(info.get("duration", 0.0), 2)
+                    for name, info in getattr(tracker, "stages", {}).items()
+                }
+                publish_render_result(
+                    video_id=video_id,
+                    concept_id=req.topic_id,
+                    lang=req.language,
+                    final_video_path=final_video_path,
+                    outputs_dir=PROJECT_ROOT / "outputs",
+                    stage_timings=stage_timings or None,
+                )
+            except Exception as publish_err:
+                print(f"⚠ R2 publish failed for {video_id}: {publish_err}")
+
         update_job_status(video_id, "complete", "done", detail=result)
         return result
 
@@ -163,6 +184,14 @@ def run_pipeline(video_id: str, req: ExplainRequest):
         err_msg = str(e)
         trace = traceback.format_exc()
         print(f"❌ Video job {video_id} failed: {err_msg}\n{trace}")
+        # Best-effort failure notification to the API (genstatus flips to failed).
+        if req.topic_id and len(req.language) == 2:
+            try:
+                from utils.r2_upload import notify_render_failed
+
+                notify_render_failed(video_id, req.topic_id, req.language, err_msg)
+            except Exception:
+                pass
         update_job_status(
             video_id, "failed", "error", detail={"error": err_msg, "traceback": trace}
         )
@@ -177,7 +206,9 @@ def health():
 @app.post("/explain")
 @app.post("/render")
 def explain(req: ExplainRequest, background_tasks: BackgroundTasks):
-    video_id = generate_video_id()
+    # Honor a caller-supplied job id (the API registers video_render_jobs with
+    # this id BEFORE calling us, so /internal/render-callback can find it).
+    video_id = req.video_id or generate_video_id()
     update_job_status(video_id, "pending", "queued")
 
     if req.sync:

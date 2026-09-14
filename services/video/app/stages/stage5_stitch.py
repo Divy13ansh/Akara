@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+
 import requests
 
 # ============================================================
@@ -125,8 +126,7 @@ def stitch(video_id: str):
     list_file = base / "concat_list.txt"
 
     with open(list_file, "w") as f:
-        for v in video_files:
-            f.write(f"file '{v.resolve()}'\n")
+        f.writelines(f"file '{v.resolve()}'\n" for v in video_files)
 
     subprocess.run(
         [

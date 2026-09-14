@@ -6,7 +6,7 @@ sys.path.insert(0, str(ROOT / "services" / "video" / "app"))
 sys.path.insert(0, str(ROOT / "packages"))
 
 from fastapi.testclient import TestClient
-from main import app, ExplainRequest
+from main import app
 
 
 def test_video_health():
@@ -22,7 +22,7 @@ def test_video_render_async_enqueue(monkeypatch):
 
     client = TestClient(app)
     payload = {
-        "topic_id": "phy9-newton3",
+        "topic_id": "phy11-newton3",
         "language": "hi",
         "sync": False,
     }

@@ -15,11 +15,20 @@
 3. **JSONB for volatile shapes, columns for queried fields.** Anything a dashboard
    filters/aggregates on (mastery, status, subject_id) is a real column; anything
    that is "write once, read whole" (scene graph, quiz, cost detail) is JSONB.
-4. **Keys are `TEXT` with app-generated ids** (`usr_…`, `cr-01`, `phy9-newton3`) to
-   match the frontend contract exactly. Auto-increment only for pure log rows.
+4. **Keys are `TEXT` with app-generated ids** (`usr_…`, `phy11-newton3`) following
+   the canonical scheme `{subj}{class}-{slug}` (D-1). Auto-increment only for pure
+   log rows.
 5. **Every table gets `created_at`; mutable tables get `updated_at`.**
 
-## 1. Entity overview (19 tables)
+> **Implementation deltas (as built — `packages/akara_db/models.py`):**
+> 20 tables (adds `daily_activity` for the watch-minutes heartbeat), `concepts.topic_name`
+> column for the constellation's topic-group shape, chapter ids are `c{class}-{syllabus_id}`
+> (syllabus ids collide across classes), and the catalog is seeded from
+> `packages/akara_db/syllabus.json` by `scripts/seed_curriculum.py` (2,027 concepts,
+> 239 chapters, 5 subjects) — not the frontend mock catalog. Gold topics:
+> `phy11-inertia`, `phy11-newton3`, `math10-quadratic` (D-13 renames applied in the seeder).
+
+## 1. Entity overview (20 tables)
 
 ```
 IDENTITY        curriculum                    PIPELINE (content)

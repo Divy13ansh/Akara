@@ -12,8 +12,55 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "ruff", "httpx", "fastapi", "python-dotenv", "openai", "requests"]
+dev = [
+    "pytest",
+    "ruff",
+    "httpx",
+    "fastapi",
+    "python-dotenv",
+    "openai",
+    "requests",
+    "psycopg[binary]>=3.3.5",
+    "alembic>=1.20.0",
+    "sqlalchemy>=2.0.52",
+    "asyncpg>=0.31.0",
+    "greenlet>=3.5.5",
+    "pydantic[email]>=2.13.5",
+    "livekit-agents>=1.2",
+    "livekit-plugins-ai-coustics",
+    "websockets>=13.0",
+]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = ["services/stt/vexyl_stt_server.py"]  # vendored upstream code (Apache-2.0), lint as-is
 
+[tool.ruff.lint.per-file-ignores]
+# Cache/lock helpers intentionally fail open on ANY redis error (plan §3b).
+"services/api/redis_client.py" = ["BLE001", "S110"]
+"services/api/queue.py" = ["BLE001"]
+"services/api/r2.py" = ["BLE001"]
+"services/api/video_client.py" = ["BLE001"]
+"packages/akara_rag/retrieve.py" = ["BLE001"]
+# Scorer chains intentionally fall back between scorer implementations.
+"services/worker/main.py" = ["BLE001"]
+"services/api/webhooks.py" = ["BLE001"]
+"services/api/tokens.py" = ["BLE001"]
+"services/api/security.py" = ["BLE001"]
+"services/api/routers/progress.py" = ["DTZ011"]
+# Voice loop: best-effort diagnostics/dumps must never break the live session.
+"services/voice/agent.py" = ["BLE001"]
+"services/scorer/llm_scorer.py" = ["BLE001"]
+"scripts/backfill_concept_quizzes.py" = ["DTZ011", "BLE001"]
+"scripts/seed_if_empty.py" = ["DTZ011", "TRY203", "BLE001"]
+# Internal router: /token legacy path intentionally unguarded; FastAPI DI style.
+"services/api/routers/internal.py" = ["B008"]
+"services/api/deps.py" = ["B008"]
+# Daily-activity semantics: date.today() is the product definition of "today".
+"services/api/routers/activity.py" = ["DTZ011"]
+"services/api/routers/users.py" = ["DTZ011"]
+"services/api/routers/webhooks.py" = ["SIM102"]
+
+# Legacy video pipeline: pre-existing style, defer wholesale rule churn.
+"services/video/**" = ["EXE002", "BLE001", "DTZ003", "DTZ011", "S110", "UP022", "RUF013"]
+"tests/test_video.py" = ["F401"]

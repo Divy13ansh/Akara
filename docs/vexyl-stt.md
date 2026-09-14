@@ -38,18 +38,36 @@ running AI4Bharat's `indic-conformer-600m-multilingual` model (600M params,
 
 ## Setup
 
-### 1. VEXYL-STT server (one-time)
+### 1. VEXYL-STT server — now a compose service (default)
 
-The AI4Bharat model is **gated** — request access first:
-https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual
+The server is **vendored at `services/stt/`** and runs as the `stt` compose
+service — plain `docker compose up` includes it; no host-side `./run.sh` needed.
+The gated model downloads on first boot into the `stt_models` volume.
+
+**REQUIRED on a fresh machine/VPS — HuggingFace token** (the model repo is
+gated): request access at
+https://huggingface.co/ai4bharat/indic-conformer-600m-multilingual, create a
+read token at https://huggingface.co/settings/tokens, then:
+
+```bash
+# .env.local
+HF_TOKEN=hf_xxxxxxxxxxxxxxxx
+
+docker compose up -d stt
+docker compose logs -f stt   # one-time ~2.4GB download, then 'server ready'
+```
+
+See docs/backend-api-mapping.md §1 for the full integration record.
+
+Health check: `curl http://localhost:8091/health`
+
+#### Legacy host-run flow (optional, for plugin development)
 
 ```bash
 cd ../vexyl-stt
 ./setup.sh          # downloads model (~2.4GB), creates .env + run.sh
 ./run.sh            # starts WebSocket server on ws://127.0.0.1:8091
 ```
-
-Health check: `curl http://127.0.0.1:8091/health`
 
 ### 2. Agent worker
 
@@ -70,9 +88,11 @@ python agent.py start
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VEXYL_STT_HOST` | `127.0.0.1` | VEXYL-STT server host |
+| `VEXYL_STT_HOST` | `127.0.0.1` | VEXYL-STT server host (`stt` inside compose; `127.0.0.1` for host-run agent) |
 | `VEXYL_STT_PORT` | `8091` | VEXYL-STT server port |
 | `VEXYL_STT_LANG` | `hi-IN` | Default language (overridden per-session via job metadata) |
+| `HF_TOKEN` | — | **Required for the `stt` compose service** on a fresh machine — downloads the gated model once into the `stt_models` volume |
+| `VEXYL_STT_DEVICE` | `cpu` | Set `cuda` on a GPU VPS (~3GB VRAM) |
 
 ### Supported languages
 

@@ -4,6 +4,7 @@ import { Logo } from '../components/Logo';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { authService } from '../services/api';
+import { promptGoogleSignIn } from '../services/googleIdentity';
 import { handleImageFallback } from '../components/CardThemeUtils';
 
 export default function Login() {
@@ -31,7 +32,15 @@ export default function Login() {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      const res = await authService.googleAuth();
+      // Real GIS flow: get the id_token from Google One Tap, exchange it at
+      // POST /api/auth/google (mock fallback when GIS fails, e.g. http origin).
+      let credential: string | undefined;
+      try {
+        credential = await promptGoogleSignIn();
+      } catch {
+        credential = undefined;
+      }
+      const res = await authService.googleAuth(credential);
       if (!res.user.onboarding_completed) {
         navigate('/onboarding/class');
       } else {

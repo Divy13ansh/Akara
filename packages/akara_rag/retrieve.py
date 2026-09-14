@@ -3,9 +3,10 @@
 Called pre-session by services/api, never in the voice hot path.
 See docs/rag-ncert.md.
 
-Current state: seed in-memory store (Newton's Third Law + 2 minimal seeds).
-`scripts/ingest_ncert.py` + FAISS build land here later; `fetch_topic`
-keeps the same signature so callers don't change.
+Current state: DB-backed with in-memory seed fallback. `fetch_topic` reads the
+`concepts` table (gold script/rubric) via packages/akara_db; when the DB is
+absent/empty (lk agent console, fresh checkout, tests) it falls back to the
+SEED_TOPICS dict below. Same signature, callers unchanged.
 """
 
 from __future__ import annotations
@@ -25,8 +26,8 @@ except ImportError:  # fallback when imported as top-level package
     )
 
 SEED_TOPICS: dict[str, TopicData] = {
-    "phy9-newton3": TopicData(
-        topic_id="phy9-newton3",
+    "phy11-newton3": TopicData(
+        topic_id="phy11-newton3",
         topic="Newton's Third Law of Motion",
         script=(
             "Every action has an equal and opposite reaction. When object A "
@@ -44,7 +45,7 @@ SEED_TOPICS: dict[str, TopicData] = {
             "4. Bonus: a correct real-world example (walking, rocket "
             "propulsion, gun recoil) with both objects correctly identified."
         ),
-        grade="9",
+        grade="11",
         subject="physics",
         lang="en",
         rubric_levels=[
@@ -110,8 +111,8 @@ SEED_TOPICS: dict[str, TopicData] = {
             ),
         ],
     ),
-    "phy9-inertia": TopicData(
-        topic_id="phy9-inertia",
+    "phy11-inertia": TopicData(
+        topic_id="phy11-inertia",
         topic="Inertia and Newton's First Law",
         script=(
             "An object keeps doing what it is doing unless a net external force "
@@ -123,7 +124,7 @@ SEED_TOPICS: dict[str, TopicData] = {
             "2. Net external force is needed to change velocity. "
             "3. Misconception: motion needs a continuous force to continue."
         ),
-        grade="9",
+        grade="11",
         subject="physics",
         lang="en",
         rubric_levels=[
@@ -276,9 +277,60 @@ SEED_TOPICS: dict[str, TopicData] = {
 }
 
 
+def _fetch_from_db(topic_id: str, lang: str) -> TopicData | None:
+    """Read the gold TopicData from Postgres. Returns None on any failure so
+    the seed fallback keeps local/console flows alive."""
+    try:
+        import asyncio
+        import os
+
+        if not (os.getenv("ASYNC_DATABASE_URL") or os.getenv("DATABASE_URL")):
+            return None
+
+        from akara_db.base import get_sessionmaker
+        from akara_db.models import Concept
+        from sqlalchemy import select
+
+        async def _load() -> TopicData | None:
+            sessionmaker = get_sessionmaker()
+            async with sessionmaker() as session:
+                row = await session.execute(
+                    select(Concept).where(Concept.id == topic_id)
+                )
+                c = row.scalar_one_or_none()
+                if c is None or not (c.script and c.rubric):
+                    return None
+                return TopicData(
+                    topic_id=c.id,
+                    topic=c.name,
+                    script=c.script,
+                    rubric=c.rubric,
+                    grade=str(c.class_ or ""),
+                    subject=c.subject_id,
+                    lang=lang or "en",
+                    rubric_levels=c.rubric_levels,
+                )
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop is not None:
+            # Inside a running loop (FastAPI): run a short-lived thread loop.
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                return ex.submit(asyncio.run, _load()).result(timeout=5)
+        return asyncio.run(_load())
+    except Exception:
+        return None
+
+
 def fetch_topic(topic_id: str, lang: str = "en") -> TopicData | None:
-    """Resolve topic_id -> TopicData. FAISS lookup later; seed dict now."""
-    topic = SEED_TOPICS.get(topic_id)
+    """Resolve topic_id -> TopicData. DB gold row first, seed dict fallback."""
+    topic = _fetch_from_db(topic_id, lang)
+    if topic is None:
+        topic = SEED_TOPICS.get(topic_id)
     if topic is None:
         return None
     if lang and lang != topic.lang:

@@ -9,5 +9,3 @@ dependencies = [
   "httpx",
 ]
 
-[tool.ruff]
-line-length = 100

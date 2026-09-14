@@ -1,5 +1,6 @@
-import re
 import json
+import re
+
 
 def _strip_code_fences(text: str) -> str:
     stripped = text.strip()
