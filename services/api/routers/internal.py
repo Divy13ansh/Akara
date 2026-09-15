@@ -10,12 +10,17 @@ from datetime import UTC, datetime
 
 from akara_db.enums import MasteryStatus, MediaStatus
 from akara_db.models import Concept, ConceptMedia, UserConceptMastery, VideoRenderJob
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 
 from services.api.config import settings
-from services.api.deps import DbSession, OptionalUser, require_webhook_secret
-from services.api.redis_client import cache_invalidate, cache_invalidate_pattern, cache_set_json
+from services.api.deps import CurrentUser, DbSession, client_ip, require_webhook_secret
+from services.api.redis_client import (
+    cache_invalidate,
+    cache_invalidate_pattern,
+    cache_set_json,
+    rate_limit,
+)
 
 logger = logging.getLogger("akara-internal")
 
@@ -115,14 +120,25 @@ async def token(
     student_id: str,
     topic_id: str,
     lang: str | None = None,
+    request: Request = None,
     session: DbSession = None,
-    user: OptionalUser = None,
+    user: CurrentUser = None,
 ):
     """LiveKit token minting (legacy route; also proxied by nginx at /token).
+
+    Authenticated: the caller must present the student's own Bearer token and
+    `student_id` must match it, otherwise anyone on the internet could mint
+    LiveKit room tokens on your bill. Rate-limited per IP + per user.
     Checks concept unlock + media (soft warnings only — voice works without
     video). Language: explicit ?lang= wins, else the student's profile
     default_language — this is what drives the whole LiveKit pipeline
     (STT + TTS + tutor prompt) for the session."""
+    if student_id != user.id:
+        raise HTTPException(403, "student_id does not match signed-in user")
+    if not await rate_limit("token", client_ip(request), 30, 60):
+        raise HTTPException(429, "Too many voice session requests, try again shortly")
+    if not await rate_limit(f"token-user:{user.id}", user.id, 30, 60):
+        raise HTTPException(429, "Too many voice session requests, try again shortly")
     concept = await session.get(Concept, topic_id)
     if concept is None:
         raise HTTPException(404, f"unknown topic_id: {topic_id}")

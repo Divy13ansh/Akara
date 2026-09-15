@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 from typing import Annotated
 
 from akara_db.base import get_session
@@ -56,9 +57,15 @@ DbSession = Annotated[AsyncSession, Depends(get_session)]
 async def require_webhook_secret(
     x_webhook_secret: Annotated[str | None, Header()] = None,
 ) -> None:
-    """Guards /webhooks/* and /internal/* (voice worker, video worker)."""
+    """Guards /webhooks/* and /internal/* (voice worker, video worker).
+
+    Fail-closed: when WEBHOOK_SECRET is unset the endpoints return 503
+    instead of becoming open to the internet. Comparison is timing-safe.
+    """
     expected = settings.webhook_secret
-    if expected and x_webhook_secret != expected:
+    if not expected:
+        raise HTTPException(503, "Webhook auth not configured")
+    if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, expected):
         raise HTTPException(401, "Invalid webhook secret")
 
 

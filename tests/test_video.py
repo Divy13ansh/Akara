@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -34,7 +35,11 @@ def test_video_render_async_enqueue(monkeypatch):
         "language": "hi",
         "sync": False,
     }
-    response = client.post("/explain", json=payload)
+    headers = {}
+    secret = os.getenv("WEBHOOK_SECRET", "")
+    if secret:
+        headers["X-Webhook-Secret"] = secret
+    response = client.post("/explain", json=payload, headers=headers)
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "processing"

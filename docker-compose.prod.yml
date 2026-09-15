@@ -1,18 +1,39 @@
-# Akara — production overlay for a single VPS.
+# Akara — production overlay for a single EC2/VPS.
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile voice up -d --build voice
 # What it changes vs dev: internal-only services stop publishing ports to the
 # host. Only nginx :80 stays public (put TLS in front — see runbook §VPS).
 # Postgres/Redis/video/API/STT remain reachable over the compose network.
+# EC2 Security Group must allow ONLY 80/443 (and 22 restricted to your IP).
 services:
   postgres:
-    ports: []
+    ports: !reset []
+    # Never use the dev default password in prod — compose fails fast otherwise.
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in prod env}
   redis:
-    ports: []
+    ports: !reset []
   api:
-    ports: []
+    ports: !reset []
+    environment:
+      ENV: production
+      # Override the weak dev defaults baked into docker-compose.yml.
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
+  worker:
+    environment:
+      ENV: production
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
+  migrate:
+    environment:
+      ENV: production
+      ASYNC_DATABASE_URL: postgresql+asyncpg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
+      DATABASE_URL: postgresql+psycopg://akara:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/akara
   video:
-    ports: []
+    ports: !reset []
+    environment:
+      ENV: production
   stt:
-    ports: []
+    ports: !reset []

@@ -13,6 +13,9 @@ def _split_origins(raw: str) -> list[str]:
 @dataclass
 class Settings:
     app_name: str = "akara-api"
+    env: str = field(
+        default_factory=lambda: os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    )
 
     # auth
     jwt_secret: str = field(default_factory=lambda: os.getenv("JWT_SECRET", "dev-insecure-secret"))
@@ -79,6 +82,30 @@ class Settings:
     # a pending job with no progress for this long is considered dead
     # (video container restarted / crashed before callback) — genstatus sweeps it
     render_stale_minutes: int = 20
+
+    @property
+    def is_prod(self) -> bool:
+        return self.env in ("production", "prod")
+
+    def validate_prod(self) -> None:
+        """Fail fast on EC2/prod when secrets are missing or left as dev defaults.
+
+        Called from the API lifespan so `docker compose up` crashes loudly
+        instead of serving an open deployment.
+        """
+        if not self.is_prod:
+            return
+        problems: list[str] = []
+        if (
+            not self.jwt_secret
+            or self.jwt_secret == "dev-insecure-secret"
+            or len(self.jwt_secret) < 32
+        ):
+            problems.append("JWT_SECRET must be set to a strong random value (>=32 chars)")
+        if not self.webhook_secret or len(self.webhook_secret) < 16:
+            problems.append("WEBHOOK_SECRET must be set (>=16 chars)")
+        if problems:
+            raise RuntimeError("insecure production config: " + "; ".join(problems))
 
 
 settings = Settings()

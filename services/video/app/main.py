@@ -1,10 +1,11 @@
+import hmac
 import json
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -24,19 +25,46 @@ from stages.stage5_stitch import (
 from utils.cost_tracker import finalize_and_log, init_tracker
 from utils.generate_uid import generate_video_id
 
-app = FastAPI(title="Akara Video Service", version="0.1.0")
+app = FastAPI(
+    title="Akara Video Service",
+    version="0.1.0",
+    # Internal-only worker: never serve docs/OpenAPI on a host network.
+    docs_url=None if os.getenv("ENV", "").lower() in ("production", "prod") else "/docs",
+    redoc_url=None if os.getenv("ENV", "").lower() in ("production", "prod") else "/redoc",
+    openapi_url=None
+    if os.getenv("ENV", "").lower() in ("production", "prod")
+    else "/openapi.json",
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 VIDEOS_DIR = PROJECT_ROOT / "outputs" / "videos"
 VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Internal worker: only the API container calls us over the compose network,
+# so CORS stays closed. (Was allow_origins=["*"] — any website could trigger
+# GPU renders from a visitor's browser.)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-Webhook-Secret"],
 )
+
+
+def _require_worker_secret(x_webhook_secret: str | None = Header(default=None)) -> None:
+    """The API already sends X-Webhook-Secret (video_client.py) — enforce it.
+
+    Fail-closed in production so an accidentally exposed :8001 can't be used
+    to burn GPU/Azure budget. Dev (no secret configured) stays open.
+    """
+    expected = os.getenv("WEBHOOK_SECRET", "")
+    if not expected:
+        if os.getenv("ENV", "").lower() in ("production", "prod"):
+            raise HTTPException(503, "Video worker auth not configured")
+        return
+    if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, expected):
+        raise HTTPException(401, "Invalid worker secret")
 
 
 class ExplainRequest(BaseModel):
@@ -232,7 +260,12 @@ def health():
 
 @app.post("/explain")
 @app.post("/render")
-def explain(req: ExplainRequest, background_tasks: BackgroundTasks):
+def explain(
+    req: ExplainRequest,
+    background_tasks: BackgroundTasks,
+    x_webhook_secret: str | None = Header(default=None),
+):
+    _require_worker_secret(x_webhook_secret)
     # Honor a caller-supplied job id (the API registers video_render_jobs with
     # this id BEFORE calling us, so /internal/render-callback can find it).
     video_id = req.video_id or generate_video_id()

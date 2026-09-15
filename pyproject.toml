@@ -53,7 +53,7 @@ extend-exclude = ["services/stt/vexyl_stt_server.py"]  # vendored upstream code 
 "services/scorer/llm_scorer.py" = ["BLE001"]
 "scripts/backfill_concept_quizzes.py" = ["DTZ011", "BLE001"]
 "scripts/seed_if_empty.py" = ["DTZ011", "TRY203", "BLE001"]
-# Internal router: /token legacy path intentionally unguarded; FastAPI DI style.
+# Internal router: FastAPI DI style.
 "services/api/routers/internal.py" = ["B008"]
 "services/api/deps.py" = ["B008"]
 # Daily-activity semantics: date.today() is the product definition of "today".

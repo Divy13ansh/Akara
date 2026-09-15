@@ -6,7 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv(".env.local")
@@ -42,12 +42,24 @@ async def lifespan(app: FastAPI):
     """
     from services.api.boot import run_boot_init
 
+    # Fail fast on EC2 when secrets are missing/weak (no open prod deploys).
+    settings.validate_prod()
     await run_boot_init()
     logger.info("boot init complete")
     yield
 
 
-app = FastAPI(title="akara-api", version="1.0.0", lifespan=lifespan)
+_is_prod = settings.is_prod
+app = FastAPI(
+    title="akara-api",
+    version="1.0.0",
+    lifespan=lifespan,
+    # Never expose interactive docs or the OpenAPI schema on a public host.
+    # Dev keeps /docs; prod serves API traffic only (nginx proxies /api/*).
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +68,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["X-Frame-Options"] = "DENY"
+    resp.headers["Referrer-Policy"] = "same-origin"
+    return resp
 
 
 @app.get("/health")
