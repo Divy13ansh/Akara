@@ -54,7 +54,7 @@ const PRACTICE_OPTIONS = [
     id: 'card' as const,
     title: 'Concept Card',
     badge: 'Study • Summary',
-    description: 'Concise takeaways, core principles & chemical formulas',
+    description: 'Concise takeaways, core principles & key formulas',
     bgClass: 'bg-[#C9381A]',
     cardGradient: 'bg-gradient-to-b from-[#C9381A] via-[#D13E1F] to-[#E54F2E]',
     imageSrc: '/concept_card.png',
@@ -296,7 +296,7 @@ export default function Practice() {
             </h1>
             <p className="text-stone-600 text-base sm:text-lg font-medium leading-relaxed">
               {activeMode === 'card'
-                ? 'Concise takeaways, core principles & chemical formulas'
+                ? 'Concise takeaways, core principles & key formulas'
                 : activeMode === 'mindmap'
                 ? 'Explore concepts, branch connections, and click nodes to expand relationships'
                 : (activeOption?.description || 'Interactive practice to strengthen your understanding.')}
@@ -834,11 +834,13 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
 
                   <div className="p-4 sm:p-5 rounded-2xl bg-black/25 border border-white/20 text-white space-y-2">
                     <div className="text-xs font-bold tracking-wider uppercase text-white/85">
-                      Chemical Formula / Equation
+                      Key detail
                     </div>
-                    <div className="font-mono font-bold text-sm sm:text-base md:text-lg text-white tracking-wide overflow-x-auto py-0.5">
-                      {flyingState.card.formula}
-                    </div>
+                    {flyingState.card.formula ? (
+                      <div className="font-mono font-bold text-sm sm:text-base md:text-lg text-white tracking-wide overflow-x-auto py-0.5">
+                        {flyingState.card.formula}
+                      </div>
+                    ) : null}
                     <div className="text-xs text-white/80 font-medium">
                       {flyingState.card.keyFact}
                     </div>
@@ -891,11 +893,13 @@ function ConceptCardRenderer({ conceptData }: { conceptData: GeneratedConceptDat
 
                       <div className="p-4 sm:p-5 rounded-2xl bg-black/25 border border-white/20 text-white space-y-2">
                         <div className="text-xs font-bold tracking-wider uppercase text-white/85">
-                          Chemical Formula / Equation
+                          Key detail
                         </div>
-                        <div className="font-mono font-bold text-sm sm:text-base md:text-lg text-white tracking-wide overflow-x-auto py-0.5">
-                          {topRevealedCard.formula}
-                        </div>
+                        {topRevealedCard.formula ? (
+                          <div className="font-mono font-bold text-sm sm:text-base md:text-lg text-white tracking-wide overflow-x-auto py-0.5">
+                            {topRevealedCard.formula}
+                          </div>
+                        ) : null}
                         <div className="text-xs text-white/80 font-medium">
                           {topRevealedCard.keyFact}
                         </div>
@@ -1557,12 +1561,11 @@ const EXPLANATION_DURATION_MS = 5000; // Keep explanation for 5 seconds
  * 10 questions with auto-advance, per-question timer, and score at the end.
  */
 function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData }) {
-  const questions =
-    conceptData.quiz && conceptData.quiz.length > 0
-      ? conceptData.quiz
-      : TEN_DEFAULT_CHEMISTRY_QUESTIONS;
-  const usingFallback = !(conceptData.quiz && conceptData.quiz.length > 0);
-  const quizPending = conceptData.quizStatus === 'generating' && conceptData.quiz.length === 0;
+  // Questions come ONLY from the backend (quiz pipeline per concept+language).
+  // Never show another topic's sample set: with no backend questions yet we
+  // show a getting-ready / retry notice instead.
+  const questions = conceptData.quiz ?? [];
+  const quizPending = conceptData.quizStatus === 'generating' && questions.length === 0;
 
   // Hooks must run unconditionally (before any early return) so a
   // generating→ready transition never breaks hook order.
@@ -1703,13 +1706,22 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
   // pending and ready states.
   if (quizPending) return pendingQuizNotice;
 
+  if (questions.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-stone-200 p-10 text-center max-w-xl mx-auto">
+        <h3 className="mt-4 text-base font-bold text-stone-900">Your quiz isn't ready yet…</h3>
+        <p className="mt-1 text-xs text-stone-500">Generation hit a snag. Give it a few seconds, then refresh.</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-4 px-5 py-2 rounded-full border-2 border-[#6d0e00] text-[#6d0e00] text-xs font-bold hover:bg-[#6d0e00] hover:text-white transition-colors cursor-pointer">Check again</button>
+      </div>
+    );
+  }
+
   return (
     <div ref={quizContainerRef} className="w-full bg-white rounded-3xl p-6 sm:p-10 shadow-md space-y-6 relative">
       {/* Header with Question Counter & Timer (No separating lines, no background on question counter) */}
       <div className="flex items-center justify-between gap-4">
         <span className="text-base sm:text-lg font-bold text-stone-900 tracking-tight">
           Question {currentIndex + 1} of {questions.length}
-          {usingFallback && <span className="ml-2 text-[11px] font-medium text-stone-500">(sample set)</span>}
         </span>
 
         {/* Timer Badge with #6d0e00 - Hidden during explanation time, NO clock illustration */}
@@ -1864,7 +1876,7 @@ function QuickQuizRenderer({ conceptData }: { conceptData: GeneratedConceptData 
               <div className="text-xs sm:text-sm text-stone-600 leading-relaxed px-1">
                 {missedConcepts.length > 0 ? (
                   <p>
-                    You must revisit <strong className="text-stone-900 font-semibold">{missedConcepts.slice(0, 3).join(', ')}{missedConcepts.length > 3 ? ` and ${missedConcepts.length - 3} more` : ''}</strong>. Reviewing these topics will help you better your conceptual understanding, address gaps in the fundamentals, and master chemical balancing with confidence.
+                    You must revisit <strong className="text-stone-900 font-semibold">{missedConcepts.slice(0, 3).join(', ')}{missedConcepts.length > 3 ? ` and ${missedConcepts.length - 3} more` : ''}</strong>. Reviewing these topics will help you better your conceptual understanding, address gaps in the fundamentals, and master this concept with confidence.
                   </p>
                 ) : (
                   <p>
