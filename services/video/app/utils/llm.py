@@ -16,7 +16,7 @@ def call_llm(prompt: str) -> str:
     llm_provider = os.getenv("LLM_PROVIDER", "azure").lower()
 
     if llm_provider == "azure":
-        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-04-14")
+        api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
         endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         api_key = os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("AZURE_API_KEY")
         deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")

@@ -103,6 +103,14 @@ async def score_session(ctx, session_id: str) -> dict:
 
         result = await asyncio.to_thread(_score)
 
+        # Idempotent write: the evaluate endpoint already stored instant
+        # heuristic rows for this session; the worker refinement REPLACES
+        # them (unique: session_id + concept_id + rubric_point_id).
+        from sqlalchemy import delete as sa_delete
+
+        await db.execute(
+            sa_delete(CoveragePoint).where(CoveragePoint.session_id == session_id)
+        )
         for p in result.points:
             db.add(
                 CoveragePoint(

@@ -53,15 +53,28 @@ def _get_azure_client() -> AzureOpenAI:
 
 
 def _format_rubric_for_scorer(topic: TopicData) -> str:
-    """Format rubric (leveled or flat) for the scorer prompt."""
+    """Format rubric (leveled or flat) for the scorer prompt.
+
+    rubric_levels may be RubricLevel objects OR plain JSONB dicts (the worker
+    passes concept.rubric_levels straight from the DB) — handle both."""
     if topic.rubric_levels:
         lines = []
         for level in topic.rubric_levels:
-            lines.append(f"Level {level.level} ({level.name}): {level.description}")
-            for pt in level.points:
-                line = f"  Point {pt.id}: {pt.text}"
-                if pt.misconception:
-                    line += f" [MISCONCEPTION: {pt.misconception}]"
+            if isinstance(level, dict):
+                lv, name, desc = level.get("level"), level.get("name"), level.get("description")
+                points = level.get("points", []) or []
+            else:
+                lv, name, desc = level.level, level.name, level.description
+                points = level.points
+            lines.append(f"Level {lv} ({name}): {desc}")
+            for pt in points:
+                if isinstance(pt, dict):
+                    pid, text, misc = pt.get("id"), pt.get("text"), pt.get("misconception")
+                else:
+                    pid, text, misc = pt.id, pt.text, pt.misconception
+                line = f"  Point {pid}: {text}"
+                if misc:
+                    line += f" [MISCONCEPTION: {misc}]"
                 lines.append(line)
         return "\n".join(lines)
     return topic.rubric
@@ -130,9 +143,15 @@ def score_transcript_llm(
 
     except Exception as e:
         logger.error("LLM scorer failed, falling back to heuristic: %s", e)
-        # Fallback to heuristic scorer
+        # Fallback chain: voice scorer (has the richest heuristic) where
+        # available, else the scorer-package heuristic (always shipped —
+        # the api/worker image does NOT include services/voice, so the
+        # first two imports fail there by design).
         try:
             from services.voice.scorer import score_transcript as heuristic_score
         except ImportError:
-            from voice.scorer import score_transcript as heuristic_score
+            try:
+                from voice.scorer import score_transcript as heuristic_score
+            except ImportError:
+                from scorer.heuristic import score_transcript as heuristic_score
         return heuristic_score(transcript, topic, transcript.student_id)

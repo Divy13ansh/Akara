@@ -119,9 +119,10 @@ services:
     env_file: .env.local
     environment:
       AKARA_API_URL: http://api:8000
-      # stage4_tts reads AZURE_SPEECH_REGION; default to the endpoint's region
-      # so a lowercase `region=` in .env.local can't silently break TTS.
-      AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION:-eastus}
+      # NOTE: do NOT set AZURE_* here — `environment:` overrides `env_file`,
+      # so any default here would silently clobber the real key/region in
+      # .env.local (this previously forced eastus onto a uaenorth key → 401
+      # on every synthesis → silent videos). stage4_tts fails fast if unset.
     ports:
       - "8001:8001"
     volumes:

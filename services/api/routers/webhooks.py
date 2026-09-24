@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from akara_db.models import Concept, ProviderCost, Session, Transcript, TranscriptTurn
+from akara_db.models import Concept, ProviderCost, Session, Transcript, TranscriptTurn, User
 from fastapi import APIRouter, Depends, HTTPException
 
 from services.api.deps import DbSession, require_webhook_secret
@@ -53,6 +53,14 @@ async def transcript_webhook(payload: dict, session: DbSession):
         raise HTTPException(400, "student_id required")
 
     concept = await session.get(Concept, topic_id) if topic_id else None
+
+    # Unknown student (synthetic/test rooms, deleted users): the transcript
+    # is already saved locally by the voice agent — skip persisting instead
+    # of 500ing on the sessions_student_id_fkey FK (which also triggers
+    # pointless agent retries).
+    if await session.get(User, student_id) is None:
+        logger.warning("transcript from unknown student skipped: %s", student_id)
+        return {"accepted": False, "reason": "unknown student", "session_id": room_name}
 
     # Idempotency: same room delivered twice (3× retry) → score once.
     existing = await session.get(Session, room_name)

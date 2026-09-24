@@ -40,8 +40,15 @@ def tts_generate(script, video_id: str, scene_ids: list, language: str = "englis
         "ta": "ta-IN-PallaviNeural",
         "marathi": "mr-IN-AarohiNeural",
         "mr": "mr-IN-AarohiNeural",
-        "bengali": "bn-IN-TanishaNeural",
-        "bn": "bn-IN-TanishaNeural",
+        "bengali": "bn-IN-TanishaaNeural",
+        "bn": "bn-IN-TanishaaNeural",
+        "punjabi": "pa-IN-VaaniNeural",
+        "pa": "pa-IN-VaaniNeural",
+        "urdu": "ur-IN-GulNeural",
+        "ur": "ur-IN-GulNeural",
+        "odia": "or-IN-SubhasiniNeural",
+        "oriya": "or-IN-SubhasiniNeural",
+        "or": "or-IN-SubhasiniNeural",
         "kannada": "kn-IN-SapnaNeural",
         "kn": "kn-IN-SapnaNeural",
         "malayalam": "ml-IN-SobhanaNeural",
@@ -82,24 +89,49 @@ def tts_generate(script, video_id: str, scene_ids: list, language: str = "englis
         except Exception as e:
             print(f"[cost-tracker] Error recording TTS characters: {e}")
 
+        if not text or not text.strip():
+            # Azure reports SynthesizingAudioCompleted with a 0-byte file for
+            # empty input — fail loud instead of producing a corrupt WAV that
+            # crashes mux_audio later with an inscrutable ffprobe error.
+            raise RuntimeError(f"Empty narration for {scene_id} — check stage3 script output")
+
         audio_path = output_dir / f"{scene_id}.wav"
 
-        audio_config = speechsdk.audio.AudioOutputConfig(
-            filename=str(audio_path)
-        )
-
-        synthesizer = speechsdk.SpeechSynthesizer(
-            speech_config=speech_config,
-            audio_config=audio_config
-        )
-
-        try:
-            result = synthesizer.speak_text_async(text).get()
-            if result.reason != speechsdk.ResultReason.SynthesizingAudioCompleted:
-                raise RuntimeError(f"Azure Speech Synthesis failed: {result.reason}")
-            print(f"[✓] Generated audio for {scene_id}")
-        except Exception as e:
-            print(f"[tts] Azure TTS failed for {scene_id} ({e}) — falling back to silence.")
+        last_err: Exception | None = None
+        for attempt in range(3):
+            try:
+                audio_config = speechsdk.audio.AudioOutputConfig(
+                    filename=str(audio_path)
+                )
+                synthesizer = speechsdk.SpeechSynthesizer(
+                    speech_config=speech_config,
+                    audio_config=audio_config
+                )
+                result = synthesizer.speak_text_async(text).get()
+                if result.reason != speechsdk.ResultReason.SynthesizingAudioCompleted:
+                    detail = ""
+                    try:
+                        cd = result.cancellation_details
+                        detail = f" (cancel_reason={cd.reason}, error={cd.error_details})"
+                    except Exception:
+                        pass
+                    raise RuntimeError(f"Azure Speech Synthesis failed: {result.reason}{detail}")
+                # A voice that can't speak the script (e.g. English voice fed
+                # Gurmukhi) also "completes" with a 0-byte file — validate.
+                size = audio_path.stat().st_size if audio_path.exists() else 0
+                if size == 0:
+                    raise RuntimeError(
+                        f"0-byte audio for {scene_id} (voice={voice_name}, "
+                        f"text_chars={len(text)}) — voice likely can't speak this script"
+                    )
+                print(f"[✓] Generated audio for {scene_id} ({size} bytes)")
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                print(f"[tts] attempt {attempt + 1}/3 failed for {scene_id}: {e}")
+        if last_err is not None:
+            print(f"[tts] Azure TTS failed for {scene_id} ({last_err}) — falling back to silence.")
             _generate_silence(audio_path, duration=6)
 
 
