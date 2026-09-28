@@ -14,7 +14,7 @@ regional languages as first-class citizens.
 
 ```
 ┌──────┐  picks topic + language   ┌─────┐  mints LiveKit token + TopicData  ┌──────────┐
-│ Web  │ ────────────────────────▶ │ API │ ────────────────────────────────▶ │ LiveKit  │
+│ Web  │ ────────────────────────▶ │ fAPI │ ────────────────────────────────▶ │ LiveKit  │
 │ SPA  │                           │     │                                    │  room    │
 └──┬───┘                           └──┬──┘                                    └────┬─────┘
    │ watches Manim video              │ seeds catalog (2,027 concepts)            │ voice agent:
