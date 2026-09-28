@@ -4,9 +4,10 @@ Revision ID: ad8f17b309e7
 Revises: 
 Create Date: 2026-09-14 18:34:24.241966
 """
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = 'ad8f17b309e7'
 down_revision = None

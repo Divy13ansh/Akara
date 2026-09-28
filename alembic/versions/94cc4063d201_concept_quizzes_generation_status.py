@@ -4,9 +4,9 @@ Revision ID: 94cc4063d201
 Revises: ad8f17b309e7
 Create Date: 2026-09-14 21:27:11.929398
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = '94cc4063d201'
 down_revision = 'ad8f17b309e7'

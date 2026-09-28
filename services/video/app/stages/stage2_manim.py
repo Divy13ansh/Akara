@@ -123,7 +123,7 @@ def _sanitize_indic_tex(code: str) -> str:
                 result.append(span[pos : sm.start()])
                 try:
                     value = ast.literal_eval(sm.group(0))
-                except Exception:  # noqa: BLE001 - keep unparseable literals as-is
+                except Exception:
                     result.append(sm.group(0))
                     pos = sm.end()
                     continue
@@ -265,7 +265,7 @@ def _convert_tex_literals(span: str) -> str:
             else:
                 try:
                     value = ast.literal_eval(sm.group(0))
-                except Exception:  # noqa: BLE001 - keep unparseable literals as-is
+                except Exception:
                     value = None
                 if isinstance(value, str):
                     converted = _tex_to_unicode(value)

@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "video" / "app"))
 sys.path.insert(0, str(ROOT / "services" / "video" / "app" / "stages"))
 
-from stage2_manim import _sanitize_text_calls, _tex_to_unicode  # noqa: E402
+from stage2_manim import _sanitize_text_calls, _tex_to_unicode
 
 
 def test_chemistry_arrow_and_subscripts():
@@ -65,7 +65,7 @@ def test_multiline_text_call():
 def test_converts_literal_beside_variable_arg():
     # The literal r"\Delta" is convertible even when a sibling arg references
     # a variable — only literals are rewritten, code around them is preserved.
-    code = 't = Text(some_var, r"\Delta")'
+    code = r't = Text(some_var, r"\Delta")'
     out = _sanitize_text_calls(code)
     assert "some_var" in out
     assert "'Δ'" in out

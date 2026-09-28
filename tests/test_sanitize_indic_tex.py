@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "video" / "app"))
 sys.path.insert(0, str(ROOT / "services" / "video" / "app" / "stages"))
 
-from stage2_manim import _sanitize_indic_tex  # noqa: E402
+from stage2_manim import _sanitize_indic_tex
 
 
 def test_math_tex_with_hindi_becomes_text():
