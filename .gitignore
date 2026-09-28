@@ -6,6 +6,7 @@ __pycache__/
 data/raw/
 data/indices/
 docs/interview-prep
+docs/interview-qa/
 *.mp4
 *.wav
 node_modules/
