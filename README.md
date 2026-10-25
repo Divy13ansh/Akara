@@ -23,7 +23,7 @@ The first half of this document describes the product and the learner experience
 | Learning model | Watch, explain, practice, master |
 | Languages | 14 Indian languages plus Indian English |
 | Assessment | Four-level rubric with a 70 percent mastery gate |
-| AI posture | Fully open-weight, self-hosted models |
+| AI posture | 100% open-weight, self-hosted models ([Prashna-7b](https://huggingface.co/rachitgoyell/Prashna-7b), [Manimancer-4B](https://huggingface.co/rachitgoyell/Manimancer-4B), IndicConformer, Indic-TTS) |
 
 ---
 
@@ -337,6 +337,19 @@ The engineering design is organized around four principles.
 
 The system runs as a single Docker Compose deployment on a modest VPS, with an optional GPU profile for faster rendering and voice inference.
 
+### Open-Source AI Stack
+
+Zero proprietary cloud AI APIs. All speech, language, and evaluation components run self-hosted with open weights:
+
+| Component | Model | Architecture / License | Role in Akara |
+|---|---|---|---|
+| **Socratic Tutor** | [`rachitgoyell/Prashna-7b`](https://huggingface.co/rachitgoyell/Prashna-7b) | Qwen2.5-7B-Instruct (Apache-2.0) · GRPO fine-tuned | Real-time Socratic voice tutor; probes understanding gaps turn-by-turn; `<think>` reasoning stripped before TTS |
+| **General & Media LLM** | [`rachitgoyell/Manimancer-4B`](https://huggingface.co/rachitgoyell/Manimancer-4B) | Qwen3-4B (Apache-2.0) · STEM & Manim SFT | Scene planning, Manim codegen + auto-fix loop, quiz generation, and Tier 2 entailment scoring |
+| **Speech Recognition (STT)** | AI4Bharat IndicConformer-600M | Conformer 600M (MIT) · 16 kHz mono | Low-latency streaming Indic speech-to-text via self-hosted VEXYL-STT WebSocket server |
+| **Speech Synthesis (TTS)** | AI4Bharat Indic-TTS (`indic-parler-tts`) | Parler-TTS transformer (Apache-2.0) | High-quality vernacular narration and mentor voice across 13 Indic languages + Indian English |
+| **Voice Activity Detection** | Silero VAD | Open-weight (MIT) | Real-time speech detection, 800 ms silence endpointing, and natural student barge-in |
+| **Textbook Grounding (RAG)** | `multilingual-e5` + FAISS | Dense vector index | Offline NCERT textbook passage retrieval to ground scene plans and canonical scripts |
+
 ---
 
 ## 11. High-Level Design
@@ -365,10 +378,10 @@ flowchart LR
     subgraph AI["Self-hosted AI services"]
         VIDEO["Video rendering"]
         VOICE["Voice agent"]
-        STT["Speech recognition"]
-        TTS["Speech synthesis"]
-        LLM1["General and code model"]
-        LLM2["Socratic tutor"]
+        STT["Speech recognition<br/>IndicConformer-600M"]
+        TTS["Speech synthesis<br/>Indic-TTS"]
+        LLM1["General & code model<br/>Manimancer-4B"]
+        LLM2["Socratic tutor<br/>Prashna-7b"]
     end
 
     WEB --> NGINX
@@ -416,7 +429,7 @@ flowchart LR
 | Video | Five-stage explainer generation and publication | CPU and storage intensive, bounded concurrency |
 | Voice | Real-time WebRTC session, Socratic dialogue, transcript capture | One worker process per active session |
 | Speech services | Streaming Indic speech-to-text and vernacular speech synthesis | GPU preferred, CPU supported |
-| Language models | Quiz and doubts content, summaries, scene planning, scoring, Socratic probing | Shared inference endpoints |
+| Language models | Content, scene planning, scoring ([Manimancer-4B](https://huggingface.co/rachitgoyell/Manimancer-4B)), Socratic probing ([Prashna-7b](https://huggingface.co/rachitgoyell/Prashna-7b)) | Shared inference endpoints |
 | Data services | Durable system of record, cache, distributed locks, render slots, job queue, rate limits | Vertical scaling and backups |
 
 ---
@@ -508,34 +521,46 @@ Media moves through pending, processing, complete, and failed states. A failed r
 The video service converts a canonical concept script into an animated explainer. Each concept and language pair is rendered once, published to object storage, and served to every student from the CDN.
 
 ```mermaid
-flowchart TD
-    T["Trigger<br/>first student opens an unrendered concept"] --> S1["1. Scene planning<br/>script and context become a timed scene plan"]
-    S1 --> S2["2. Animation rendering<br/>scene code generated and rendered in isolation"]
-    S2 --> E{"Render error"}
-    E -- "Yes" --> F["Automatic repair<br/>error returned to the model within a bounded budget"]
-    F --> S2
-    E -- "No" --> S3["3. Script alignment<br/>narration timing matched to scene durations"]
-    S3 --> S4["4. Speech synthesis<br/>vernacular narration generated per scene"]
-    S4 --> S5["5. Assembly<br/>audio and video stitched, normalized, exported"]
-    S5 --> PUB["Publication<br/>video, audio, and thumbnail uploaded"]
-    PUB --> CB["Callback<br/>media complete, practice generation enqueued"]
-    CB --> Q["Practice bundle<br/>quiz, summary, cards, mind map, mentor prompt"]
+flowchart LR
+  subgraph S1["1 · GROUND"]
+    A("<b>NCERT Chapter</b><br/>topic · grade · language") --> B("<b>RAG Retrieval</b><br/>multilingual-e5 + FAISS<br/><i>exact textbook passage</i>")
+  end
+  subgraph S2["2 · VISUALS"]
+    C("<b>Scene Planner</b><br/>Manimancer-4B<br/><i>topic to scene-by-scene plan</i>") --> D("<b>Manim Code + Render</b><br/>Manimancer-4B<br/><i>writes, renders, auto-fixes</i>")
+  end
+  subgraph S3["3 · VOICE"]
+    E("<b>Script Writer</b><br/>Manimancer-4B<br/><i>narration timed to scenes</i>") --> F("<b>Indic Parler-TTS</b><br/>AI4Bharat<br/><i>voice for every scene</i>")
+  end
+  subgraph S4["4 · PUBLISH"]
+    H("<b>ffmpeg Stitch</b><br/>mux + concatenate<br/><i>audio synced to video</i>") --> I("<b>Final MP4</b><br/>R2 storage + CDN<br/><i>instant replay for students</i>")
+  end
+  B --> C
+  D --> E
+  D -- "scene MP4s" --> H
+  F --> H
 
-    classDef trigger fill:#F5D5D0,stroke:#6D0E00,stroke-width:2px,color:#4A0D00
-    classDef stage fill:#EDE9FE,stroke:#6D28D9,stroke-width:2px,color:#3B1470
-    classDef data fill:#DCFCE7,stroke:#15803D,stroke-width:2px,color:#14532D
-    classDef job fill:#FEF3C7,stroke:#B45309,stroke-width:2px,color:#78350F
-    class T,CB trigger
-    class S1,S2,S3,S4,S5,F stage
-    class PUB data
-    class E,Q job
+  classDef llm fill:#5B21B6,stroke:#F5C451,stroke-width:2.5px,color:#ffffff
+  classDef oss fill:#0F766E,stroke:#5EEAD4,stroke-width:2px,color:#ffffff
+  classDef step fill:#ffffff,stroke:#B8C2DD,stroke-width:2px,color:#0B1033
+  classDef done fill:#0B1033,stroke:#F5C451,stroke-width:2px,color:#ffffff
+  linkStyle default stroke:#9AA5C0,stroke-width:2px
+  style S1 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S2 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S3 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S4 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  class A,H step
+  class B,F oss
+  class C,D,E llm
+  class I done
 ```
 
-**Planning and rendering.** The canonical script and retrieved NCERT context become a scene sequence. Each scene describes the visual objects, mathematical elements, labels, and narration that belong together, then is translated into animation code and rendered in isolation. If compilation fails, the error returns to the model for a bounded repair attempt. If repair still fails, a neutral placeholder preserves the rest of the video.
+The rendering engine decomposes video production into five stages:
 
-**Alignment and speech.** Narration is aligned to rendered scene durations, then synthesized in the target language using the self-hosted speech service. The result is a set of audio segments with consistent sample rates.
-
-**Assembly and publication.** The final video is stitched, audio is normalized and muxed, the standalone audio track is extracted for Listen mode, and the video, audio, and thumbnail are uploaded. The render callback marks the media complete and triggers practice generation.
+1. **Scene planning.** The canonical script and retrieved NCERT textbook context (`multilingual-e5`) are processed by [**Manimancer-4B**](https://huggingface.co/rachitgoyell/Manimancer-4B) to produce a structured scene plan (`outputs/scenes.json`), specifying visual objects, mathematical elements, color emphasis, and timestamps per scene.
+2. **Animation codegen and render.** Manimancer-4B generates modular Manim Python classes for each scene. An **Indic-in-Tex Sanitizer** pre-emptively intercepts any `MathTex(...)` or `Tex(...)` calls containing non-Latin Unicode (Devanagari, Tamil, etc.) and rewrites them into Pango `Text(...)` elements to prevent LaTeX compilation failures. Scenes are rendered headlessly via Manim CE. If compilation fails, traceback errors return to Manimancer-4B in an automated repair loop (up to 3 retries).
+3. **Script alignment.** Narration is aligned against rendered scene durations (`sections.json`) by Manimancer-4B to ensure speech fits the visual pacing without hallucinating new concepts.
+4. **Vernacular speech synthesis.** Per-scene narration is synthesized across 13 Indic languages and Indian English using **AI4Bharat Indic-TTS** (`indic-parler-tts`) into 16 kHz mono WAV audio.
+5. **Assembly and publication.** Audio and video streams are muxed via `ffmpeg` (`-c:v copy -shortest`), concatenated, and published to Cloudflare R2 object storage. A webhook callback updates `generation_status` to `complete`, unlocking instant replay from CDN and enqueuing practice bundle generation.
 
 ### Media Generation Lifecycle
 
@@ -548,54 +573,51 @@ The generation-status endpoint is the most frequently polled surface in the prod
 The voice loop is a real-time conversation between the student and a Socratic mentor. It runs over WebRTC, with speech recognition, reasoning, and speech synthesis connected in a tight loop. The hot path deliberately excludes vector retrieval and heavy assessment. The concept is resolved before the room starts, and deep scoring happens after the room ends.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant S as Student
-    participant W as Web application
-    participant A as API
-    participant L as LiveKit
-    participant V as Voice agent
-    participant R as Speech recognition
-    participant M as Socratic model
-    participant T as Speech synthesis
+flowchart LR
+  subgraph S1["1 · LISTEN"]
+    A("<b>Student Speaks</b><br/>LiveKit WebRTC<br/><i>explains it aloud</i>") --> B("<b>Silero VAD + VEXYL-STT</b><br/>IndicConformer-600M<br/><i>Hindi · English transcript</i>")
+  end
+  subgraph S2["2 · THINK"]
+    R("<b>NCERT Rubric</b><br/>script + levels L1-L4<br/><i>ground truth for the tutor</i>") --> C("<b>Prashna-7b</b><br/>Socratic tutor<br/><i>finds the gap vs. the script</i>")
+    C --> D{{"<b>Mastery Check</b><br/>level L1-L4 covered?"}}
+  end
+  subgraph S3["3 · SPEAK"]
+    E("<b>One Question</b><br/>targets the gap<br/><i>never reveals the answer</i>") --> F("<b>Indic Parler-TTS</b><br/>AI4Bharat<br/><i>speaks the student's language</i>")
+  end
+  subgraph S4["4 · SCORE"]
+    G("<b>Session Ends</b><br/>all levels cleared") --> H("<b>Async Scoring</b><br/>heuristic + LLM judge<br/><i>updates mastery</i>")
+  end
+  B -- "transcript" --> C
+  D -- "not yet" --> E
+  F -- "next turn" --> A
+  D -- "mastered" --> G
 
-    S->>W: Start Explain session
-    W->>A: Request voice token
-    A->>A: Load script, rubric, and language
-    A-->>W: Room name and session token
-    W->>L: Join room with microphone
-    L->>V: Dispatch agent with concept metadata
-    V->>V: Build instructions in the chosen language
-    V->>T: Synthesize greeting
-    T-->>V: Greeting audio
-    V->>L: Publish mentor audio
-    L-->>S: Mentor speaks
-    loop Each conversational turn
-        S->>L: Student speech
-        L->>V: Audio frames
-        V->>R: Stream speech
-        R-->>V: Transcript
-        V->>V: Compare explanation to current rubric level
-        V->>M: Request one focused probe
-        M-->>V: Single Socratic question
-        V->>T: Synthesize question
-        T-->>V: Question audio
-        V->>L: Publish mentor audio
-        L-->>S: Mentor responds
-    end
-    S->>W: End session
-    V->>A: Send signed transcript
-    A->>A: Enqueue deep scoring
-    A-->>W: Immediate session summary
+  classDef llm fill:#5B21B6,stroke:#F5C451,stroke-width:2.5px,color:#ffffff
+  classDef oss fill:#0F766E,stroke:#5EEAD4,stroke-width:2px,color:#ffffff
+  classDef step fill:#ffffff,stroke:#B8C2DD,stroke-width:2px,color:#0B1033
+  classDef done fill:#0B1033,stroke:#F5C451,stroke-width:2px,color:#ffffff
+  classDef gate fill:#FFF4D6,stroke:#F59E0B,stroke-width:2px,color:#0B1033
+  linkStyle default stroke:#9AA5C0,stroke-width:2px
+  style S1 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S2 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S3 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  style S4 fill:#F8FAFF,stroke:#DDE3F3,stroke-width:1.5px,color:#475569
+  class A,R,E,G step
+  class B,F oss
+  class C llm
+  class D gate
+  class H done
 ```
 
 The voice agent maintains conversational state and walks the rubric from Level 1 through Level 4, asking one question per turn. It does not reveal answers. When a student is stuck, it scaffolds down to a concrete physical situation, then guides the student back to the formal explanation.
 
-**Transport and turn-taking.** LiveKit provides the real-time audio room. The browser sends the student's microphone track and receives the mentor's audio track. Local voice activity detection determines when the student has finished speaking and enables barge-in, so the student can interrupt without waiting for the current response to finish.
+**Transport and turn-taking.** LiveKit provides the real-time audio room. The browser sends the student's microphone track and receives the mentor's audio track. Local **Silero VAD** (configured with 800 ms silence duration and 0.5/0.3 confidence thresholds) accurately endpoints student utterances and enables natural barge-in interruptions.
 
-**Speech and reasoning.** A self-hosted Indic speech recognition service streams transcripts over WebSocket, tuned for noisy, real-world audio. A dedicated open-weight tutor model receives the concept script, rubric, language, and conversation history, then returns one short, speakable question that targets the largest current gap. The prompt prevents markdown, bullet lists, and lecturer-style explanations.
+**Speech recognition.** The self-hosted **VEXYL-STT** WebSocket server wraps AI4Bharat **IndicConformer-600M** (Conformer encoder + CTC/RNN-T decoder), streaming low-latency transcripts across Hindi, English, and code-switched Hinglish.
 
-**Synthesis and capture.** A self-hosted Indic speech synthesis service generates the mentor's voice in the session language and streams it into the room. When the room ends, the agent sends the complete transcript and per-turn latency measurements to the API through a secret-guarded webhook, and the API enqueues deep scoring.
+**Socratic reasoning with [`rachitgoyell/Prashna-7b`](https://huggingface.co/rachitgoyell/Prashna-7b).** Prashna-7b is a Qwen2.5-7B-Instruct fine-tune trained with GRPO on synthetic Socratic tutoring dialogues to probe gaps rather than provide answers. It plans its pedagogical strategy using internal `<think>...</think>` reasoning blocks; the runtime automatically strips `<think>` tags before passing text to TTS so internal reasoning is never voiced. The agent strictly enforces leveled rubric gating (L1 Recall → L2 Conceptual → L3 Boundary/Misconceptions → L4 Contextual application), probing only the active incomplete tier and advancing only when its mastery threshold is satisfied.
+
+**Synthesis and capture.** **AI4Bharat Indic-TTS** (`indic-parler-tts`) synthesizes natural, animated mentor speech in the student's chosen language. When the session ends, the agent dumps the immutable transcript with per-turn latency logs (`stt_lat_ms`, `llm_ttft_ms`, `tts_ttfb_ms`) to the API through a signed webhook to trigger deep scoring.
 
 ### Text Explanation Path
 
@@ -625,7 +647,7 @@ Akara separates live conversation from rigorous evaluation. The voice mentor nee
 
 The synchronous path normalizes the explanation, removes common stopwords in English and Hindi, applies lightweight stemming, and compares the result against the key terms in the rubric. It returns a provisional score and headline feedback immediately. Its purpose is to keep the interface responsive, not to make the final academic judgment.
 
-The asynchronous path operates on the complete transcript or written explanation. It splits the text into sentences, embeds them, and compares them against each rubric point. Candidate pairs are passed to an entailment classifier that decides whether the student's statement actually supports the rubric requirement or merely repeats keywords.
+The asynchronous path operates on the complete transcript or written explanation. It splits the text into sentences, embeds them, and compares them against each rubric point. Candidate pairs are evaluated by an entailment judge powered by [**Manimancer-4B**](https://huggingface.co/rachitgoyell/Manimancer-4B) (`services/scorer/llm_scorer.py`), which determines whether the student's statement genuinely demonstrates understanding of the rubric requirement or merely repeats keywords.
 
 Every rubric point receives one of three verdicts: **covered**, where the explanation entails the requirement; **missed**, where it does not address the requirement; or **misconceived**, where it asserts a contradictory or incorrect mental model. The verdict is stored with the student's exact quote. This makes the score auditable by a teacher or reviewer and makes the diagnostic meaningful to the student.
 
