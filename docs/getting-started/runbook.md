@@ -7,8 +7,9 @@ Python >=3.11, `uv`, Docker Desktop, `.env.local` (see `.env.example` for every 
 ## Single-command stack (primary flow — plan §3c)
 
 ```sh
-docker compose up -d                      # web+api+worker+video+stt+postgres+redis
-docker compose --profile voice up -d      # + LiveKit voice worker (uses the `stt` service)
+docker compose up -d                     # web+api+worker+video+stt+voice+postgres+redis
+# voice (LiveKit Feynman agent) is part of the default up now — it uses the
+# `stt` service for transcription and waits for it to be healthy before booting
 ```
 
 - App: **http://localhost** (nginx serves the SPA and proxies same-origin `/api`)
@@ -61,7 +62,7 @@ curl -X POST "http://localhost:8001/render" -H "Content-Type: application/json" 
 | `services/api/` | auth, curriculum, library, concepts, progress, webhooks, internal | yes (api/worker image) |
 | `services/worker/` | arq scoring queue consumer (D-15) | yes (same image) |
 | `services/scorer/` | LLM scorer + heuristic fallback | yes (same image) |
-| `services/voice/agent.py` | LiveKit realtime loop | yes (`--profile voice`) |
+| `services/voice/agent.py` | LiveKit realtime loop | yes (voice image, default up) |
 | `services/video/` | Manim + Neural TTS 5-stage pipeline → R2 → callback | yes (video image) |
 | `services/stt/` | VEXYL-STT server (vendored, Apache-2.0) — model cached in `stt_models` volume | yes (stt image) |
 | `packages/akara_db/` | SQLAlchemy models + syllabus.json (catalog source of truth) | no (lib) |
@@ -94,7 +95,7 @@ sudo ufw allow 22,80,443/tcp && sudo ufw enable
 # 5. Boot with the prod overlay (unpublishes 5432/6379/8000/8001/8091):
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 docker compose exec -T api alembic upgrade head     # migrations are NOT auto-run
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile voice up -d --build voice
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build voice
 ```
 
 - First boot takes a while: STT downloads ~2.4 GB once into `stt_models`
@@ -115,6 +116,8 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile voice 
 |---|---|
 | `relation "subjects" does not exist` on boot | run `uv run alembic upgrade head` |
 | genstatus stuck `pending` for >20 min | auto-swept as stale on next poll; if the video container was recreated mid-render, poll once more to re-trigger |
+| voice session connects but no greeting | `docker compose logs voice` must show `registered worker {"agent_name": "akara-voice"}`; if missing, `docker compose up -d voice` and re-check |
+| voice worker won't boot after `docker compose up` | it waits on `stt` healthy (first boot downloads ~2.4GB); check `docker compose logs stt` |
 | nginx 502 on `/api/*` after recreating api | fixed via nginx `resolver 127.0.0.11`; rebuild web (`docker compose up -d --build web`) |
 | TTS fails "Azure Speech key or region not set" | set `AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` (compose defaults region to `eastus`) |
 | R2 callback 404 | ensure `X-Webhook-Secret` matches on both sides; render job id must be echoed by `/explain` (`video_id` field) |

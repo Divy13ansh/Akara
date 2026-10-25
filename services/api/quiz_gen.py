@@ -16,6 +16,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+from typing import Iterator
 
 from akara_db.models import Concept, ConceptQuiz
 from sqlalchemy import select
@@ -23,13 +25,80 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger("akara-quiz")
 
+# LLM tokenizer glitches occasionally emit control-character garbage instead
+# of script text (observed 2026-10-25: Devanagari title/quiz fields came back
+# as `\u001c\u001f\u001f ... \u0005e\u001f\u001f` → unreadable "eee" tofu in
+# the UI). Reject such output BEFORE persisting; the caller's retry loop
+# (and later get_media recovery) gets one clean regeneration chance.
+_CTRL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+# Base Unicode block of each non-Latin language we serve. Used to reject a
+# response that ignored the requested language entirely (English fallback).
+_SCRIPT_BLOCK = {
+    "hi": 0x0900, "mr": 0x0900, "sa": 0x0900, "ne": 0x0900,  # Devanagari
+    "bn": 0x0980, "as": 0x0980,
+    "gu": 0x0A80, "pa": 0x0A00, "or": 0x0B00,
+    "ta": 0x0B80, "te": 0x0C00, "kn": 0x0C80, "ml": 0x0D00,
+    "ur": 0x0600,  # Arabic
+}
+
+
+def _iter_strings(value) -> Iterator[str]:
+    """Yield every string inside an arbitrary JSON-ish value."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from _iter_strings(v)
+    elif isinstance(value, (list, tuple)):
+        for v in value:
+            yield from _iter_strings(v)
+
+
+def _script_ratio(texts: list[str], block_start: int) -> float:
+    """Fraction of texts (length >= 12) carrying the target script's chars.
+
+    Math-only strings (options like "x²-4") legitimately lack script chars,
+    so this is a coarse ratio over longer strings, not a per-string check.
+    """
+    long_texts = [t for t in texts if len(t) >= 12]
+    if not long_texts:
+        return 1.0
+    with_script = sum(
+        1 for t in long_texts if any(block_start <= ord(c) < block_start + 0x100 for c in t)
+    )
+    return with_script / len(long_texts)
+
+
+def _validate_quiz_payload(data: dict, lang: str) -> None:
+    """Raise ValueError if the LLM response is visibly broken.
+
+    Two failure shapes seen in the wild:
+    1. Any user-visible string contains ASCII control characters
+       (the tokenizer glitch behind the corrupted "eee" Hindi row).
+    2. A non-English response contains no characters from the requested
+       script (the model answered in English despite the prompt).
+    """
+    for s in _iter_strings(data):
+        if _CTRL_CHARS_RE.search(s):
+            raise ValueError("LLM output contains control characters")
+    base = (lang or "en").split("-")[0]
+    block_start = _SCRIPT_BLOCK.get(base)
+    if block_start is None:
+        return  # English — no script expectation
+    if _script_ratio(list(_iter_strings(data)), block_start) < 0.35:
+        raise ValueError(
+            f"LLM output for lang={lang} lacks target script characters"
+        )
+
+
 LANG_NAMES = {
     "hi": "Hindi (Devanagari)", "en": "English", "mr": "Marathi", "bn": "Bengali",
     "te": "Telugu", "ta": "Tamil", "gu": "Gujarati", "kn": "Kannada",
     "ml": "Malayalam", "pa": "Punjabi", "ur": "Urdu", "or": "Odia",
 }
 
-SYSTEM_PROMPT = """You are an NCERT content generator for an Indian education app.
+SYSTEM_PROMPT = r"""You are an NCERT content generator for an Indian education app.
 Given a concept's gold script, produce STRICT JSON (no markdown fences) with keys:
 - topic_name: the concept title translated into the requested language
   (e.g. "Euclid's Division Lemma" -> Hindi "यूक्लिड की विभाजन प्रमेयिका")
@@ -42,7 +111,12 @@ Given a concept's gold script, produce STRICT JSON (no markdown fences) with key
 - mentor_prompt: {scenario: "mastery_confirmation", question_text: string,
                   key_principles_to_cover: [3 strings], sample_ideal_response: string}
 Write ALL user-visible text in the requested language. Ground everything in the
-script; do not invent facts outside it."""
+script; do not invent facts outside it.
+
+ENCODING — CRITICAL: write every non-ASCII character as its literal Unicode
+character (raw UTF-8 Devanagari/Gurmukhi/etc.). NEVER serialize text as
+\uXXXX escape sequences — escaping Hindi loses a digit and corrupts it
+into control characters that render as unreadable garbage."""
 
 
 def _build_user_prompt(concept: Concept, lang: str) -> str:
@@ -67,8 +141,12 @@ async def localize_topic_name(
     cached in the JSONB summary like everything else."""
     summary = quiz_row.summary or {}
     cached = summary.get("topic_name")
-    if cached:
+    if cached and not _CTRL_CHARS_RE.search(cached):
         return cached
+    if cached:
+        # Cached value is glitched (control chars) — retranslate below and
+        # overwrite so the corruption does not stick forever.
+        logger.warning("topic_name cache corrupt for %s [%s]; retranslating", concept.id, lang)
     english = concept.topic_name or concept.name
     if lang == "en":
         return english
@@ -110,6 +188,11 @@ async def localize_topic_name(
         import asyncio
 
         translated = await asyncio.to_thread(_call)
+        if translated and _CTRL_CHARS_RE.search(translated):
+            logger.warning(
+                "topic_name translation glitched for %s [%s]; falling back", concept.id, lang
+            )
+            translated = ""
         if translated:
             quiz_row.summary = {**summary, "topic_name": translated}
             await session.commit()
@@ -177,6 +260,18 @@ async def generate_quiz_content(concept_id: str, lang: str) -> str:
             )
             deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-mini")
 
+            def _parse_llm_json(content: str) -> dict:
+                """Parse the model's strict-JSON reply, tolerating code fences."""
+                text = (content or "").strip()
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    pass
+                if text.startswith("```"):
+                    text = re.sub(r"^```(?:json)?\s*", "", text)
+                    text = re.sub(r"```\s*$", "", text).strip()
+                return json.loads(text)
+
             def _call() -> dict:
                 resp = client.chat.completions.create(
                     model=deployment,
@@ -185,10 +280,18 @@ async def generate_quiz_content(concept_id: str, lang: str) -> str:
                         {"role": "user", "content": _build_user_prompt(concept, lang)},
                     ],
                     temperature=0.3,
-                    max_completion_tokens=4000,
-                    response_format={"type": "json_object"},
+                    max_completion_tokens=8000,
+                    # NOTE: response_format=json_object is DISABLED on purpose.
+                    # This deployment corrupts Indic text in JSON-mode output:
+                    # \u09xx escapes come back with digits mangled into
+                    # \u00xx control characters (verified live 2026-10-25),
+                    # which persisted into concept_quizzes and rendered as
+                    # unreadable garbage in the UI. Without forced JSON mode
+                    # the same call returns valid escapes/raw script text;
+                    # the system prompt still demands strict JSON and we
+                    # parse it ourselves (`_parse_llm_json`).
                 )
-                return json.loads(resp.choices[0].message.content)
+                return _parse_llm_json(resp.choices[0].message.content)
 
             import asyncio
 
@@ -196,6 +299,7 @@ async def generate_quiz_content(concept_id: str, lang: str) -> str:
             for attempt in range(3):
                 try:
                     data = await asyncio.to_thread(_call)
+                    _validate_quiz_payload(data, lang)  # glitched LLM output → retry
                     if row is None:
                         row = ConceptQuiz(concept_id=concept_id, lang=lang)
                         session.add(row)

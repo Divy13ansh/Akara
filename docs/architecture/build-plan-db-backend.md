@@ -250,7 +250,7 @@ One command boots the whole app. Dev topology = prod topology on the VPS.
 | `worker` | same image as `api` | command: `arq services.worker.main.WorkerSettings` |
 | `video` | existing `services/video/Dockerfile` | **fix first**: it COPYs a `requirements.txt` that doesn't exist — generate it from `services/video/pyproject.toml`; `outputs/` volume |
 | `web` | new multi-stage `apps/web/Dockerfile` | `node:20-alpine` build (`npm ci && npm run build`) → `nginx:alpine` serving `dist` with SPA fallback + `/api` proxy to `api:8000`; published on port 80 — **this is the only URL users touch** |
-| `voice` | new `services/voice/Dockerfile` | compose **profile `voice`** (full loop = `docker compose --profile voice up`); kept out of the default `up` because it needs LIVEKIT creds + VEXYL-STT (separate repo, run on host or GPU box). `restart: unless-stopped` so it reconnects on LiveKit drops |
+| `voice` | new `services/voice/Dockerfile` | part of the default `docker compose up` (NO profile gate — a profile-gated version was silently dropped by plain `up` and left LiveKit with no registered `akara-voice` worker); needs LIVEKIT creds + the `stt` service (GPU optional, CPU default). `restart: unless-stopped` so it reconnects on LiveKit drops |
 
 Ports published to host: web **80**, api 8000 (debug), video 8001 (debug),
 postgres 5432 + redis 6379 (dev tooling only — do not publish on the VPS).

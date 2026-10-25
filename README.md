@@ -113,8 +113,7 @@ Full features (see `docs/operations/secrets.md`): `LIVEKIT_URL` / `LIVEKIT_API_K
 ### 2. Run the full stack
 
 ```sh
-docker compose up -d --build            # web + api + worker + video + stt + postgres + redis
-docker compose --profile voice up -d    # + LiveKit voice worker
+docker compose up -d --build            # web + api + worker + video + stt + voice + postgres + redis
 docker compose ps
 docker compose logs -f api              # first boot seeds the catalog
 docker compose logs -f stt              # first boot downloads the model; wait for "model ready"

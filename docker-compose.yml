@@ -1,6 +1,6 @@
 # Akara — single-command stack (docs/build-plan-db-backend.md §3c)
-#   docker compose up -d            → web + api + worker + video + stt + postgres + redis
-#   docker compose --profile voice up -d → adds the LiveKit voice worker (on top of stt)
+#   docker compose up -d            → web + api + worker + video + stt + voice + postgres + redis
+#   docker compose up -d stt voice  → restart a subset (e.g. after editing env)
 # Secrets come from .env.local at the repo root (compose `env_file`).
 # HF_TOKEN in .env.local is REQUIRED for stt on a fresh VPS — it downloads the
 # gated ai4bharat/indic-conformer-600m-multilingual model on first boot (docs/vexyl-stt.md).
@@ -151,7 +151,9 @@ services:
     depends_on:
       - api
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"]
+      # nginx listens on IPv4 only; busybox wget resolves `localhost` to ::1
+      # first and gets connection-refused, so probe 127.0.0.1 explicitly.
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -190,7 +192,9 @@ services:
     build:
       context: .
       dockerfile: services/voice/Dockerfile
-    profiles: ["voice"]
+    # Deliberately NOT profile-gated: it ran behind `--profile voice`, and every
+    # plain `docker compose up` silently dropped it — LiveKit then had no
+    # registered `akara-voice` worker and the Feynman loop never greeted.
     env_file: .env.local
     environment:
       AKARA_API_URL: http://api:8000

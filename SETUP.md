@@ -39,8 +39,7 @@ VITE_GOOGLE_CLIENT_ID=<...>.apps.googleusercontent.com
 ## 2. Run the full stack
 
 ```sh
-docker compose up -d --build            # web+api+worker+video+stt+postgres+redis
-docker compose --profile voice up -d    # + LiveKit voice worker
+docker compose up -d --build            # web+api+worker+video+stt+voice+postgres+redis
 docker compose ps
 docker compose logs -f api              # first boot seeds catalog from packages/akara_db/syllabus.json
 docker compose logs -f stt              # first boot downloads model; wait for "model ready"

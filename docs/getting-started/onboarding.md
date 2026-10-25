@@ -52,7 +52,7 @@ docker compose up -d --build # web+api+worker+video+stt+postgres+redis
 Voice (optional profile — uses the `stt` compose service):
 
 ```sh
-docker compose --profile voice up -d --build voice
+docker compose up -d --build voice
 ```
 
 ## Where to go next

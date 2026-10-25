@@ -30,7 +30,7 @@ free tier. Copy `.env.example` → `.env.local` and fill in what you generate.
   the dashboard
 - **Env vars**: `LIVEKIT_URL=wss://<project>.livekit.cloud`,
   `LIVEKIT_API_KEY=...`, `LIVEKIT_API_SECRET=...`
-- **Verify**: `docker compose --profile voice up -d voice` → logs show
+- **Verify**: `docker compose up -d voice` → logs show
   `"registered worker"`; then `GET http://localhost/token?student_id=t&topic_id=phy11-inertia`
   returns a JWT and open https://livekit.io/playground with the same URL/creds
   to hear the agent

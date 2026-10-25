@@ -213,8 +213,8 @@ exists**, deduped:
 cp .env.example .env.local         # fill: HF_TOKEN + the secrets you already have
 docker compose up -d --build       # web api worker video stt postgres redis
 docker compose logs -f stt         # first boot: model download (~2.4GB, one-time)
-# voice (optional):
-docker compose --profile voice up -d --build
+# voice (default part of the stack now):
+docker compose up -d --build
 ```
 
 Health: `http://localhost/healthz` (nginx→api), `http://localhost:8091/health` (STT).

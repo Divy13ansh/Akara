@@ -1,6 +1,6 @@
 # Voice worker image. Build context: repo root.
-# NOTE: requires the VEXYL-STT server reachable (host or GPU box) — see
-# docs/vexyl-stt.md. Run with: docker compose --profile voice up -d
+# NOTE: requires the VEXYL-STT server reachable — see docs/vexyl-stt.md.
+# Part of the default stack: docker compose up -d (no --profile needed)
 FROM python:3.11-slim
 
 WORKDIR /app
