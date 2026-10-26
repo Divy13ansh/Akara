@@ -1,6 +1,7 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
-sqlalchemy>=2.0.30
+sqlalchemy[asyncio]>=2.0.30,<2.1  # [asyncio] pulls greenlet; <2.1 = the line uv.lock/tests run on
+greenlet>=3.0  # explicit: SQLAlchemy only installs it via the extra/platform markers
 asyncpg>=0.29
 psycopg[binary]>=3.1
 alembic>=1.13
