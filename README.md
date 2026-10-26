@@ -280,28 +280,7 @@ Accessibility and low-connectivity support are also core requirements:
 
 The demonstration video walks through the complete learner journey: onboarding in Hindi, navigating a Grade 10 Science chapter, watching an explainer, completing a live Feynman voice session, reviewing the diagnostic, and unlocking the next concept.
 
-<!-- DEMO VIDEO PLACEHOLDER START -->
-**[DEMO VIDEO: Akara — Watch. Explain. Learn.]**
-
-Title: Akara Product Walkthrough and Socratic Voice Session
-
-Duration: 03:45 · Format: 1080p, 60 fps, MP4
-
-Poster: /docs/assets/video/demo-poster.png
-
-Source: /docs/assets/video/akara-product-demo.mp4
-
-Narration: product problem, learning loop, video generation, voice mentorship, mastery evidence, and progress remediation.
-<!-- DEMO VIDEO PLACEHOLDER END -->
-
-Recommended narration beats:
-
-1. **The problem.** Students watch more but explain less. The gap is invisible until they try to teach the idea.
-2. **The learning loop.** Watch, explain, practice, and master, all inside one concept.
-3. **One explainer for every student.** The first learner triggers generation; every later learner receives the same asset instantly.
-4. **The voice mentor.** A student explains in Hindi while the mentor probes one conceptual gap at a time.
-5. **Proof of learning.** Coverage evidence becomes a mastery score, a diagnostic, and a newly unlocked concept.
-6. **The system underneath.** One self-hosted stack for content, voice, assessment, and progress.
+**[Watch the Akara Product Walkthrough and Socratic Voice Session](https://youtu.be/j8qGhkwej_Q)**
 
 ---
 
