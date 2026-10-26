@@ -30,7 +30,12 @@ COPY vexyl_stt_server.py entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 
 # Persistent model cache lives outside the container filesystem.
+# HF_HUB_DISABLE_SYMLINKS: the model's ONNX weights reference external data
+# files, and onnxruntime rejects external data reached through a symlink
+# ("External data path escapes model directory"). Without this, every snapshot
+# file is a symlink into hub/blobs and the model cannot load at all.
 ENV HF_HOME=/models/hf \
+    HF_HUB_DISABLE_SYMLINKS=1 \
     VEXYL_STT_HOST=0.0.0.0 \
     PORT=8091 \
     VEXYL_STT_DEVICE=cpu

@@ -304,6 +304,63 @@ def _sanitize_text_calls(code: str) -> str:
 # HELPERS
 # ============================================================
 
+_TEX_MOB_ASSIGN_RE = re.compile(
+    r"^\s*([A-Za-z_]\w*)\s*(?::[^=\n]+)?=\s*(?:MathTex|Tex|SingleStringMathTex)\s*\(",
+    re.MULTILINE,
+)
+
+_AKARA_PART_HELPER = '''
+def _akara_part(mob, index):
+    """Index a generated mobject without killing the render.
+
+    A single-string ``MathTex(r"x^n")`` is ONE mobject, so generated code that
+    indexes past element 0 raises ``IndexError: range object index out of
+    range`` and kills the render. Emphasis is cosmetic, so an out-of-range
+    part degrades to an empty ``VGroup`` (a no-op) instead of burning the
+    retries into a black placeholder.
+    """
+    try:
+        return mob[index]
+    except (IndexError, KeyError, TypeError):
+        return VGroup()
+
+'''
+
+
+def _sanitize_mobject_index(code: str) -> str:
+    """Make Tex/MathTex subscript emphasis safe BEFORE any render attempt.
+
+    LLM codegen writes ``eq[1].animate.set_color(BLUE)`` as if a formula were a
+    sequence of its glyphs, but ``MathTex`` only splits into submobjects when
+    it is given several strings (or ``substrings_to_isolate``). One string ⇒
+    ``eq[1]`` raises IndexError and the scene dies — the LLM fixer then guesses
+    new indices, fails again, and the scene ships as a black placeholder (see
+    Scene1/2/3/9/11/12 of the maths exponents render). Route those accesses
+    through ``_akara_part`` so a bad index is a no-op instead of a crash.
+    """
+    names = sorted(set(_TEX_MOB_ASSIGN_RE.findall(code)))
+    if not names:
+        return code
+
+    pattern = re.compile(
+        r"(?<![\w.])(?P<name>" + "|".join(re.escape(n) for n in names) + r")"
+        r"\[\s*(?P<index>-?\d+)\s*\]"
+    )
+    out = pattern.sub(
+        lambda m: f"_akara_part({m.group('name')}, {m.group('index')})", code
+    )
+    if "_akara_part(" not in out or re.search(r"^def _akara_part\b", out, re.MULTILINE):
+        return out
+
+    # The helper must land in the per-scene header (everything before the first
+    # Scene class is copied into every split file).
+    anchor = re.search(r"^class\s+Scene\d", out, re.MULTILINE)
+    helper = _AKARA_PART_HELPER.lstrip("\n")
+    if anchor:
+        return out[: anchor.start()] + helper + "\n" + out[anchor.start() :]
+    return helper + "\n" + out
+
+
 def split_manim_code_to_files(manim_code: str) -> dict[str, Path]:
     """
     Split full animation.py into one file per scene class.
@@ -468,7 +525,9 @@ def generate_manim(scenes, rag_context: str | None = None, language: str = "engl
         try:
             output = call_llm(prompt)
             data = extract_json(output)
-            manim_code = _sanitize_text_calls(_sanitize_indic_tex(data["manim_code"]))
+            manim_code = _sanitize_mobject_index(
+                _sanitize_text_calls(_sanitize_indic_tex(data["manim_code"]))
+            )
             
             # Harden against self.wait(<=0)
             def fix_wait_durations(match):
@@ -546,7 +605,11 @@ def generate_manim(scenes, rag_context: str | None = None, language: str = "engl
                 if attempt <= MAX_RETRIES:
                     scene_code = scene_file.read_text(encoding="utf-8")
                     fixed_code = fix_manim_code_with_llm(scene_code, stderr_text)
-                    fixed_code = _sanitize_text_calls(_sanitize_indic_tex(_strip_code_fences(fixed_code)))  # json_safe + Indic-in-Tex + LaTeX-in-Text guards
+                    fixed_code = _sanitize_mobject_index(
+                        _sanitize_text_calls(
+                            _sanitize_indic_tex(_strip_code_fences(fixed_code))
+                        )
+                    )  # json_safe + Indic-in-Tex + LaTeX-in-Text + safe-index guards
 
                     # Validate before writing
                     try:
